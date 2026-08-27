@@ -5,13 +5,11 @@ import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { config } from '@/lib/wallet';
 import Header from '@/components/Header';
-import HeroSection from '@/components/HeroSection';
 import MerchantDashboard from '@/components/MerchantDashboard';
-import TrustSection from '@/components/TrustSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
-import SecuritySection from '@/components/SecuritySection';
 import Footer from '@/components/Footer';
 import CustomerPaymentView from '@/components/CustomerPaymentView';
+import SplashIntro from '@/components/SplashIntro';
 import { getCurrentPaymentParams } from '@/lib/payments';
 
 const queryClient = new QueryClient({
@@ -38,6 +36,7 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const [params, setParams] = useState(() => getCurrentPaymentParams());
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const onPop = () => setParams(getCurrentPaymentParams());
@@ -48,28 +47,34 @@ function AppContent() {
   const isCustomerView = !!params;
 
   return (
-    <div className="min-h-screen bg-[#F5F7FB] flex flex-col selection:bg-blue-600 selection:text-white">
-      {/* Institutional Deep Navy Header */}
-      <Header />
+    <>
+      {showSplash && (
+        <SplashIntro
+          durationMs={2000}
+          onComplete={() => setShowSplash(false)}
+        />
+      )}
 
-      {/* Main Content Area */}
-      <main className="flex-1">
-        {isCustomerView ? (
-          <CustomerPaymentView params={params!} />
-        ) : (
-          <>
-            <HeroSection />
-            <MerchantDashboard />
-            <TrustSection />
-            <HowItWorksSection />
-            <SecuritySection />
-          </>
-        )}
-      </main>
+      <div className="min-h-screen bg-[#F5F7FB] flex flex-col selection:bg-blue-600 selection:text-white">
+        {/* Institutional Deep Navy Header */}
+        <Header />
 
-      {/* Institutional Deep Navy Footer */}
-      <Footer />
-    </div>
+        {/* Main Content Area */}
+        <main className="flex-1">
+          {isCustomerView ? (
+            <CustomerPaymentView params={params!} />
+          ) : (
+            <>
+              <MerchantDashboard />
+              <HowItWorksSection />
+            </>
+          )}
+        </main>
+
+        {/* Institutional Deep Navy Footer */}
+        <Footer />
+      </div>
+    </>
   );
 }
 

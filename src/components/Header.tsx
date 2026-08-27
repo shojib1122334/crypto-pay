@@ -30,7 +30,7 @@ export default function Header() {
             onClick={() => scrollToSection('merchant-dashboard')}
             className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
           >
-            Payments
+            Create Request
           </button>
           <button
             onClick={() => scrollToSection('how-it-works')}
@@ -39,22 +39,10 @@ export default function Header() {
             How It Works
           </button>
           <button
-            onClick={() => scrollToSection('security')}
-            className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-          >
-            Security
-          </button>
-          <button
-            onClick={() => scrollToSection('trust-section')}
-            className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-          >
-            Features
-          </button>
-          <button
             onClick={() => scrollToSection('support')}
             className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
           >
-            Support
+            Supported Assets & Info
           </button>
         </nav>
 
@@ -85,7 +73,7 @@ export default function Header() {
             onClick={() => scrollToSection('merchant-dashboard')}
             className="w-full flex items-center justify-between text-left py-2 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
           >
-            Payments Dashboard
+            Create Payment Request
             <ArrowUpRight className="w-4 h-4 text-slate-400" />
           </button>
           <button
@@ -96,24 +84,10 @@ export default function Header() {
             <ArrowUpRight className="w-4 h-4 text-slate-400" />
           </button>
           <button
-            onClick={() => scrollToSection('security')}
-            className="w-full flex items-center justify-between text-left py-2 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
-          >
-            Security & Non-Custodial
-            <ArrowUpRight className="w-4 h-4 text-slate-400" />
-          </button>
-          <button
-            onClick={() => scrollToSection('trust-section')}
-            className="w-full flex items-center justify-between text-left py-2 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
-          >
-            Built for Modern Payments
-            <ArrowUpRight className="w-4 h-4 text-slate-400" />
-          </button>
-          <button
             onClick={() => scrollToSection('support')}
             className="w-full flex items-center justify-between text-left py-2 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
           >
-            Merchant Support
+            Supported Assets & Info
             <ArrowUpRight className="w-4 h-4 text-slate-400" />
           </button>
         </div>

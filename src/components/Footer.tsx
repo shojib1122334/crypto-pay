@@ -34,7 +34,7 @@ export default function Footer() {
                   onClick={() => scrollToSection('merchant-dashboard')}
                   className="hover:text-white transition-colors"
                 >
-                  Payments Dashboard
+                  Create Payment Request
                 </button>
               </li>
               <li>
@@ -47,18 +47,10 @@ export default function Footer() {
               </li>
               <li>
                 <button
-                  onClick={() => scrollToSection('security')}
+                  onClick={() => scrollToSection('support')}
                   className="hover:text-white transition-colors"
                 >
-                  Security Architecture
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollToSection('trust-section')}
-                  className="hover:text-white transition-colors"
-                >
-                  Features & Settlement
+                  Network & Supported Assets
                 </button>
               </li>
             </ul>
