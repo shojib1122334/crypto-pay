@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useChainId, useSwitchChain } from 'wagmi';
-import { sepolia, polygon } from '@/lib/wallet';
+import { polygon } from '@/lib/wallet';
 
-const SEPOLIA_CHAIN_ID = sepolia.id;
-const POLYGON_CHAIN_ID = polygon.id;
+export const POLYGON_CHAIN_ID = polygon.id; // 137
 
-export function useEnsureNetwork(targetChainId: number = SEPOLIA_CHAIN_ID) {
+export function useEnsureNetwork(targetChainId: number = POLYGON_CHAIN_ID) {
   const chainId = useChainId();
   const { switchChainAsync, isPending: switching } = useSwitchChain();
   const [requested, setRequested] = useState(false);
@@ -28,9 +27,6 @@ export function useEnsureNetwork(targetChainId: number = SEPOLIA_CHAIN_ID) {
   return { isCorrect, requestSwitch, switching, requested, currentChainId: chainId };
 }
 
-export function useEnsureSepolia() {
-  return useEnsureNetwork(SEPOLIA_CHAIN_ID);
+export function useEnsurePolygon() {
+  return useEnsureNetwork(POLYGON_CHAIN_ID);
 }
-
-export { SEPOLIA_CHAIN_ID, POLYGON_CHAIN_ID };
-

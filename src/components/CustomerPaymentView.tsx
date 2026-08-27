@@ -20,28 +20,11 @@ import {
   type PaymentLinkParams,
 } from '@/lib/payments';
 import type { PaymentSession } from '@/lib/supabase';
-import { useEnsureNetwork } from '@/hooks/useEnsureSepolia';
-import { getToken, ERC20_ABI } from '@/lib/tokens';
+import { useEnsureNetwork } from '@/hooks/useEnsurePolygon';
+import { getToken, ERC20_ABI, POLYGON_CHAIN_ID } from '@/lib/tokens';
+import { TokenIcon } from '@/components/TokenIcon';
 
 type PayState = 'idle' | 'sending' | 'confirming' | 'success' | 'error';
-
-const TOKEN_COLOR_MAP: Record<string, { bg: string; text: string; accent: string }> = {
-  usdt: {
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
-    accent: 'bg-emerald-600',
-  },
-  usdc: {
-    bg: 'bg-blue-50',
-    text: 'text-blue-700',
-    accent: 'bg-blue-600',
-  },
-  verse: {
-    bg: 'bg-purple-50',
-    text: 'text-[#7C3AED]',
-    accent: 'bg-[#7C3AED]',
-  },
-};
 
 export default function CustomerPaymentView({
   params,
@@ -50,7 +33,7 @@ export default function CustomerPaymentView({
 }) {
   const { address, isConnected } = useAccount();
   const token = getToken(params.token);
-  const targetChainId = token?.chainId ?? 137;
+  const targetChainId = token?.chainId ?? POLYGON_CHAIN_ID;
   const { isCorrect, requestSwitch, switching } = useEnsureNetwork(targetChainId);
   const { writeContractAsync, isPending: sending } = useWriteContract();
   const [session, setSession] = useState<PaymentSession | null>(null);
@@ -71,7 +54,7 @@ export default function CustomerPaymentView({
     }
   })();
 
-  // Read the customer's ERC-20 token balance on the token's network
+  // Read the customer's ERC-20 token balance on Polygon Mainnet
   const { data: tokenBalance } = useReadContract({
     address: token?.address,
     abi: ERC20_ABI,
@@ -110,7 +93,7 @@ export default function CustomerPaymentView({
     query: { enabled: !!txHash && payState === 'confirming' },
   });
 
-  // React to receipt once the transaction is confirmed on-chain
+  // React to receipt once the transaction is confirmed on-chain on Polygon
   useEffect(() => {
     if (!receipt || payState !== 'confirming' || !txHash || !address) return;
     if (receipt.status === 'success') {
@@ -122,7 +105,7 @@ export default function CustomerPaymentView({
       });
     } else {
       setPayState('error');
-      setError('Transaction failed on-chain.');
+      setError('Transaction failed on Polygon blockchain.');
       updatePaymentSession(params.sessionId, {
         status: 'failed',
         tx_hash: txHash,
@@ -147,6 +130,10 @@ export default function CustomerPaymentView({
     }
     if (amountRaw <= 0n) {
       setError('Invalid payment amount.');
+      return;
+    }
+    if (!isCorrect) {
+      setError('Please switch your wallet to Polygon Mainnet (Chain ID 137).');
       return;
     }
 
@@ -175,9 +162,12 @@ export default function CustomerPaymentView({
         lower.includes('user rejected') ||
         lower.includes('user cancelled') ||
         lower.includes('connection request reset') ||
+        lower.includes('proposal expired') ||
+        lower.includes('session proposal expired') ||
+        lower.includes('pairing proposal expired') ||
         lower.includes('rejected the request')
       ) {
-        setError('Transaction request was cancelled or reset in your wallet. Please try again.');
+        setError('Wallet connection or signing session timed out or was reset. Please tap Pay to try again.');
       } else {
         setError(message);
       }
@@ -186,6 +176,7 @@ export default function CustomerPaymentView({
     address,
     amountRaw,
     isConnected,
+    isCorrect,
     merchantAddress,
     params.sessionId,
     targetChainId,
@@ -198,15 +189,9 @@ export default function CustomerPaymentView({
     : txHash
       ? `https://polygonscan.com/tx/${txHash}`
       : null;
-  const explorerName = token?.chainId === 137 ? 'Polygonscan' : 'Etherscan';
+  const explorerName = 'Polygonscan';
 
   const tokenLabel = token?.label ?? params.token.toUpperCase();
-  const networkName = token?.networkName ?? 'Polygon';
-  const tokenAccent = TOKEN_COLOR_MAP[params.token.toLowerCase()] ?? {
-    bg: 'bg-blue-50',
-    text: 'text-blue-700',
-    accent: 'bg-blue-600',
-  };
   const insufficientFunds =
     tokenBalance !== undefined && amountRaw > 0n && tokenBalance < amountRaw;
 
@@ -229,10 +214,11 @@ export default function CustomerPaymentView({
           
           <p className="text-[#64748B] text-sm leading-relaxed mb-6">
             You successfully transferred{' '}
-            <strong className="text-[#0B1220]">
+            <strong className="text-[#0B1220] inline-flex items-center gap-1.5 align-middle">
+              <TokenIcon token={params.token} size={18} />
               {amountDisplay} {tokenLabel}
             </strong>{' '}
-            directly to the merchant wallet on {networkName}.
+            directly to the merchant wallet on Polygon Mainnet.
           </p>
 
           <div className="bg-[#F5F7FB] rounded-2xl border border-[#E2E8F0] p-4 text-left space-y-2 mb-6">
@@ -244,7 +230,13 @@ export default function CustomerPaymentView({
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-[#64748B]">Network</span>
-              <span className="font-semibold text-slate-800">{networkName}</span>
+              <span className="font-semibold text-slate-800">Polygon Mainnet (137)</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-[#64748B]">Token Contract</span>
+              <span className="font-mono text-xs text-slate-700 truncate max-w-[180px]">
+                {token.address}
+              </span>
             </div>
             {txHash && (
               <div className="flex justify-between text-xs pt-2 border-t border-slate-200">
@@ -284,7 +276,7 @@ export default function CustomerPaymentView({
             Invalid Payment Link
           </h2>
           <p className="text-[#64748B] text-xs leading-relaxed">
-            This payment link specifies an unsupported asset. Please request a new payment QR code from the merchant.
+            This payment link specifies an unsupported asset. Supported tokens are USDT, USDC, and VERSE on Polygon Mainnet.
           </p>
         </div>
       </div>
@@ -304,7 +296,7 @@ export default function CustomerPaymentView({
           Review & Complete Payment
         </h1>
         <p className="text-sm text-[#64748B] mt-1">
-          Direct peer-to-peer settlement to merchant on {networkName}.
+          Direct peer-to-peer settlement to merchant on Polygon Mainnet (Chain ID 137).
         </p>
       </div>
 
@@ -317,7 +309,7 @@ export default function CustomerPaymentView({
             Payment Invoice
           </span>
           <span className="text-xs font-semibold px-2.5 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700/50">
-            {networkName}
+            Polygon Mainnet
           </span>
         </div>
 
@@ -335,11 +327,7 @@ export default function CustomerPaymentView({
               </div>
             </div>
             
-            <div
-              className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-sm ${tokenAccent.accent}`}
-            >
-              {tokenLabel.slice(0, 1)}
-            </div>
+            <TokenIcon token={params.token} size={48} className="shadow-sm" />
           </div>
 
           {/* Details list */}
@@ -366,9 +354,12 @@ export default function CustomerPaymentView({
 
             {tokenBalance !== undefined && (
               <div className="flex items-center justify-between bg-[#F5F7FB] border border-[#E2E8F0] rounded-lg p-3">
-                <span className="text-xs font-bold text-[#64748B]">
-                  Your {tokenLabel} Balance
-                </span>
+                <div className="flex items-center gap-2">
+                  <TokenIcon token={params.token} size={20} />
+                  <span className="text-xs font-bold text-[#64748B]">
+                    Your {tokenLabel} Balance (Polygon)
+                  </span>
+                </div>
                 <span
                   className={`text-xs font-bold ${
                     insufficientFunds ? 'text-[#DC2626]' : 'text-[#0B1220]'
@@ -391,14 +382,14 @@ export default function CustomerPaymentView({
                     Network Mismatch
                   </p>
                   <p className="text-xs text-amber-800 mt-0.5">
-                    Your wallet is connected to a different network. Please switch to {networkName}.
+                    Your wallet is connected to a different network. Please switch to Polygon Mainnet.
                   </p>
                   <button
                     onClick={requestSwitch}
                     disabled={switching}
                     className="mt-2 text-xs font-bold text-[#1D4ED8] underline disabled:opacity-50"
                   >
-                    {switching ? 'Switching Network...' : `Switch to ${networkName}`}
+                    {switching ? 'Switching Network...' : 'Switch to Polygon Mainnet'}
                   </button>
                 </div>
               </div>
@@ -414,7 +405,7 @@ export default function CustomerPaymentView({
                     Insufficient {tokenLabel} Balance
                   </p>
                   <p className="text-xs text-rose-800 mt-0.5">
-                    You need at least {amountDisplay} {tokenLabel} to complete this transfer.
+                    You need at least {amountDisplay} {tokenLabel} on Polygon to complete this transfer.
                   </p>
                 </div>
               </div>
@@ -449,10 +440,11 @@ export default function CustomerPaymentView({
               disabled={
                 !isConnected || !isCorrect || sending || loadingSession || insufficientFunds
               }
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#1D4ED8] hover:bg-[#2563EB] px-5 py-4 text-white font-bold text-sm shadow-md shadow-blue-900/20 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#1D4ED8] hover:bg-[#2563EB] px-5 py-4 text-white font-bold text-sm shadow-md shadow-blue-900/20 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Pay {amountDisplay} {tokenLabel}
-              <ArrowRight className="w-4 h-4" />
+              <TokenIcon token={params.token} size={22} />
+              <span>Pay {amountDisplay} {tokenLabel}</span>
+              <ArrowRight className="w-4 h-4 ml-0.5" />
             </button>
           )}
 
@@ -463,7 +455,7 @@ export default function CustomerPaymentView({
               rel="noopener noreferrer"
               className="mt-3 flex items-center justify-center gap-1.5 text-xs font-bold text-[#1D4ED8] hover:text-[#2563EB] transition"
             >
-              Track on {explorerName} <ExternalLink className="w-3.5 h-3.5" />
+              Track on Polygonscan <ExternalLink className="w-3.5 h-3.5" />
             </a>
           )}
         </div>
@@ -472,7 +464,7 @@ export default function CustomerPaymentView({
 
       {!isConnected && (
         <p className="text-center text-xs text-[#64748B]">
-          Connect your Web3 wallet using the header button to approve and execute this payment.
+          Connect your Web3 wallet using the header button to approve and execute this payment on Polygon.
         </p>
       )}
     </div>

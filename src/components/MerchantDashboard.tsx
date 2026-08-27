@@ -24,6 +24,7 @@ import {
 } from '@/lib/payments';
 import { TOKEN_LIST, type TokenSymbol } from '@/lib/tokens';
 import type { PaymentSession, PaymentStatus } from '@/lib/supabase';
+import { TokenIcon } from '@/components/TokenIcon';
 
 const STATUS_BADGE_CONFIG: Record<
   PaymentStatus,
@@ -64,27 +65,6 @@ const STEP_INDEX: Record<PaymentStatus, number> = {
   confirming: 1,
   success: 2,
   failed: 1,
-};
-
-const TOKEN_COLOR_MAP: Record<TokenSymbol, { bg: string; text: string; border: string; accent: string }> = {
-  usdt: {
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
-    border: 'border-emerald-200',
-    accent: 'bg-emerald-600',
-  },
-  usdc: {
-    bg: 'bg-blue-50',
-    text: 'text-blue-700',
-    border: 'border-blue-200',
-    accent: 'bg-blue-600',
-  },
-  verse: {
-    bg: 'bg-purple-50',
-    text: 'text-[#7C3AED]',
-    border: 'border-purple-200',
-    accent: 'bg-[#7C3AED]',
-  },
 };
 
 export default function MerchantDashboard() {
@@ -347,8 +327,9 @@ export default function MerchantDashboard() {
                     onChange={(e) => setAmount(e.target.value)}
                     className="w-full rounded-xl border border-[#E2E8F0] bg-[#F5F7FB] px-4 py-3.5 text-xl font-bold text-[#0B1220] placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20 focus:border-[#1D4ED8] transition"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm text-xs font-bold text-[#0B1220]">
-                    {currentTokenLabel}
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm text-xs font-bold text-[#0B1220]">
+                    <TokenIcon token={selectedToken} size={20} />
+                    <span>{currentTokenLabel}</span>
                   </div>
                 </div>
 
@@ -380,13 +361,7 @@ export default function MerchantDashboard() {
                     className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#F5F7FB] px-4 py-3 text-sm font-semibold text-[#0B1220] hover:bg-slate-100 transition focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20"
                   >
                     <div className="flex items-center gap-3">
-                      <span
-                        className={`w-7 h-7 rounded-lg text-white text-xs font-bold flex items-center justify-center shadow-sm ${
-                          TOKEN_COLOR_MAP[selectedToken]?.accent ?? 'bg-slate-900'
-                        }`}
-                      >
-                        {currentTokenLabel.slice(0, 1)}
-                      </span>
+                      <TokenIcon token={selectedToken} size={32} />
                       <div className="text-left">
                         <span className="font-bold text-[#0B1220]">{currentTokenLabel}</span>
                         <span className="text-xs text-[#64748B] ml-2">
@@ -404,7 +379,6 @@ export default function MerchantDashboard() {
                   {dropdownOpen && (
                     <div className="absolute left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-[#E2E8F0] overflow-hidden z-30">
                       {TOKEN_LIST.map((token) => {
-                        const colors = TOKEN_COLOR_MAP[token.symbol];
                         const isSelected = selectedToken === token.symbol;
                         return (
                           <button
@@ -421,13 +395,7 @@ export default function MerchantDashboard() {
                             }`}
                           >
                             <div className="flex items-center gap-3">
-                              <span
-                                className={`w-6 h-6 rounded-md text-white text-[10px] font-bold flex items-center justify-center ${
-                                  colors?.accent ?? 'bg-slate-900'
-                                }`}
-                              >
-                                {token.label.slice(0, 1)}
-                              </span>
+                              <TokenIcon token={token.symbol} size={32} />
                               <div className="text-left">
                                 <span className="font-bold">{token.label}</span>
                                 <span className="text-xs text-[#64748B] block">
@@ -495,11 +463,12 @@ export default function MerchantDashboard() {
               <div className="p-6 flex flex-col items-center">
                 {/* Big Amount Badge */}
                 <div className="text-center mb-4">
-                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">
                     Total Amount
                   </span>
-                  <div className="text-3xl font-extrabold text-[#0B1220] tracking-tight">
-                    {qrParams.amount}{' '}
+                  <div className="inline-flex items-center justify-center gap-2 text-3xl font-extrabold text-[#0B1220] tracking-tight">
+                    <TokenIcon token={qrParams.token} size={30} />
+                    <span>{qrParams.amount}</span>
                     <span className="text-[#1D4ED8]">
                       {TOKEN_LIST.find((t) => t.symbol === qrParams.token)?.label}
                     </span>

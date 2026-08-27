@@ -1,4 +1,5 @@
 import { ShieldCheck, ExternalLink } from 'lucide-react';
+import { TokenIcon } from '@/components/TokenIcon';
 
 export default function Footer() {
   const scrollToSection = (id: string) => {
@@ -24,7 +25,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Institutional non-custodial crypto payment infrastructure engineered for direct Polygon settlement.
+              Institutional non-custodial crypto payment infrastructure engineered for direct Polygon Mainnet settlement.
             </p>
           </div>
 
@@ -74,22 +75,24 @@ export default function Footer() {
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
               Supported Assets
             </h4>
-            <ul className="space-y-2 text-xs">
+            <ul className="space-y-2.5 text-xs">
               <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                USDT (Tether USD)
+                <TokenIcon token="USDT" size={16} />
+                <span>USDT (Polygon Mainnet)</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-400" />
-                USDC (USD Coin)
+                <TokenIcon token="USDC" size={16} />
+                <span>USDC Native (Polygon PoS)</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-purple-400" />
-                VERSE (Polygon)
+                <TokenIcon token="VERSE" size={16} />
+                <span>VERSE (Polygon Mainnet)</span>
               </li>
-              <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-indigo-400" />
-                Polygon Mainnet (Chain ID 137)
+              <li className="flex items-center gap-2 text-slate-400">
+                <span className="w-4 h-4 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[9px] font-bold text-slate-300">
+                  #
+                </span>
+                <span>Chain ID 137</span>
               </li>
             </ul>
           </div>
@@ -108,8 +111,8 @@ export default function Footer() {
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Sepolia Testnet</span>
-                <span className="text-emerald-400 font-semibold">Operational</span>
+                <span className="text-slate-400">Settlement Chain</span>
+                <span className="text-emerald-400 font-semibold">Polygon PoS (137)</span>
               </div>
               <a
                 href="https://polygonscan.com"
@@ -124,13 +127,17 @@ export default function Footer() {
 
         </div>
 
-        {/* Disclaimer & Copyright */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+        {/* Network summary banner & Disclaimer */}
+        <div className="pt-6 pb-2 text-center text-xs font-medium text-slate-400 border-b border-[#1E293B]/60 mb-4">
+          Polygon Mainnet — USDT, USDC & VERSE
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
           <p>
             © {new Date().getFullYear()} CryptoPay Protocol. All rights reserved. Non-custodial direct peer-to-peer settlement.
           </p>
           <p className="text-center sm:text-right max-w-md">
-            CryptoPay does not custody funds or hold private keys. Transactions are executed directly on the EVM blockchain.
+            CryptoPay does not custody funds or hold private keys. Transactions are executed directly on the Polygon blockchain.
           </p>
         </div>
       </div>
