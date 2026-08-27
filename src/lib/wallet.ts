@@ -11,11 +11,10 @@ export const config = getDefaultConfig({
   chains: [polygon],
   transports: {
     [polygon.id]: fallback([
-      http('https://polygon-rpc.com'),
-      http('https://rpc.ankr.com/polygon'),
       http('https://polygon-bor-rpc.publicnode.com'),
       http('https://1rpc.io/matic'),
-      http('https://polygon.llamarpc.com'),
+      http('https://polygon.drpc.org'),
+      http('https://polygon.gateway.tenderly.co'),
     ]),
   },
   ssr: false,

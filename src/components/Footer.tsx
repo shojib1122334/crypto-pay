@@ -1,5 +1,6 @@
-import { ShieldCheck, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { TokenIcon } from '@/components/TokenIcon';
+import { BrandLogo } from '@/components/BrandLogo';
 
 export default function Footer() {
   const scrollToSection = (id: string) => {
@@ -16,14 +17,7 @@ export default function Footer() {
           
           {/* Brand Col */}
           <div className="space-y-4 md:col-span-1">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#1D4ED8] to-[#2563EB] flex items-center justify-center text-white">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <span className="font-bold text-white text-lg tracking-tight">
-                CryptoPay
-              </span>
-            </div>
+            <BrandLogo size={32} showText={true} />
             <p className="text-xs text-slate-400 leading-relaxed">
               Institutional non-custodial crypto payment infrastructure engineered for direct Polygon Mainnet settlement.
             </p>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { ShieldCheck, Menu, X, ArrowUpRight } from 'lucide-react';
+import { Menu, X, ArrowUpRight } from 'lucide-react';
+import { BrandLogo } from '@/components/BrandLogo';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,17 +20,7 @@ export default function Header() {
         {/* Brand Logo */}
         <div className="flex items-center gap-3">
           <a href="#" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1D4ED8] to-[#2563EB] flex items-center justify-center shadow-md shadow-blue-900/30 ring-1 ring-blue-400/20">
-              <ShieldCheck className="w-5 h-5 text-white" strokeWidth={2.2} />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-white tracking-tight text-lg leading-tight flex items-center gap-1.5">
-                CryptoPay
-                <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded border border-blue-400/30">
-                  Polygon
-                </span>
-              </span>
-            </div>
+            <BrandLogo size={36} showText={true} badgeText="Polygon" />
           </a>
         </div>
 

@@ -1,4 +1,4 @@
-import { parseUnits } from 'viem';
+import { parseUnits, getAddress } from 'viem';
 import { supabase, type PaymentSession, type PaymentStatus } from './supabase';
 import { getToken, type TokenConfig, type TokenSymbol } from './tokens';
 
@@ -90,11 +90,20 @@ export function buildPaymentQRUri(
     return merchantAddress;
   }
 
+  let formattedMerchant = merchantAddress;
+  try {
+    formattedMerchant = getAddress(merchantAddress);
+  } catch {
+    formattedMerchant = merchantAddress;
+  }
+
+  const tokenContract = token.address;
+
   try {
     const rawAmount = parseUnits(amount, token.decimals);
-    return `ethereum:${token.address}@${token.chainId}/transfer?address=${merchantAddress}&uint256=${rawAmount.toString()}`;
+    return `ethereum:${tokenContract}@${token.chainId}/transfer?address=${formattedMerchant}&uint256=${rawAmount.toString()}`;
   } catch {
-    return `ethereum:${token.address}@${token.chainId}/transfer?address=${merchantAddress}`;
+    return `ethereum:${tokenContract}@${token.chainId}/transfer?address=${formattedMerchant}`;
   }
 }
 

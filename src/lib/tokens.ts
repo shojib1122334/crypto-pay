@@ -41,7 +41,7 @@ export const TOKENS: Record<TokenSymbol, TokenConfig> = {
     symbol: 'verse',
     label: 'VERSE',
     name: 'Verse Token',
-    address: '0xC708d6f2153933DAa50B2d0758955Be0A93a8FEc',
+    address: '0xc708D6F2153933DAA50B2D0758955Be0A93A8FEc',
     decimals: 18,
     chainId: POLYGON_CHAIN_ID,
     networkName: 'Polygon',
@@ -59,7 +59,7 @@ export function getToken(symbol: string): TokenConfig | null {
   return TOKENS[symbol.toLowerCase() as TokenSymbol] ?? null;
 }
 
-// Minimal ERC-20 ABI — transfer, balanceOf, decimals
+// Full standard ERC-20 ABI — transfer, balanceOf, decimals, symbol, name, Transfer event
 export const ERC20_ABI = [
   {
     name: 'transfer',
@@ -84,5 +84,29 @@ export const ERC20_ABI = [
     stateMutability: 'view',
     inputs: [],
     outputs: [{ name: '', type: 'uint8' }],
+  },
+  {
+    name: 'symbol',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'string' }],
+  },
+  {
+    name: 'name',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'string' }],
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'from', type: 'address' },
+      { indexed: true, name: 'to', type: 'address' },
+      { indexed: false, name: 'value', type: 'uint256' },
+    ],
+    name: 'Transfer',
+    type: 'event',
   },
 ] as const;
