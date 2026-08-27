@@ -1,0 +1,6 @@
+{
+  "name": "CryptoPay",
+  "description": "Sepolia merchant crypto payments accepting USDT and USDC with real-time status updates.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
