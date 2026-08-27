@@ -1,14 +1,40 @@
 import '@rainbow-me/rainbowkit/styles.css';
 import { useEffect, useState } from 'react';
-import { ConnectButton, lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { config } from '@/lib/wallet';
+import Header from '@/components/Header';
+import HeroSection from '@/components/HeroSection';
 import MerchantDashboard from '@/components/MerchantDashboard';
+import TrustSection from '@/components/TrustSection';
+import HowItWorksSection from '@/components/HowItWorksSection';
+import SecuritySection from '@/components/SecuritySection';
+import Footer from '@/components/Footer';
 import CustomerPaymentView from '@/components/CustomerPaymentView';
 import { getCurrentPaymentParams } from '@/lib/payments';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error) => {
+      console.warn('React Query cache warning:', error?.message || error);
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error) => {
+      console.warn('React Query mutation warning:', error?.message || error);
+    },
+  }),
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: false,
+    },
+  },
+});
 
 function AppContent() {
   const [params, setParams] = useState(() => getCurrentPaymentParams());
@@ -22,40 +48,27 @@ function AppContent() {
   const isCustomerView = !!params;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-      {/* Header */}
-      <header className="sticky top-0 z-10 backdrop-blur-md bg-white/70 border-b border-slate-200/60">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-slate-900 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">C</span>
-            </div>
-            <span className="font-semibold text-slate-900 text-sm">
-              CryptoPay
-            </span>
-          </div>
-          <ConnectButton
-            showBalance={false}
-            chainStatus={{ smallScreen: 'icon', largeScreen: 'full' }}
-          />
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#F5F7FB] flex flex-col selection:bg-blue-600 selection:text-white">
+      {/* Institutional Deep Navy Header */}
+      <Header />
 
-      {/* Main content */}
-      <main className="min-h-[calc(100vh-3.5rem)]">
+      {/* Main Content Area */}
+      <main className="flex-1">
         {isCustomerView ? (
           <CustomerPaymentView params={params!} />
         ) : (
-          <MerchantDashboard />
+          <>
+            <HeroSection />
+            <MerchantDashboard />
+            <TrustSection />
+            <HowItWorksSection />
+            <SecuritySection />
+          </>
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200/60 bg-white/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 text-center text-xs text-slate-400">
-          Sepolia testnet (USDT, USDC) & Polygon Mainnet (VERSE)
-        </div>
-      </footer>
+      {/* Institutional Deep Navy Footer */}
+      <Footer />
     </div>
   );
 }
@@ -66,9 +79,10 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           theme={lightTheme({
-            accentColor: '#0f172a',
+            accentColor: '#1D4ED8', // Royal Blue
             accentColorForeground: '#ffffff',
             borderRadius: 'medium',
+            fontStack: 'system',
           })}
           modalSize="compact"
         >
@@ -78,3 +92,4 @@ export default function App() {
     </WagmiProvider>
   );
 }
+

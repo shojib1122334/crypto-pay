@@ -1,5 +1,6 @@
+import { parseUnits } from 'viem';
 import { supabase, type PaymentSession, type PaymentStatus } from './supabase';
-import type { TokenSymbol } from './tokens';
+import { getToken, type TokenConfig, type TokenSymbol } from './tokens';
 
 export interface PaymentLinkParams {
   sessionId: string;
@@ -68,6 +69,33 @@ export function buildPaymentLink(
   url.searchParams.set('amount', amount);
   url.searchParams.set('token', token);
   return url.toString();
+}
+
+/**
+ * Builds a standards-compatible EIP-681 payment URI for EVM/Polygon ERC-20 tokens.
+ * Format: ethereum:<contract_address>@<chain_id>/transfer?address=<merchant_address>&uint256=<raw_amount>
+ * This standard format is recognized by Bitcoin.com Wallet, MetaMask, Rainbow, Trust Wallet, and other Web3 scanners.
+ */
+export function buildPaymentQRUri(
+  merchantAddress: string,
+  amount: string,
+  tokenOrSymbol: TokenConfig | TokenSymbol | string,
+): string {
+  const token =
+    typeof tokenOrSymbol === 'object' && tokenOrSymbol !== null
+      ? (tokenOrSymbol as TokenConfig)
+      : getToken(tokenOrSymbol);
+
+  if (!token) {
+    return merchantAddress;
+  }
+
+  try {
+    const rawAmount = parseUnits(amount, token.decimals);
+    return `ethereum:${token.address}@${token.chainId}/transfer?address=${merchantAddress}&uint256=${rawAmount.toString()}`;
+  } catch {
+    return `ethereum:${token.address}@${token.chainId}/transfer?address=${merchantAddress}`;
+  }
 }
 
 export function getCurrentPaymentParams(): PaymentLinkParams | null {

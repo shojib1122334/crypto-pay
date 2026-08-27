@@ -1,9 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Download, Copy, Check, Wallet, Loader2, ChevronDown } from 'lucide-react';
+import {
+  Download,
+  Copy,
+  Check,
+  Wallet,
+  Loader2,
+  ChevronDown,
+  Clock,
+  ShieldCheck,
+  Zap,
+  ArrowUpRight,
+} from 'lucide-react';
 import { useAccount } from 'wagmi';
 import {
   buildPaymentLink,
+  buildPaymentQRUri,
   createPaymentSession,
   subscribeToPaymentSession,
   STATUS_LABELS,
@@ -13,11 +25,38 @@ import {
 import { TOKEN_LIST, type TokenSymbol } from '@/lib/tokens';
 import type { PaymentSession, PaymentStatus } from '@/lib/supabase';
 
-const STATUS_STYLES: Record<PaymentStatus, string> = {
-  pending: 'bg-amber-100 text-amber-700 border-amber-200',
-  confirming: 'bg-blue-100 text-blue-700 border-blue-200',
-  success: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  failed: 'bg-red-100 text-red-700 border-red-200',
+const STATUS_BADGE_CONFIG: Record<
+  PaymentStatus,
+  { label: string; bg: string; text: string; dot: string; border: string }
+> = {
+  pending: {
+    label: 'Pending',
+    bg: 'bg-amber-50',
+    text: 'text-[#D97706]',
+    dot: 'bg-[#D97706]',
+    border: 'border-amber-200',
+  },
+  confirming: {
+    label: 'Payment Detected',
+    bg: 'bg-blue-50',
+    text: 'text-[#2563EB]',
+    dot: 'bg-[#2563EB]',
+    border: 'border-blue-200',
+  },
+  success: {
+    label: 'Paid',
+    bg: 'bg-emerald-50',
+    text: 'text-[#059669]',
+    dot: 'bg-[#059669]',
+    border: 'border-emerald-200',
+  },
+  failed: {
+    label: 'Expired / Failed',
+    bg: 'bg-rose-50',
+    text: 'text-[#DC2626]',
+    dot: 'bg-[#DC2626]',
+    border: 'border-rose-200',
+  },
 };
 
 const STEP_INDEX: Record<PaymentStatus, number> = {
@@ -27,18 +66,44 @@ const STEP_INDEX: Record<PaymentStatus, number> = {
   failed: 1,
 };
 
+const TOKEN_COLOR_MAP: Record<TokenSymbol, { bg: string; text: string; border: string; accent: string }> = {
+  usdt: {
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-700',
+    border: 'border-emerald-200',
+    accent: 'bg-emerald-600',
+  },
+  usdc: {
+    bg: 'bg-blue-50',
+    text: 'text-blue-700',
+    border: 'border-blue-200',
+    accent: 'bg-blue-600',
+  },
+  verse: {
+    bg: 'bg-purple-50',
+    text: 'text-[#7C3AED]',
+    border: 'border-purple-200',
+    accent: 'bg-[#7C3AED]',
+  },
+};
+
 export default function MerchantDashboard() {
-  const { address, isConnecting } = useAccount();
+  const { address, isConnected, isConnecting } = useAccount();
   const [amount, setAmount] = useState('');
   const [selectedToken, setSelectedToken] = useState<TokenSymbol>('usdt');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [qrLink, setQrLink] = useState<string | null>(null);
+  const [qrPayload, setQrPayload] = useState<string | null>(null);
+  const [webLink, setWebLink] = useState<string | null>(null);
   const [qrParams, setQrParams] = useState<PaymentLinkParams | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [session, setSession] = useState<PaymentSession | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copiedPayload, setCopiedPayload] = useState(false);
+  const [copiedWebLink, setCopiedWebLink] = useState(false);
+  const [copiedAddress, setCopiedAddress] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [secondsRemaining, setSecondsRemaining] = useState(1800); // 30 mins expiry counter
+
   const qrRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +118,22 @@ export default function MerchantDashboard() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // Expiry countdown timer when QR is active
+  useEffect(() => {
+    if (!qrPayload) return;
+    setSecondsRemaining(1785); // 29:45
+    const interval = setInterval(() => {
+      setSecondsRemaining((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [qrPayload]);
+
+  const formatCountdown = (totalSec: number) => {
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   // Subscribe to live status updates once a session is created
   useEffect(() => {
     if (!sessionId) return;
@@ -65,31 +146,35 @@ export default function MerchantDashboard() {
   const handleGenerate = async () => {
     setError(null);
     if (!address) {
-      setError('Connect your wallet first to set the merchant address.');
+      setError('Please connect your merchant wallet to generate a payment request.');
       return;
     }
     const parsed = parseFloat(amount);
     if (!amount || isNaN(parsed) || parsed <= 0) {
-      setError('Enter a valid amount.');
+      setError('Please enter a valid payment amount greater than zero.');
       return;
     }
 
     setGenerating(true);
-    setQrLink(null);
+    setQrPayload(null);
+    setWebLink(null);
     setQrParams(null);
     setSession(null);
 
     const newSession = await createPaymentSession(address, parsed, selectedToken);
     if (!newSession) {
-      setError('Could not create a payment session. Please try again.');
+      setError('Could not initialize payment session. Please check your connection.');
       setGenerating(false);
       return;
     }
 
+    const uri = buildPaymentQRUri(address, amount, selectedToken);
     const baseUrl = window.location.origin;
     const link = buildPaymentLink(baseUrl, newSession.id, address, amount, selectedToken);
+
     setSessionId(newSession.id);
-    setQrLink(link);
+    setQrPayload(uri);
+    setWebLink(link);
     setQrParams({
       sessionId: newSession.id,
       merchantAddress: address,
@@ -100,11 +185,25 @@ export default function MerchantDashboard() {
     setGenerating(false);
   };
 
-  const handleCopy = () => {
-    if (!qrLink) return;
-    navigator.clipboard.writeText(qrLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopyPayload = () => {
+    if (!qrPayload) return;
+    navigator.clipboard.writeText(qrPayload);
+    setCopiedPayload(true);
+    setTimeout(() => setCopiedPayload(false), 2000);
+  };
+
+  const handleCopyWebLink = () => {
+    if (!webLink) return;
+    navigator.clipboard.writeText(webLink);
+    setCopiedWebLink(true);
+    setTimeout(() => setCopiedWebLink(false), 2000);
+  };
+
+  const handleCopyAddress = () => {
+    if (!address) return;
+    navigator.clipboard.writeText(address);
+    setCopiedAddress(true);
+    setTimeout(() => setCopiedAddress(false), 2000);
   };
 
   const handleDownload = () => {
@@ -117,283 +216,475 @@ export default function MerchantDashboard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'cryptopay-qr.svg';
+    a.download = `cryptopay-${selectedToken}-${amount || 'payment'}.svg`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const currentStatus: PaymentStatus = session?.status ?? 'pending';
   const activeStep = STEP_INDEX[currentStatus];
-  const currentTokenLabel = TOKEN_LIST.find((t) => t.symbol === selectedToken)?.label ?? 'USDT';
+  const activeTokenConfig = TOKEN_LIST.find((t) => t.symbol === selectedToken);
+  const currentTokenLabel = activeTokenConfig?.label ?? 'USDT';
+  const statusBadge = STATUS_BADGE_CONFIG[currentStatus];
+
+  const formattedShortAddress = address
+    ? `${address.slice(0, 6)}...${address.slice(-4)}`
+    : null;
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 mb-4 shadow-lg shadow-slate-900/20">
-          <Wallet className="w-8 h-8 text-white" />
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-          Merchant Dashboard
-        </h1>
-        <p className="text-slate-500 mt-2 text-sm sm:text-base">
-          Create a stablecoin payment request and track it in real time.
-        </p>
-      </div>
-
-      {/* Merchant address card */}
-      <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200/60 p-5 sm:p-6 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
-            <Wallet className="w-5 h-5 text-slate-600" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">
-              Your merchant wallet
-            </p>
-            <p className="text-sm font-mono text-slate-700 truncate">
-              {address ?? 'Wallet not connected'}
+    <div id="merchant-dashboard" className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+      
+      {/* Dashboard Section Header */}
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-100/70 text-[#1D4ED8] text-xs font-semibold uppercase tracking-wider mb-2">
+              <Zap className="w-3.5 h-3.5" />
+              Direct Polygon Gateway
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0B1220] tracking-tight">
+              Merchant Dashboard
+            </h2>
+            <p className="text-sm sm:text-base text-[#64748B] mt-1">
+              Create and manage crypto payment requests.
             </p>
           </div>
-        </div>
-      </div>
 
-      {/* Amount input + token selector */}
-      <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200/60 p-5 sm:p-6 mb-6">
-        <label
-          htmlFor="amount"
-          className="block text-sm font-medium text-slate-700 mb-2"
-        >
-          Payment amount
-        </label>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <input
-              id="amount"
-              type="number"
-              inputMode="decimal"
-              step="0.01"
-              min="0"
-              placeholder="10.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-20 text-lg font-medium text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition"
-            />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400">
-              {currentTokenLabel}
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white border border-[#E2E8F0] text-slate-700 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Settlement: Direct to Wallet
             </span>
           </div>
-
-          {/* Token dropdown */}
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setDropdownOpen((o) => !o)}
-              className="w-full sm:w-auto flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition focus:outline-none focus:ring-2 focus:ring-slate-900/10"
-            >
-              <span className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-[10px] font-bold flex items-center justify-center">
-                  {currentTokenLabel.slice(0, 1)}
-                </span>
-                {currentTokenLabel}
-              </span>
-              <ChevronDown
-                className={`w-4 h-4 text-slate-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-            {dropdownOpen && (
-              <div className="absolute right-0 left-0 sm:left-auto sm:w-40 mt-1 bg-white rounded-xl shadow-lg ring-1 ring-slate-200/80 overflow-hidden z-20">
-                {TOKEN_LIST.map((token) => (
-                  <button
-                    key={token.symbol}
-                    onClick={() => {
-                      setSelectedToken(token.symbol);
-                      setDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition ${
-                      selectedToken === token.symbol
-                        ? 'bg-slate-100 text-slate-900'
-                        : 'text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-[10px] font-bold flex items-center justify-center">
-                      {token.label.slice(0, 1)}
-                    </span>
-                    {token.label}
-                    {selectedToken === token.symbol && (
-                      <Check className="w-4 h-4 text-emerald-600 ml-auto" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
-
-        <button
-          onClick={handleGenerate}
-          disabled={generating || isConnecting}
-          className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-white font-semibold text-sm shadow-sm hover:bg-slate-800 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {generating ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            'Generate QR'
-          )}
-        </button>
-
-        {error && (
-          <p className="mt-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-            {error}
-          </p>
-        )}
       </div>
 
-      {/* QR code result */}
-      {qrLink && qrParams && (
-        <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200/60 p-5 sm:p-6 mb-6">
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-semibold text-emerald-700">
-                {TOKEN_LIST.find((t) => t.symbol === qrParams.token)?.label} on{' '}
-                {TOKEN_LIST.find((t) => t.symbol === qrParams.token)?.networkName ?? 'Sepolia'}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        {/* Left Column: Merchant Wallet & Creation Form */}
+        <div className="lg:col-span-7 space-y-6">
+          
+          {/* Connected Wallet Card */}
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E2E8F0] shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
+                YOUR MERCHANT WALLET
               </span>
+              {isConnected ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-[#059669] text-xs font-semibold border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
+                  Connected
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-[#D97706] text-xs font-semibold border border-amber-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
+                  Not Connected
+                </span>
+              )}
             </div>
-            <div
-              ref={qrRef}
-              className="p-4 bg-white rounded-2xl border-2 border-slate-100"
-            >
-              <QRCodeSVG
-                value={qrLink}
-                size={200}
-                level="M"
-                includeMargin={false}
-              />
-            </div>
-            <p className="mt-4 text-xs text-slate-400 text-center max-w-xs break-all font-mono">
-              {qrLink}
-            </p>
-            <div className="flex gap-3 mt-4 w-full max-w-xs">
-              <button
-                onClick={handleCopy}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 transition"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4 text-emerald-600" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    Copy link
-                  </>
-                )}
-              </button>
-              <button
-                onClick={handleDownload}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 transition"
-              >
-                <Download className="w-4 h-4" />
-                Download
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
-
-      {/* Live transaction status tracker */}
-      {sessionId && (
-        <div className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200/60 p-5 sm:p-6">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">
-            Transaction status
-          </h3>
-
-          {/* Stepper */}
-          <div className="flex items-center mb-6">
-            {STATUS_ORDER.map((status, idx) => {
-              const isActive = idx <= activeStep;
-              const isCurrent = idx === activeStep;
-              return (
-                <div
-                  key={status}
-                  className="flex items-center flex-1 last:flex-none"
-                >
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
-                        isActive
-                          ? isCurrent
-                            ? 'bg-slate-900 text-white ring-4 ring-slate-900/10'
-                            : 'bg-emerald-500 text-white'
-                          : 'bg-slate-100 text-slate-400'
-                      }`}
+            <div className="flex items-center gap-3.5 bg-[#F5F7FB] border border-[#E2E8F0] rounded-xl p-3.5">
+              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-[#1D4ED8] shadow-sm flex-shrink-0">
+                <Wallet className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold text-[#0B1220] font-mono truncate">
+                    {formattedShortAddress ?? 'Connect wallet to activate'}
+                  </p>
+                  {address && (
+                    <button
+                      onClick={handleCopyAddress}
+                      className="p-1 text-slate-400 hover:text-slate-700 transition rounded"
+                      title="Copy full merchant address"
                     >
-                      {isActive && !isCurrent ? (
-                        <Check className="w-4 h-4" />
+                      {copiedAddress ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
                       ) : (
-                        idx + 1
+                        <Copy className="w-3.5 h-3.5" />
                       )}
-                    </div>
-                    <span
-                      className={`mt-1.5 text-[10px] sm:text-xs font-medium ${
-                        isActive ? 'text-slate-700' : 'text-slate-400'
-                      }`}
-                    >
-                      {STATUS_LABELS[status]}
-                    </span>
-                  </div>
-                  {idx < STATUS_ORDER.length - 1 && (
-                    <div
-                      className={`h-0.5 flex-1 mx-2 transition-colors duration-300 ${
-                        idx < activeStep ? 'bg-emerald-500' : 'bg-slate-200'
-                      }`}
-                    />
+                    </button>
                   )}
                 </div>
-              );
-            })}
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-xs text-[#64748B]">
+                    {address ? 'Polygon Mainnet / EVM' : 'Receiving address required'}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Status badge */}
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400">Current state</span>
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${STATUS_STYLES[currentStatus]}`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  currentStatus === 'pending'
-                    ? 'bg-amber-500 animate-pulse'
-                    : currentStatus === 'confirming'
-                      ? 'bg-blue-500 animate-pulse'
-                      : currentStatus === 'success'
-                        ? 'bg-emerald-500'
-                        : 'bg-red-500'
-                }`}
-              />
-              {STATUS_LABELS[currentStatus]}
-            </span>
+          {/* Payment Creation Card */}
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E2E8F0] shadow-sm">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-bold text-[#0B1220]">
+                Create Payment
+              </h3>
+              <span className="text-xs text-[#64748B]">
+                Non-custodial QR Generation
+              </span>
+            </div>
+
+            {/* Amount & Token Fields */}
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="payment-amount"
+                  className="block text-xs font-bold uppercase tracking-wider text-[#64748B] mb-2"
+                >
+                  Amount
+                </label>
+                <div className="relative">
+                  <input
+                    id="payment-amount"
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min="0"
+                    placeholder="10.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F5F7FB] px-4 py-3.5 text-xl font-bold text-[#0B1220] placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20 focus:border-[#1D4ED8] transition"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm text-xs font-bold text-[#0B1220]">
+                    {currentTokenLabel}
+                  </div>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="flex items-center gap-2 mt-2.5">
+                  <span className="text-[11px] text-[#64748B]">Quick presets:</span>
+                  {['5.00', '10.00', '25.00', '50.00', '100.00'].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setAmount(val)}
+                      className="px-2 py-0.5 text-xs font-semibold rounded bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
+                    >
+                      ${parseInt(val)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Token Selector */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#64748B] mb-2">
+                  Settlement Token
+                </label>
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setDropdownOpen((o) => !o)}
+                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#F5F7FB] px-4 py-3 text-sm font-semibold text-[#0B1220] hover:bg-slate-100 transition focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`w-7 h-7 rounded-lg text-white text-xs font-bold flex items-center justify-center shadow-sm ${
+                          TOKEN_COLOR_MAP[selectedToken]?.accent ?? 'bg-slate-900'
+                        }`}
+                      >
+                        {currentTokenLabel.slice(0, 1)}
+                      </span>
+                      <div className="text-left">
+                        <span className="font-bold text-[#0B1220]">{currentTokenLabel}</span>
+                        <span className="text-xs text-[#64748B] ml-2">
+                          {activeTokenConfig?.networkName ?? 'Polygon'}
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 text-slate-500 transition-transform ${
+                        dropdownOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+
+                  {dropdownOpen && (
+                    <div className="absolute left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-[#E2E8F0] overflow-hidden z-30">
+                      {TOKEN_LIST.map((token) => {
+                        const colors = TOKEN_COLOR_MAP[token.symbol];
+                        const isSelected = selectedToken === token.symbol;
+                        return (
+                          <button
+                            key={token.symbol}
+                            type="button"
+                            onClick={() => {
+                              setSelectedToken(token.symbol);
+                              setDropdownOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between px-4 py-3 text-sm transition ${
+                              isSelected
+                                ? 'bg-blue-50/70 text-[#0B1220]'
+                                : 'text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span
+                                className={`w-6 h-6 rounded-md text-white text-[10px] font-bold flex items-center justify-center ${
+                                  colors?.accent ?? 'bg-slate-900'
+                                }`}
+                              >
+                                {token.label.slice(0, 1)}
+                              </span>
+                              <div className="text-left">
+                                <span className="font-bold">{token.label}</span>
+                                <span className="text-xs text-[#64748B] block">
+                                  {token.networkName}
+                                </span>
+                              </div>
+                            </div>
+                            {isSelected && <Check className="w-4 h-4 text-[#1D4ED8]" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Primary Action Button (Royal Blue) */}
+              <button
+                onClick={handleGenerate}
+                disabled={generating || isConnecting}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#1D4ED8] hover:bg-[#2563EB] px-5 py-3.5 text-white font-bold text-sm shadow-md shadow-blue-900/20 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {generating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating Payment Request...
+                  </>
+                ) : (
+                  'Generate Payment QR'
+                )}
+              </button>
+
+              {error && (
+                <p className="text-xs font-medium text-[#DC2626] bg-rose-50 border border-rose-200 rounded-xl px-3.5 py-2.5">
+                  {error}
+                </p>
+              )}
+            </div>
           </div>
 
-          {session?.tx_hash && (
-            <div className="mt-4 pt-4 border-t border-slate-100">
-              <p className="text-xs text-slate-400 mb-1">Transaction hash</p>
-              <p className="text-xs font-mono text-slate-600 break-all">
-                {session.tx_hash}
+        </div>
+
+        {/* Right Column: Payment QR Section & Status Tracker */}
+        <div className="lg:col-span-5 space-y-6">
+          
+          {/* Payment QR Terminal Card */}
+          {qrPayload && qrParams ? (
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-md overflow-hidden">
+              {/* Terminal Title Bar */}
+              <div className="bg-[#0B1220] text-white px-5 py-4 flex items-center justify-between border-b border-[#1E293B]">
+                <div>
+                  <h4 className="text-sm font-bold text-white tracking-wide">
+                    Payment Request
+                  </h4>
+                  <span className="text-[11px] text-slate-300">
+                    Polygon Mainnet
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-blue-900/50 border border-blue-700/50 px-2.5 py-1 rounded-lg text-blue-300 text-xs font-mono">
+                  <Clock className="w-3.5 h-3.5" />
+                  Expires in {formatCountdown(secondsRemaining)}
+                </div>
+              </div>
+
+              <div className="p-6 flex flex-col items-center">
+                {/* Big Amount Badge */}
+                <div className="text-center mb-4">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Total Amount
+                  </span>
+                  <div className="text-3xl font-extrabold text-[#0B1220] tracking-tight">
+                    {qrParams.amount}{' '}
+                    <span className="text-[#1D4ED8]">
+                      {TOKEN_LIST.find((t) => t.symbol === qrParams.token)?.label}
+                    </span>
+                  </div>
+                </div>
+
+                {/* QR Code SVG */}
+                <div
+                  ref={qrRef}
+                  className="p-4 bg-white rounded-2xl border-2 border-[#E2E8F0] shadow-sm flex items-center justify-center"
+                >
+                  <QRCodeSVG
+                    value={qrPayload}
+                    size={190}
+                    level="M"
+                    includeMargin={false}
+                  />
+                </div>
+
+                {/* EIP-681 Standard URI Box */}
+                <div className="mt-4 w-full bg-[#F5F7FB] border border-[#E2E8F0] rounded-xl p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">
+                      EIP-681 Standard Payment URI
+                    </span>
+                    <span className="text-[10px] text-emerald-600 font-semibold">
+                      Universal Scanner Compatible
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-700 break-all font-mono select-all leading-tight">
+                    {qrPayload}
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-2 mt-4 w-full">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleCopyPayload}
+                      className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white hover:bg-slate-50 px-3 py-2.5 text-xs font-bold text-[#0B1220] shadow-sm transition"
+                    >
+                      {copiedPayload ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          URI Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-slate-500" />
+                          Copy URI
+                        </>
+                      )}
+                    </button>
+
+                    {webLink && (
+                      <button
+                        onClick={handleCopyWebLink}
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white hover:bg-slate-50 px-3 py-2.5 text-xs font-bold text-[#0B1220] shadow-sm transition"
+                      >
+                        {copiedWebLink ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            Link Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-slate-500" />
+                            Copy Payment Link
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={handleDownload}
+                    className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#EEF2F7] hover:bg-slate-200 px-3 py-2.5 text-xs font-bold text-slate-700 transition"
+                  >
+                    <Download className="w-3.5 h-3.5 text-slate-600" />
+                    Download QR
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Standby Card when no QR generated yet */
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-8 text-center flex flex-col items-center justify-center min-h-[320px]">
+              <div className="w-14 h-14 rounded-2xl bg-[#F5F7FB] border border-[#E2E8F0] flex items-center justify-center text-[#1D4ED8] mb-4">
+                <ShieldCheck className="w-7 h-7" />
+              </div>
+              <h4 className="text-base font-bold text-[#0B1220] mb-1">
+                Payment Terminal Standby
+              </h4>
+              <p className="text-xs text-[#64748B] max-w-xs leading-relaxed">
+                Enter an amount and select your token to generate a live, standards-compliant on-chain payment QR code.
               </p>
             </div>
           )}
-        </div>
-      )}
 
-      {!address && (
-        <p className="text-center text-xs text-slate-400 mt-6">
-          Connect your wallet to receive payments as a merchant.
-        </p>
-      )}
+          {/* Live Transaction Status Tracker */}
+          {sessionId && (
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-sm font-bold text-[#0B1220]">
+                  Transaction Status
+                </h4>
+                {/* Status Badge */}
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot} animate-pulse`} />
+                  {statusBadge.label}
+                </span>
+              </div>
+
+              {/* Stepper */}
+              <div className="flex items-center mb-6">
+                {STATUS_ORDER.map((status, idx) => {
+                  const isActive = idx <= activeStep;
+                  const isCurrent = idx === activeStep;
+                  return (
+                    <div key={status} className="flex items-center flex-1 last:flex-none">
+                      <div className="flex flex-col items-center">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                            isActive
+                              ? isCurrent
+                                ? 'bg-[#1D4ED8] text-white ring-4 ring-blue-100'
+                                : 'bg-[#059669] text-white'
+                              : 'bg-slate-100 text-slate-400'
+                          }`}
+                        >
+                          {isActive && !isCurrent ? (
+                            <Check className="w-3.5 h-3.5" />
+                          ) : (
+                            idx + 1
+                          )}
+                        </div>
+                        <span
+                          className={`mt-1.5 text-[10px] font-semibold text-center ${
+                            isActive ? 'text-[#0B1220]' : 'text-slate-400'
+                          }`}
+                        >
+                          {STATUS_LABELS[status]}
+                        </span>
+                      </div>
+                      {idx < STATUS_ORDER.length - 1 && (
+                        <div
+                          className={`h-0.5 flex-1 mx-1.5 transition-colors duration-300 ${
+                            idx < activeStep ? 'bg-[#059669]' : 'bg-slate-200'
+                          }`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Transaction Hash */}
+              {session?.tx_hash && (
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                      Transaction Hash
+                    </p>
+                    <p className="text-xs font-mono text-slate-700 truncate max-w-[200px] sm:max-w-xs">
+                      {session.tx_hash}
+                    </p>
+                  </div>
+                  <a
+                    href={`https://polygonscan.com/tx/${session.tx_hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[#1D4ED8] hover:text-[#2563EB] transition"
+                  >
+                    Polygonscan <ArrowUpRight className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
+
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 {
   "name": "CryptoPay",
-  "description": "Sepolia merchant crypto payments accepting USDT and USDC with real-time status updates.",
+  "description": "Institutional non-custodial crypto payments accepting USDT, USDC, and VERSE on Polygon with direct wallet settlement.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
