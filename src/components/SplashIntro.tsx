@@ -94,7 +94,7 @@ export const SplashIntro: React.FC<SplashIntroProps> = ({
               className="flex flex-col items-center"
             >
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-display">
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent font-display">
                   CryptoPay
                 </h1>
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30">

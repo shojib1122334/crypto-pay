@@ -1,6 +1,6 @@
 import '@rainbow-me/rainbowkit/styles.css';
 import { useEffect, useState } from 'react';
-import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { config } from '@/lib/wallet';
@@ -100,24 +100,12 @@ function AppContent() {
         />
       )}
 
-      <div className="min-h-screen relative flex flex-col selection:bg-blue-600 selection:text-white">
-        {/* Full-Screen Immersive Background Image */}
-        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-          <img
-            src="https://i.ibb.co.com/LXXRwB5F/Screenshot-20260828-120823-2.jpg"
-            alt=""
-            className="w-full h-full object-cover object-center"
-            loading="eager"
-          />
-          {/* Subtle dark overlay to ensure maximum legibility for white, blue, and yellow text */}
-          <div className="absolute inset-0 bg-[#070D18]/70 backdrop-brightness-95" />
-        </div>
-
-        {/* Institutional Deep Navy Header */}
+      <div className="min-h-screen relative flex flex-col bg-[#F8FAFC] text-[#0F172A] selection:bg-blue-600 selection:text-white">
+        {/* Crisp Header */}
         <Header activeTab={activeTab} onNavigateTab={handleTabChange} />
 
         {/* Main Content Area with safe bottom spacing for the edge-to-edge bottom bar */}
-        <main className="relative z-10 flex-1 pb-16 sm:pb-20">
+        <main className="relative z-10 flex-1 pb-20 sm:pb-24">
           {/* Dashboard Tab */}
           {activeTab === 'dashboard' && (
             <>
@@ -136,10 +124,10 @@ function AppContent() {
             </div>
           )}
 
-          {/* Activity Tab (Clean blank page with only the large centered text "COMING SOON") */}
+          {/* Activity Tab (Only Coming Soon) */}
           {activeTab === 'activity' && <ComingSoonPage />}
 
-          {/* Settings Tab (Clean blank page with only the large centered text "COMING SOON") */}
+          {/* Settings Tab (Only Coming Soon) */}
           {activeTab === 'settings' && <ComingSoonPage />}
         </main>
 
@@ -158,12 +146,11 @@ export default function App() {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
-          theme={darkTheme({
+          theme={lightTheme({
             accentColor: '#2563EB', // Blue 600
             accentColorForeground: '#ffffff',
             borderRadius: 'medium',
             fontStack: 'system',
-            overlayBlur: 'small',
           })}
           modalSize="compact"
         >

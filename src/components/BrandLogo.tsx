@@ -56,8 +56,10 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
       {showText && (
         <div className="flex flex-col">
-          <span className={`font-bold tracking-tight text-lg leading-tight flex items-center gap-1.5 ${textClassName || 'text-white'}`}>
-            CryptoPay
+          <span className={`font-bold tracking-tight text-lg leading-tight flex items-center gap-1.5 ${textClassName || ''}`}>
+            <span className="bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
+              CryptoPay
+            </span>
             {badgeText && (
               <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded border border-blue-400/30">
                 {badgeText}
