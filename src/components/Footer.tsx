@@ -1,13 +1,23 @@
 import { ExternalLink } from 'lucide-react';
 import { TokenIcon } from '@/components/TokenIcon';
 import { BrandLogo } from '@/components/BrandLogo';
+import type { NavTab } from '@/types/navigation';
 
-export default function Footer() {
+interface FooterProps {
+  onNavigateTab?: (tab: NavTab) => void;
+}
+
+export default function Footer({ onNavigateTab }: FooterProps) {
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    if (onNavigateTab) {
+      onNavigateTab('home');
     }
+    setTimeout(() => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 50);
   };
 
   return (

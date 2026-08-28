@@ -2,15 +2,28 @@ import { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Menu, X, ArrowUpRight } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
+import type { NavTab } from '@/types/navigation';
 
-export default function Header() {
+interface HeaderProps {
+  activeTab?: NavTab;
+  onNavigateTab?: (tab: NavTab) => void;
+}
+
+export default function Header({ onNavigateTab }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const scrollToSection = (id: string) => {
+  const handleNav = (tab: NavTab, sectionId?: string) => {
     setMobileMenuOpen(false);
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    if (onNavigateTab) {
+      onNavigateTab(tab);
+    }
+    if (sectionId) {
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 50);
     }
   };
 
@@ -19,30 +32,45 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <div className="flex items-center gap-3">
-          <a href="#" className="flex items-center gap-2.5 group">
+          <button
+            onClick={() => handleNav('home')}
+            className="flex items-center gap-2.5 group text-left focus:outline-none"
+          >
             <BrandLogo size={36} showText={true} badgeText="Polygon" />
-          </a>
+          </button>
         </div>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-7">
           <button
-            onClick={() => scrollToSection('merchant-dashboard')}
+            onClick={() => handleNav('home', 'merchant-dashboard')}
             className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
           >
             Create Request
           </button>
           <button
-            onClick={() => scrollToSection('how-it-works')}
+            onClick={() => handleNav('pay')}
+            className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+          >
+            Pay
+          </button>
+          <button
+            onClick={() => handleNav('explore')}
+            className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+          >
+            Explore
+          </button>
+          <button
+            onClick={() => handleNav('home', 'how-it-works')}
             className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
           >
             How It Works
           </button>
           <button
-            onClick={() => scrollToSection('support')}
+            onClick={() => handleNav('more')}
             className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
           >
-            Supported Assets & Info
+            More
           </button>
         </nav>
 
@@ -70,24 +98,31 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#0F172A] border-b border-[#1E293B] px-4 py-4 space-y-3">
           <button
-            onClick={() => scrollToSection('merchant-dashboard')}
+            onClick={() => handleNav('home', 'merchant-dashboard')}
             className="w-full flex items-center justify-between text-left py-2 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
           >
-            Create Payment Request
+            Home / Create Request
             <ArrowUpRight className="w-4 h-4 text-slate-400" />
           </button>
           <button
-            onClick={() => scrollToSection('how-it-works')}
+            onClick={() => handleNav('pay')}
             className="w-full flex items-center justify-between text-left py-2 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
           >
-            How It Works
+            Pay (POS & Checkout)
             <ArrowUpRight className="w-4 h-4 text-slate-400" />
           </button>
           <button
-            onClick={() => scrollToSection('support')}
+            onClick={() => handleNav('explore')}
             className="w-full flex items-center justify-between text-left py-2 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
           >
-            Supported Assets & Info
+            Explore Ecosystem
+            <ArrowUpRight className="w-4 h-4 text-slate-400" />
+          </button>
+          <button
+            onClick={() => handleNav('more')}
+            className="w-full flex items-center justify-between text-left py-2 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
+          >
+            More & Settings
             <ArrowUpRight className="w-4 h-4 text-slate-400" />
           </button>
         </div>
