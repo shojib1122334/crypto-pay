@@ -3,11 +3,29 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    color-scheme: dark;
+  }
+  
+  html {
+    color-scheme: dark;
+    background-color: #070D18;
+    color: #F8FAFC;
+  }
+
   body {
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background-color: #070D18;
     color: #F8FAFC;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  input, select, textarea, button {
+    font-family: inherit;
   }
 }
+
 

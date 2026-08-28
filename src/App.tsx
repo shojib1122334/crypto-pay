@@ -1,6 +1,6 @@
 import '@rainbow-me/rainbowkit/styles.css';
 import { useEffect, useState } from 'react';
-import { lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { config } from '@/lib/wallet';
@@ -158,11 +158,12 @@ export default function App() {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
-          theme={lightTheme({
-            accentColor: '#1D4ED8', // Royal Blue
+          theme={darkTheme({
+            accentColor: '#2563EB', // Blue 600
             accentColorForeground: '#ffffff',
             borderRadius: 'medium',
             fontStack: 'system',
+            overlayBlur: 'small',
           })}
           modalSize="compact"
         >
