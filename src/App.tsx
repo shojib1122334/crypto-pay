@@ -117,7 +117,7 @@ function AppContent() {
         <Header activeTab={activeTab} onNavigateTab={handleTabChange} />
 
         {/* Main Content Area with safe bottom spacing for the edge-to-edge bottom bar */}
-        <main className="relative z-10 flex-1 pb-32 sm:pb-44">
+        <main className="relative z-10 flex-1 pb-44 sm:pb-60">
           {/* Dashboard Tab */}
           {activeTab === 'dashboard' && (
             <>

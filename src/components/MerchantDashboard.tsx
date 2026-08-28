@@ -208,7 +208,7 @@ export default function MerchantDashboard() {
     : null;
 
   return (
-    <div id="merchant-dashboard" className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-28 sm:pb-40">
+    <div id="merchant-dashboard" className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-48 sm:pb-64">
       
       {/* Dashboard Section Header */}
       <div className="mb-8">
