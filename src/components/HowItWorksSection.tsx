@@ -29,16 +29,16 @@ const STEPS = [
 
 export default function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="py-16 sm:py-20 bg-white border-b border-[#E2E8F0]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="how-it-works" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto bg-[#0F172A]/85 backdrop-blur-md rounded-3xl p-6 sm:p-10 border border-slate-700/60 shadow-2xl">
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-[#1D4ED8] text-xs font-semibold uppercase tracking-wider mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-400/30 text-blue-300 text-xs font-semibold uppercase tracking-wider mb-3">
             Simple Four-Step Workflow
           </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B1220] tracking-tight">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
             How CryptoPay Works
           </h2>
-          <p className="mt-3 text-sm sm:text-base text-[#64748B] leading-relaxed">
+          <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed">
             Eliminate complex merchant accounts, settlement waiting periods, and chargeback friction with direct peer-to-peer crypto payments.
           </p>
         </div>
@@ -46,7 +46,7 @@ export default function HowItWorksSection() {
         {/* Desktop Horizontal Timeline / Mobile Vertical Cards */}
         <div className="relative">
           {/* Connecting Line for Desktop */}
-          <div className="hidden lg:block absolute top-14 left-12 right-12 h-0.5 bg-[#E2E8F0] z-0" />
+          <div className="hidden lg:block absolute top-14 left-12 right-12 h-0.5 bg-slate-700/80 z-0" />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
             {STEPS.map((step, idx) => {
@@ -54,26 +54,26 @@ export default function HowItWorksSection() {
               return (
                 <div
                   key={idx}
-                  className="bg-[#F5F7FB] lg:bg-white rounded-2xl p-6 border border-[#E2E8F0] flex flex-col relative"
+                  className="bg-[#1E293B]/80 rounded-2xl p-6 border border-slate-700/80 flex flex-col relative shadow-md hover:border-blue-500/40 transition-colors"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-[#0B1220] text-white flex items-center justify-center shadow-md">
+                    <div className="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/30 text-white flex items-center justify-center shadow-md">
                       <Icon className="w-6 h-6 text-blue-400" />
                     </div>
-                    <span className="text-2xl font-black text-[#1D4ED8] tracking-tight">
+                    <span className="text-2xl font-black text-amber-400 tracking-tight drop-shadow-sm">
                       {step.number}
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-bold text-[#0B1220] mb-2">
+                  <h3 className="text-lg font-bold text-white mb-2">
                     {step.title}
                   </h3>
                   
-                  <p className="text-sm text-[#64748B] leading-relaxed flex-1">
+                  <p className="text-sm text-slate-300 leading-relaxed flex-1">
                     {step.description}
                   </p>
 
-                  <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center text-xs font-semibold text-slate-500">
+                  <div className="mt-4 pt-3 border-t border-slate-700/80 flex items-center text-xs font-semibold text-slate-400">
                     Step {idx + 1} of 4
                   </div>
                 </div>

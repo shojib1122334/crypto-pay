@@ -9,21 +9,13 @@ interface HeaderProps {
   onNavigateTab?: (tab: NavTab) => void;
 }
 
-export default function Header({ onNavigateTab }: HeaderProps) {
+export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleNav = (tab: NavTab, sectionId?: string) => {
+  const handleNav = (tab: NavTab) => {
     setMobileMenuOpen(false);
     if (onNavigateTab) {
       onNavigateTab(tab);
-    }
-    if (sectionId) {
-      setTimeout(() => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 50);
     }
   };
 
@@ -33,7 +25,7 @@ export default function Header({ onNavigateTab }: HeaderProps) {
         {/* Brand Logo */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => handleNav('home')}
+            onClick={() => handleNav('dashboard')}
             className="flex items-center gap-2.5 group text-left focus:outline-none"
           >
             <BrandLogo size={36} showText={true} badgeText="Polygon" />
@@ -43,34 +35,44 @@ export default function Header({ onNavigateTab }: HeaderProps) {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-7">
           <button
-            onClick={() => handleNav('home', 'merchant-dashboard')}
-            className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+            onClick={() => handleNav('dashboard')}
+            className={`text-sm font-medium transition-colors ${
+              activeTab === 'dashboard'
+                ? 'text-blue-400 font-semibold'
+                : 'text-slate-300 hover:text-white'
+            }`}
           >
-            Create Request
+            Dashboard
           </button>
           <button
-            onClick={() => handleNav('pay')}
-            className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+            onClick={() => handleNav('pay-system')}
+            className={`text-sm font-medium transition-colors ${
+              activeTab === 'pay-system'
+                ? 'text-blue-400 font-semibold'
+                : 'text-slate-300 hover:text-white'
+            }`}
           >
-            Pay
+            Pay system
           </button>
           <button
-            onClick={() => handleNav('explore')}
-            className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+            onClick={() => handleNav('activity')}
+            className={`text-sm font-medium transition-colors ${
+              activeTab === 'activity'
+                ? 'text-blue-400 font-semibold'
+                : 'text-slate-300 hover:text-white'
+            }`}
           >
-            Explore
+            Activity
           </button>
           <button
-            onClick={() => handleNav('home', 'how-it-works')}
-            className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+            onClick={() => handleNav('settings')}
+            className={`text-sm font-medium transition-colors ${
+              activeTab === 'settings'
+                ? 'text-blue-400 font-semibold'
+                : 'text-slate-300 hover:text-white'
+            }`}
           >
-            How It Works
-          </button>
-          <button
-            onClick={() => handleNav('more')}
-            className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-          >
-            More
+            Settings
           </button>
         </nav>
 
@@ -96,33 +98,33 @@ export default function Header({ onNavigateTab }: HeaderProps) {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#0F172A] border-b border-[#1E293B] px-4 py-4 space-y-3">
+        <div className="md:hidden bg-[#0F172A] border-b border-[#1E293B] px-4 py-4 space-y-2">
           <button
-            onClick={() => handleNav('home', 'merchant-dashboard')}
-            className="w-full flex items-center justify-between text-left py-2 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
+            onClick={() => handleNav('dashboard')}
+            className="w-full flex items-center justify-between text-left py-2.5 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
           >
-            Home / Create Request
+            Dashboard
             <ArrowUpRight className="w-4 h-4 text-slate-400" />
           </button>
           <button
-            onClick={() => handleNav('pay')}
-            className="w-full flex items-center justify-between text-left py-2 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
+            onClick={() => handleNav('pay-system')}
+            className="w-full flex items-center justify-between text-left py-2.5 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
           >
-            Pay (POS & Checkout)
+            Pay system (How It Works)
             <ArrowUpRight className="w-4 h-4 text-slate-400" />
           </button>
           <button
-            onClick={() => handleNav('explore')}
-            className="w-full flex items-center justify-between text-left py-2 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
+            onClick={() => handleNav('activity')}
+            className="w-full flex items-center justify-between text-left py-2.5 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
           >
-            Explore Ecosystem
+            Activity
             <ArrowUpRight className="w-4 h-4 text-slate-400" />
           </button>
           <button
-            onClick={() => handleNav('more')}
-            className="w-full flex items-center justify-between text-left py-2 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
+            onClick={() => handleNav('settings')}
+            className="w-full flex items-center justify-between text-left py-2.5 px-3 text-sm font-medium text-slate-200 hover:bg-slate-800/80 rounded-lg transition"
           >
-            More & Settings
+            Settings
             <ArrowUpRight className="w-4 h-4 text-slate-400" />
           </button>
         </div>

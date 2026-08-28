@@ -7,13 +7,10 @@ import { config } from '@/lib/wallet';
 import Header from '@/components/Header';
 import MerchantDashboard from '@/components/MerchantDashboard';
 import HowItWorksSection from '@/components/HowItWorksSection';
-import Footer from '@/components/Footer';
 import CustomerPaymentView from '@/components/CustomerPaymentView';
 import SplashIntro from '@/components/SplashIntro';
 import BottomNavBar from '@/components/BottomNavBar';
-import PayPage from '@/components/PayPage';
-import ExplorePage from '@/components/ExplorePage';
-import MorePage from '@/components/MorePage';
+import ComingSoonPage from '@/components/ComingSoonPage';
 import { getCurrentPaymentParams } from '@/lib/payments';
 import type { NavTab } from '@/types/navigation';
 
@@ -39,14 +36,25 @@ const queryClient = new QueryClient({
   },
 });
 
+function parseTabFromHash(hashStr: string): NavTab {
+  const clean = hashStr.replace('#', '').toLowerCase();
+  if (clean === 'pay-system' || clean === 'pay' || clean === 'how-it-works') {
+    return 'pay-system';
+  }
+  if (clean === 'activity') {
+    return 'activity';
+  }
+  if (clean === 'settings') {
+    return 'settings';
+  }
+  return 'dashboard';
+}
+
 function getInitialTab(): NavTab {
   if (typeof window !== 'undefined') {
-    const hash = window.location.hash.replace('#', '').toLowerCase();
-    if (hash === 'pay' || hash === 'explore' || hash === 'more') {
-      return hash as NavTab;
-    }
+    return parseTabFromHash(window.location.hash);
   }
-  return 'home';
+  return 'dashboard';
 }
 
 function AppContent() {
@@ -57,12 +65,7 @@ function AppContent() {
   useEffect(() => {
     const onPop = () => {
       setParams(getCurrentPaymentParams());
-      const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (hash === 'pay' || hash === 'explore' || hash === 'more' || hash === 'home') {
-        setActiveTab(hash as NavTab);
-      } else if (!hash) {
-        setActiveTab('home');
-      }
+      setActiveTab(parseTabFromHash(window.location.hash));
     };
     window.addEventListener('popstate', onPop);
     window.addEventListener('hashchange', onPop);
@@ -75,8 +78,7 @@ function AppContent() {
   const handleTabChange = (tab: NavTab) => {
     setActiveTab(tab);
     if (typeof window !== 'undefined') {
-      if (tab === 'home') {
-        // If switching to home, clear specific section hash or set #home
+      if (tab === 'dashboard') {
         if (window.location.hash && window.location.hash !== '') {
           window.history.pushState(null, '', window.location.pathname + window.location.search);
         }
@@ -87,7 +89,7 @@ function AppContent() {
     }
   };
 
-  const isCustomerView = !!params && activeTab === 'home';
+  const isCustomerView = !!params && activeTab === 'dashboard';
 
   return (
     <>
@@ -98,42 +100,50 @@ function AppContent() {
         />
       )}
 
-      <div className="min-h-screen bg-[#F5F7FB] flex flex-col selection:bg-blue-600 selection:text-white">
+      <div className="min-h-screen relative flex flex-col selection:bg-blue-600 selection:text-white">
+        {/* Full-Screen Immersive Background Image */}
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+          <img
+            src="https://i.ibb.co.com/LXXRwB5F/Screenshot-20260828-120823-2.jpg"
+            alt=""
+            className="w-full h-full object-cover object-center"
+            loading="eager"
+          />
+          {/* Subtle dark overlay to ensure maximum legibility for white, blue, and yellow text */}
+          <div className="absolute inset-0 bg-[#070D18]/70 backdrop-brightness-95" />
+        </div>
+
         {/* Institutional Deep Navy Header */}
         <Header activeTab={activeTab} onNavigateTab={handleTabChange} />
 
-        {/* Main Content Area with bottom safe padding for the bottom bar */}
-        <main className="flex-1 pb-24 sm:pb-28">
-          {activeTab === 'pay' && (
-            <PayPage onNavigateHome={() => handleTabChange('home')} />
-          )}
-
-          {activeTab === 'explore' && (
-            <ExplorePage onNavigateHome={() => handleTabChange('home')} />
-          )}
-
-          {activeTab === 'more' && (
-            <MorePage onNavigateHome={() => handleTabChange('home')} />
-          )}
-
-          {activeTab === 'home' && (
+        {/* Main Content Area with safe bottom spacing for the edge-to-edge bottom bar */}
+        <main className="relative z-10 flex-1 pb-20 sm:pb-24">
+          {/* Dashboard Tab */}
+          {activeTab === 'dashboard' && (
             <>
               {isCustomerView ? (
                 <CustomerPaymentView params={params!} />
               ) : (
-                <>
-                  <MerchantDashboard />
-                  <HowItWorksSection />
-                </>
+                <MerchantDashboard />
               )}
             </>
           )}
+
+          {/* Pay System Tab (How CryptoPay Works) */}
+          {activeTab === 'pay-system' && (
+            <div id="pay-system-page">
+              <HowItWorksSection />
+            </div>
+          )}
+
+          {/* Activity Tab (Clean blank page with only the large centered text "COMING SOON") */}
+          {activeTab === 'activity' && <ComingSoonPage />}
+
+          {/* Settings Tab (Clean blank page with only the large centered text "COMING SOON") */}
+          {activeTab === 'settings' && <ComingSoonPage />}
         </main>
 
-        {/* Institutional Deep Navy Footer */}
-        <Footer onNavigateTab={handleTabChange} />
-
-        {/* Persistent Bottom Navigation Bar across all tabs */}
+        {/* Persistent Edge-to-Edge Native Mobile Bottom Navigation Bar */}
         <BottomNavBar
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -162,4 +172,3 @@ export default function App() {
     </WagmiProvider>
   );
 }
-

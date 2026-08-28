@@ -8,7 +8,6 @@ import {
   Loader2,
   ChevronDown,
   Clock,
-  ShieldCheck,
   Zap,
   ArrowUpRight,
 } from 'lucide-react';
@@ -32,31 +31,31 @@ const STATUS_BADGE_CONFIG: Record<
 > = {
   pending: {
     label: 'Pending',
-    bg: 'bg-amber-50',
-    text: 'text-[#D97706]',
-    dot: 'bg-[#D97706]',
-    border: 'border-amber-200',
+    bg: 'bg-amber-950/40',
+    text: 'text-amber-300 font-semibold',
+    dot: 'bg-amber-400 shadow-[0_0_6px_#FBBF24]',
+    border: 'border-amber-500/30',
   },
   confirming: {
     label: 'Payment Detected',
-    bg: 'bg-blue-50',
-    text: 'text-[#2563EB]',
-    dot: 'bg-[#2563EB]',
-    border: 'border-blue-200',
+    bg: 'bg-blue-950/50',
+    text: 'text-blue-300 font-semibold',
+    dot: 'bg-blue-400 shadow-[0_0_6px_#60A5FA]',
+    border: 'border-blue-500/30',
   },
   success: {
     label: 'Paid',
-    bg: 'bg-emerald-50',
-    text: 'text-[#059669]',
-    dot: 'bg-[#059669]',
-    border: 'border-emerald-200',
+    bg: 'bg-emerald-950/50',
+    text: 'text-emerald-300 font-semibold',
+    dot: 'bg-emerald-400 shadow-[0_0_6px_#34D399]',
+    border: 'border-emerald-500/30',
   },
   failed: {
     label: 'Expired / Failed',
-    bg: 'bg-rose-50',
-    text: 'text-[#DC2626]',
-    dot: 'bg-[#DC2626]',
-    border: 'border-rose-200',
+    bg: 'bg-rose-950/40',
+    text: 'text-rose-300 font-semibold',
+    dot: 'bg-rose-400 shadow-[0_0_6px_#FB7185]',
+    border: 'border-rose-500/30',
   },
 };
 
@@ -82,12 +81,11 @@ export default function MerchantDashboard() {
   const [copiedWebLink, setCopiedWebLink] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [secondsRemaining, setSecondsRemaining] = useState(1800); // 30 mins expiry counter
+  const [secondsRemaining, setSecondsRemaining] = useState(1800);
 
   const qrRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -98,10 +96,9 @@ export default function MerchantDashboard() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Expiry countdown timer when QR is active
   useEffect(() => {
     if (!qrPayload) return;
-    setSecondsRemaining(1785); // 29:45
+    setSecondsRemaining(1785);
     const interval = setInterval(() => {
       setSecondsRemaining((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
@@ -114,7 +111,6 @@ export default function MerchantDashboard() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Subscribe to live status updates once a session is created
   useEffect(() => {
     if (!sessionId) return;
     const unsubscribe = subscribeToPaymentSession(sessionId, (s) => {
@@ -218,21 +214,21 @@ export default function MerchantDashboard() {
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-100/70 text-[#1D4ED8] text-xs font-semibold uppercase tracking-wider mb-2">
-              <Zap className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-400/30 text-blue-300 text-xs font-semibold uppercase tracking-wider mb-2">
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
               Direct Polygon Gateway
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0B1220] tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight drop-shadow-sm">
               Merchant Dashboard
             </h2>
-            <p className="text-sm sm:text-base text-[#64748B] mt-1">
-              Create and manage crypto payment requests.
+            <p className="text-sm sm:text-base text-slate-300 mt-1">
+              Create and manage crypto payment requests with instant on-chain settlement.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white border border-[#E2E8F0] text-slate-700 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#0F172A]/90 backdrop-blur border border-slate-700/70 text-slate-200 shadow-md">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34D399]" />
               Settlement: Direct to Wallet
             </span>
           </div>
@@ -245,41 +241,41 @@ export default function MerchantDashboard() {
         <div className="lg:col-span-7 space-y-6">
           
           {/* Connected Wallet Card */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E2E8F0] shadow-sm">
+          <div className="bg-[#0F172A]/85 backdrop-blur-md rounded-2xl p-5 sm:p-6 border border-slate-700/60 shadow-xl">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 YOUR MERCHANT WALLET
               </span>
               {isConnected ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-[#059669] text-xs font-semibold border border-emerald-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 text-emerald-300 text-xs font-semibold border border-emerald-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34D399]" />
                   Connected
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-[#D97706] text-xs font-semibold border border-amber-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-950/60 text-amber-300 text-xs font-semibold border border-amber-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                   Not Connected
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-3.5 bg-[#F5F7FB] border border-[#E2E8F0] rounded-xl p-3.5">
-              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-[#1D4ED8] shadow-sm flex-shrink-0">
+            <div className="flex items-center gap-3.5 bg-[#1E293B]/80 border border-slate-700/60 rounded-xl p-3.5">
+              <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-sm flex-shrink-0">
                 <Wallet className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-bold text-[#0B1220] font-mono truncate">
+                  <p className="text-sm font-bold text-white font-mono truncate">
                     {formattedShortAddress ?? 'Connect wallet to activate'}
                   </p>
                   {address && (
                     <button
                       onClick={handleCopyAddress}
-                      className="p-1 text-slate-400 hover:text-slate-700 transition rounded"
+                      className="p-1 text-slate-400 hover:text-white transition rounded"
                       title="Copy full merchant address"
                     >
                       {copiedAddress ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
                       ) : (
                         <Copy className="w-3.5 h-3.5" />
                       )}
@@ -287,7 +283,7 @@ export default function MerchantDashboard() {
                   )}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs text-[#64748B]">
+                  <span className="text-xs text-slate-400">
                     {address ? 'Polygon Mainnet / EVM' : 'Receiving address required'}
                   </span>
                 </div>
@@ -296,12 +292,12 @@ export default function MerchantDashboard() {
           </div>
 
           {/* Payment Creation Card */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E2E8F0] shadow-sm">
+          <div className="bg-[#0F172A]/85 backdrop-blur-md rounded-2xl p-5 sm:p-6 border border-slate-700/60 shadow-xl">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-[#0B1220]">
+              <h3 className="text-lg font-bold text-white">
                 Create Payment
               </h3>
-              <span className="text-xs text-[#64748B]">
+              <span className="text-xs text-slate-400">
                 Non-custodial QR Generation
               </span>
             </div>
@@ -311,7 +307,7 @@ export default function MerchantDashboard() {
               <div>
                 <label
                   htmlFor="payment-amount"
-                  className="block text-xs font-bold uppercase tracking-wider text-[#64748B] mb-2"
+                  className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2"
                 >
                   Amount
                 </label>
@@ -325,23 +321,23 @@ export default function MerchantDashboard() {
                     placeholder="10.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F5F7FB] px-4 py-3.5 text-xl font-bold text-[#0B1220] placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20 focus:border-[#1D4ED8] transition"
+                    className="w-full rounded-xl border border-slate-700 bg-[#1E293B]/90 px-4 py-3.5 text-xl font-bold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm text-xs font-bold text-[#0B1220]">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-[#0F172A] px-2.5 py-1 rounded-lg border border-slate-700 shadow-sm text-xs font-bold text-white">
                     <TokenIcon token={selectedToken} size={20} />
                     <span>{currentTokenLabel}</span>
                   </div>
                 </div>
 
                 {/* Quick Presets */}
-                <div className="flex items-center gap-2 mt-2.5">
-                  <span className="text-[11px] text-[#64748B]">Quick presets:</span>
+                <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                  <span className="text-[11px] text-slate-400 font-medium">Quick presets:</span>
                   {['5.00', '10.00', '25.00', '50.00', '100.00'].map((val) => (
                     <button
                       key={val}
                       type="button"
                       onClick={() => setAmount(val)}
-                      className="px-2 py-0.5 text-xs font-semibold rounded bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
+                      className="px-2.5 py-0.5 text-xs font-semibold rounded-md bg-[#1E293B] hover:bg-blue-600/30 text-slate-200 border border-slate-700 hover:border-blue-400/40 transition"
                     >
                       ${parseInt(val)}
                     </button>
@@ -351,33 +347,33 @@ export default function MerchantDashboard() {
 
               {/* Token Selector */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#64748B] mb-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
                   Settlement Token
                 </label>
                 <div className="relative" ref={dropdownRef}>
                   <button
                     type="button"
                     onClick={() => setDropdownOpen((o) => !o)}
-                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#F5F7FB] px-4 py-3 text-sm font-semibold text-[#0B1220] hover:bg-slate-100 transition focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20"
+                    className="w-full flex items-center justify-between rounded-xl border border-slate-700 bg-[#1E293B]/90 px-4 py-3 text-sm font-semibold text-white hover:bg-[#25334A] transition focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                   >
                     <div className="flex items-center gap-3">
                       <TokenIcon token={selectedToken} size={32} />
                       <div className="text-left">
-                        <span className="font-bold text-[#0B1220]">{currentTokenLabel}</span>
-                        <span className="text-xs text-[#64748B] ml-2">
+                        <span className="font-bold text-white">{currentTokenLabel}</span>
+                        <span className="text-xs text-slate-400 ml-2">
                           {activeTokenConfig?.networkName ?? 'Polygon'}
                         </span>
                       </div>
                     </div>
                     <ChevronDown
-                      className={`w-4 h-4 text-slate-500 transition-transform ${
+                      className={`w-4 h-4 text-slate-400 transition-transform ${
                         dropdownOpen ? 'rotate-180' : ''
                       }`}
                     />
                   </button>
 
                   {dropdownOpen && (
-                    <div className="absolute left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-[#E2E8F0] overflow-hidden z-30">
+                    <div className="absolute left-0 right-0 mt-1 bg-[#0F172A] rounded-xl shadow-2xl border border-slate-700 overflow-hidden z-30 divide-y divide-slate-800">
                       {TOKEN_LIST.map((token) => {
                         const isSelected = selectedToken === token.symbol;
                         return (
@@ -390,20 +386,20 @@ export default function MerchantDashboard() {
                             }}
                             className={`w-full flex items-center justify-between px-4 py-3 text-sm transition ${
                               isSelected
-                                ? 'bg-blue-50/70 text-[#0B1220]'
-                                : 'text-slate-700 hover:bg-slate-50'
+                                ? 'bg-blue-600/20 text-white'
+                                : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
                             }`}
                           >
                             <div className="flex items-center gap-3">
                               <TokenIcon token={token.symbol} size={32} />
                               <div className="text-left">
-                                <span className="font-bold">{token.label}</span>
-                                <span className="text-xs text-[#64748B] block">
+                                <span className="font-bold text-white">{token.label}</span>
+                                <span className="text-xs text-slate-400 block">
                                   {token.networkName}
                                 </span>
                               </div>
                             </div>
-                            {isSelected && <Check className="w-4 h-4 text-[#1D4ED8]" />}
+                            {isSelected && <Check className="w-4 h-4 text-blue-400" />}
                           </button>
                         );
                       })}
@@ -412,15 +408,15 @@ export default function MerchantDashboard() {
                 </div>
               </div>
 
-              {/* Primary Action Button (Royal Blue) */}
+              {/* Primary Action Button (Blue / Bright) */}
               <button
                 onClick={handleGenerate}
                 disabled={generating || isConnecting}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#1D4ED8] hover:bg-[#2563EB] px-5 py-3.5 text-white font-bold text-sm shadow-md shadow-blue-900/20 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 px-5 py-3.5 text-white font-bold text-sm shadow-lg shadow-blue-900/40 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {generating ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
                     Generating Payment Request...
                   </>
                 ) : (
@@ -429,7 +425,7 @@ export default function MerchantDashboard() {
               </button>
 
               {error && (
-                <p className="text-xs font-medium text-[#DC2626] bg-rose-50 border border-rose-200 rounded-xl px-3.5 py-2.5">
+                <p className="text-xs font-medium text-rose-300 bg-rose-950/50 border border-rose-500/30 rounded-xl px-3.5 py-2.5">
                   {error}
                 </p>
               )}
@@ -443,19 +439,19 @@ export default function MerchantDashboard() {
           
           {/* Payment QR Terminal Card */}
           {qrPayload && qrParams ? (
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-md overflow-hidden">
+            <div className="bg-[#0F172A]/85 backdrop-blur-md rounded-2xl border border-slate-700/60 shadow-xl overflow-hidden">
               {/* Terminal Title Bar */}
               <div className="bg-[#0B1220] text-white px-5 py-4 flex items-center justify-between border-b border-[#1E293B]">
                 <div>
                   <h4 className="text-sm font-bold text-white tracking-wide">
                     Payment Request
                   </h4>
-                  <span className="text-[11px] text-slate-300">
+                  <span className="text-[11px] text-blue-300">
                     Polygon Mainnet
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-blue-900/50 border border-blue-700/50 px-2.5 py-1 rounded-lg text-blue-300 text-xs font-mono">
-                  <Clock className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1.5 bg-blue-950/80 border border-blue-500/40 px-2.5 py-1 rounded-lg text-blue-300 text-xs font-mono">
+                  <Clock className="w-3.5 h-3.5 text-amber-400" />
                   Expires in {formatCountdown(secondsRemaining)}
                 </div>
               </div>
@@ -466,10 +462,10 @@ export default function MerchantDashboard() {
                   <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">
                     Total Amount
                   </span>
-                  <div className="inline-flex items-center justify-center gap-2 text-3xl font-extrabold text-[#0B1220] tracking-tight">
+                  <div className="inline-flex items-center justify-center gap-2 text-3xl font-extrabold text-white tracking-tight">
                     <TokenIcon token={qrParams.token} size={30} />
                     <span>{qrParams.amount}</span>
-                    <span className="text-[#1D4ED8]">
+                    <span className="text-blue-400">
                       {TOKEN_LIST.find((t) => t.symbol === qrParams.token)?.label}
                     </span>
                   </div>
@@ -478,7 +474,7 @@ export default function MerchantDashboard() {
                 {/* QR Code SVG */}
                 <div
                   ref={qrRef}
-                  className="p-4 bg-white rounded-2xl border-2 border-[#E2E8F0] shadow-sm flex items-center justify-center"
+                  className="p-4 bg-white rounded-2xl border-2 border-slate-200 shadow-md flex items-center justify-center"
                 >
                   <QRCodeSVG
                     value={qrPayload}
@@ -489,16 +485,16 @@ export default function MerchantDashboard() {
                 </div>
 
                 {/* EIP-681 Standard URI Box */}
-                <div className="mt-4 w-full bg-[#F5F7FB] border border-[#E2E8F0] rounded-xl p-3">
+                <div className="mt-4 w-full bg-[#1E293B]/80 border border-slate-700/70 rounded-xl p-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
                       EIP-681 Standard Payment URI
                     </span>
-                    <span className="text-[10px] text-emerald-600 font-semibold">
+                    <span className="text-[10px] text-emerald-400 font-semibold">
                       Universal Scanner Compatible
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-700 break-all font-mono select-all leading-tight">
+                  <p className="text-[11px] text-slate-200 break-all font-mono select-all leading-tight">
                     {qrPayload}
                   </p>
                 </div>
@@ -508,16 +504,16 @@ export default function MerchantDashboard() {
                   <div className="flex gap-2">
                     <button
                       onClick={handleCopyPayload}
-                      className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white hover:bg-slate-50 px-3 py-2.5 text-xs font-bold text-[#0B1220] shadow-sm transition"
+                      className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-700 bg-[#1E293B] hover:bg-slate-700/80 px-3 py-2.5 text-xs font-bold text-white shadow-sm transition"
                     >
                       {copiedPayload ? (
                         <>
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
                           URI Copied
                         </>
                       ) : (
                         <>
-                          <Copy className="w-3.5 h-3.5 text-slate-500" />
+                          <Copy className="w-3.5 h-3.5 text-slate-400" />
                           Copy URI
                         </>
                       )}
@@ -526,16 +522,16 @@ export default function MerchantDashboard() {
                     {webLink && (
                       <button
                         onClick={handleCopyWebLink}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white hover:bg-slate-50 px-3 py-2.5 text-xs font-bold text-[#0B1220] shadow-sm transition"
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-700 bg-[#1E293B] hover:bg-slate-700/80 px-3 py-2.5 text-xs font-bold text-white shadow-sm transition"
                       >
                         {copiedWebLink ? (
                           <>
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
                             Link Copied
                           </>
                         ) : (
                           <>
-                            <Copy className="w-3.5 h-3.5 text-slate-500" />
+                            <Copy className="w-3.5 h-3.5 text-slate-400" />
                             Copy Payment Link
                           </>
                         )}
@@ -545,37 +541,23 @@ export default function MerchantDashboard() {
 
                   <button
                     onClick={handleDownload}
-                    className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#EEF2F7] hover:bg-slate-200 px-3 py-2.5 text-xs font-bold text-slate-700 transition"
+                    className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2.5 text-xs font-bold transition"
                   >
-                    <Download className="w-3.5 h-3.5 text-slate-600" />
+                    <Download className="w-3.5 h-3.5 text-slate-300" />
                     Download QR
                   </button>
                 </div>
               </div>
             </div>
-          ) : (
-            /* Standby Card when no QR generated yet */
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-8 text-center flex flex-col items-center justify-center min-h-[320px]">
-              <div className="w-14 h-14 rounded-2xl bg-[#F5F7FB] border border-[#E2E8F0] flex items-center justify-center text-[#1D4ED8] mb-4">
-                <ShieldCheck className="w-7 h-7" />
-              </div>
-              <h4 className="text-base font-bold text-[#0B1220] mb-1">
-                Payment Terminal Standby
-              </h4>
-              <p className="text-xs text-[#64748B] max-w-xs leading-relaxed">
-                Enter an amount and select your token to generate a live, standards-compliant on-chain payment QR code.
-              </p>
-            </div>
-          )}
+          ) : null}
 
           {/* Live Transaction Status Tracker */}
           {sessionId && (
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5 sm:p-6">
+            <div className="bg-[#0F172A]/85 backdrop-blur-md rounded-2xl border border-slate-700/60 shadow-xl p-5 sm:p-6">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-bold text-[#0B1220]">
+                <h4 className="text-sm font-bold text-white">
                   Transaction Status
                 </h4>
-                {/* Status Badge */}
                 <span
                   className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}
                 >
@@ -596,20 +578,20 @@ export default function MerchantDashboard() {
                           className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
                             isActive
                               ? isCurrent
-                                ? 'bg-[#1D4ED8] text-white ring-4 ring-blue-100'
-                                : 'bg-[#059669] text-white'
-                              : 'bg-slate-100 text-slate-400'
+                                ? 'bg-blue-600 text-white ring-4 ring-blue-500/30'
+                                : 'bg-emerald-600 text-white'
+                              : 'bg-slate-800 text-slate-500 border border-slate-700'
                           }`}
                         >
                           {isActive && !isCurrent ? (
-                            <Check className="w-3.5 h-3.5" />
+                            <Check className="w-3.5 h-3.5 text-white" />
                           ) : (
                             idx + 1
                           )}
                         </div>
                         <span
                           className={`mt-1.5 text-[10px] font-semibold text-center ${
-                            isActive ? 'text-[#0B1220]' : 'text-slate-400'
+                            isActive ? 'text-slate-200' : 'text-slate-500'
                           }`}
                         >
                           {STATUS_LABELS[status]}
@@ -618,7 +600,7 @@ export default function MerchantDashboard() {
                       {idx < STATUS_ORDER.length - 1 && (
                         <div
                           className={`h-0.5 flex-1 mx-1.5 transition-colors duration-300 ${
-                            idx < activeStep ? 'bg-[#059669]' : 'bg-slate-200'
+                            idx < activeStep ? 'bg-emerald-500' : 'bg-slate-700'
                           }`}
                         />
                       )}
@@ -629,12 +611,12 @@ export default function MerchantDashboard() {
 
               {/* Transaction Hash */}
               {session?.tx_hash && (
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                       Transaction Hash
                     </p>
-                    <p className="text-xs font-mono text-slate-700 truncate max-w-[200px] sm:max-w-xs">
+                    <p className="text-xs font-mono text-slate-300 truncate max-w-[200px] sm:max-w-xs">
                       {session.tx_hash}
                     </p>
                   </div>
@@ -642,7 +624,7 @@ export default function MerchantDashboard() {
                     href={`https://polygonscan.com/tx/${session.tx_hash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs font-bold text-[#1D4ED8] hover:text-[#2563EB] transition"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300 transition"
                   >
                     Polygonscan <ArrowUpRight className="w-3 h-3" />
                   </a>
