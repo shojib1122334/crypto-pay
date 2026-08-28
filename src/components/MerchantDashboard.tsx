@@ -208,7 +208,7 @@ export default function MerchantDashboard() {
     : null;
 
   return (
-    <div id="merchant-dashboard" className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+    <div id="merchant-dashboard" className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-28 sm:pb-40">
       
       {/* Dashboard Section Header */}
       <div className="mb-8">
@@ -350,11 +350,11 @@ export default function MerchantDashboard() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
                   Settlement Token
                 </label>
-                <div className="relative" ref={dropdownRef}>
+                <div className="relative z-30" ref={dropdownRef}>
                   <button
                     type="button"
                     onClick={() => setDropdownOpen((o) => !o)}
-                    className="w-full flex items-center justify-between rounded-xl border border-slate-700 bg-[#1E293B]/90 px-4 py-3 text-sm font-semibold text-white hover:bg-[#25334A] transition focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    className="w-full flex items-center justify-between rounded-xl border border-slate-700 bg-[#1E293B]/90 px-4 py-3.5 text-sm font-semibold text-white hover:bg-[#25334A] transition focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                   >
                     <div className="flex items-center gap-3">
                       <TokenIcon token={selectedToken} size={32} />
@@ -373,7 +373,7 @@ export default function MerchantDashboard() {
                   </button>
 
                   {dropdownOpen && (
-                    <div className="absolute left-0 right-0 mt-1 bg-[#0F172A] rounded-xl shadow-2xl border border-slate-700 overflow-hidden z-30 divide-y divide-slate-800">
+                    <div className="absolute left-0 right-0 mt-1.5 bg-[#0F172A] rounded-xl shadow-2xl border border-slate-700 overflow-hidden z-50 divide-y divide-slate-800 backdrop-blur-md">
                       {TOKEN_LIST.map((token) => {
                         const isSelected = selectedToken === token.symbol;
                         return (
@@ -384,10 +384,10 @@ export default function MerchantDashboard() {
                               setSelectedToken(token.symbol);
                               setDropdownOpen(false);
                             }}
-                            className={`w-full flex items-center justify-between px-4 py-3 text-sm transition ${
+                            className={`w-full flex items-center justify-between px-4 py-3.5 min-h-[52px] text-sm transition ${
                               isSelected
                                 ? 'bg-blue-600/20 text-white'
-                                : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                                : 'text-slate-300 hover:bg-slate-800/90 hover:text-white'
                             }`}
                           >
                             <div className="flex items-center gap-3">
