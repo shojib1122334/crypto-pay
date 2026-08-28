@@ -435,7 +435,7 @@ export default function MerchantDashboard() {
         </div>
 
         {/* Right Column: Payment QR Section & Status Tracker */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-5 space-y-6 mt-6 lg:mt-0">
           
           {/* Payment QR Terminal Card */}
           {qrPayload && qrParams ? (
@@ -458,7 +458,7 @@ export default function MerchantDashboard() {
 
               <div className="p-6 flex flex-col items-center">
                 {/* Big Amount Badge */}
-                <div className="text-center mb-4">
+                <div className="text-center mb-5">
                   <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">
                     Total Amount
                   </span>
@@ -474,7 +474,7 @@ export default function MerchantDashboard() {
                 {/* QR Code SVG */}
                 <div
                   ref={qrRef}
-                  className="p-4 bg-white rounded-2xl border-2 border-slate-200 shadow-md flex items-center justify-center"
+                  className="p-4 bg-white rounded-2xl border-2 border-slate-200 shadow-md flex items-center justify-center mb-2"
                 >
                   <QRCodeSVG
                     value={qrPayload}
@@ -484,14 +484,14 @@ export default function MerchantDashboard() {
                   />
                 </div>
 
-                {/* EIP-681 Standard URI Box */}
-                <div className="mt-4 w-full bg-[#1E293B]/80 border border-slate-700/70 rounded-xl p-3">
-                  <div className="flex items-center justify-between mb-1">
+                {/* EIP-681 Standard URI Box - Positioned slightly below the generated QR code */}
+                <div className="mt-5 w-full bg-[#1E293B]/80 border border-slate-700/70 rounded-xl p-3.5 space-y-1.5">
+                  <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
-                      EIP-681 Standard Payment URI
+                      EIP-681 Payment Scanner URI
                     </span>
-                    <span className="text-[10px] text-emerald-400 font-semibold">
-                      Universal Scanner Compatible
+                    <span className="text-[10px] text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30">
+                      Scanner Ready
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-200 break-all font-mono select-all leading-tight">
@@ -500,7 +500,7 @@ export default function MerchantDashboard() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-col gap-2 mt-4 w-full">
+                <div className="flex flex-col gap-2.5 mt-5 w-full">
                   <div className="flex gap-2">
                     <button
                       onClick={handleCopyPayload}
