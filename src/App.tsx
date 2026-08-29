@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@ta
 import { config } from '@/lib/wallet';
 import Header from '@/components/Header';
 import MerchantDashboard from '@/components/MerchantDashboard';
-import HowItWorksSection from '@/components/HowItWorksSection';
+import PaySystemTerminal from '@/components/PaySystemTerminal';
 import CustomerPaymentView from '@/components/CustomerPaymentView';
 import SplashIntro from '@/components/SplashIntro';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -129,10 +129,10 @@ function AppContent() {
             </>
           )}
 
-          {/* Pay System Tab (How CryptoPay Works) */}
+          {/* Pay System Tab (Multi-Chain Web3 Terminal: Send, Receive, Balances, BTC) */}
           {activeTab === 'pay-system' && (
             <div id="pay-system-page">
-              <HowItWorksSection />
+              <PaySystemTerminal />
             </div>
           )}
 
