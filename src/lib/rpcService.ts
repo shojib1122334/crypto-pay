@@ -41,7 +41,7 @@ export interface GasFeeInfo {
 export async function fetchCryptoPrices(): Promise<Record<string, number>> {
   try {
     const res = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=matic-network,ethereum,bitcoin,tether,usd-coin,verse&vs_currencies=usd',
+      'https://api.coingecko.com/api/v3/simple/price?ids=matic-network,ethereum,tether,usd-coin,verse&vs_currencies=usd',
     );
     if (!res.ok) throw new Error('Failed to fetch prices');
     const data = await res.json();
@@ -49,7 +49,6 @@ export async function fetchCryptoPrices(): Promise<Record<string, number>> {
       POL: data['matic-network']?.usd || 0.45,
       MATIC: data['matic-network']?.usd || 0.45,
       ETH: data['ethereum']?.usd || 3200,
-      BTC: data['bitcoin']?.usd || 68000,
       USDT: data['tether']?.usd || 1.0,
       USDC: data['usd-coin']?.usd || 1.0,
       VERSE: data['verse']?.usd || 0.00035,
@@ -60,7 +59,6 @@ export async function fetchCryptoPrices(): Promise<Record<string, number>> {
       POL: 0.45,
       MATIC: 0.45,
       ETH: 3200,
-      BTC: 68000,
       USDT: 1.0,
       USDC: 1.0,
       VERSE: 0.00035,

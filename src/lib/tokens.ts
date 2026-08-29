@@ -1,6 +1,6 @@
 import type { Address } from 'viem';
 
-export type TokenSymbol = 'usdt' | 'usdc' | 'verse' | 'pol' | 'eth' | 'btc';
+export type TokenSymbol = 'usdt' | 'usdc' | 'verse' | 'pol' | 'eth';
 
 export interface TokenConfig {
   symbol: TokenSymbol;
@@ -17,7 +17,6 @@ export interface TokenConfig {
 
 export const POLYGON_CHAIN_ID = 137;
 export const ETHEREUM_CHAIN_ID = 1;
-export const BITCOIN_NETWORK_ID = 0;
 
 export const TOKENS: Record<string, TokenConfig> = {
   // Polygon Tokens
@@ -118,7 +117,6 @@ export interface MultiChainToken {
     isNative?: boolean;
     blockExplorerUrl: string;
   }[];
-  isBitcoin?: boolean;
 }
 
 export const SUPPORTED_PAY_TOKENS: MultiChainToken[] = [
@@ -197,21 +195,6 @@ export const SUPPORTED_PAY_TOKENS: MultiChainToken[] = [
         decimals: 18,
         isNative: true,
         blockExplorerUrl: 'https://polygonscan.com',
-      },
-    ],
-  },
-  {
-    id: 'btc',
-    symbol: 'BTC',
-    name: 'Bitcoin (Native UTXO Network)',
-    isBitcoin: true,
-    networks: [
-      {
-        chainId: BITCOIN_NETWORK_ID,
-        networkName: 'Bitcoin Mainnet',
-        address: '0x0000000000000000000000000000000000000000' as Address,
-        decimals: 8,
-        blockExplorerUrl: 'https://mempool.space',
       },
     ],
   },

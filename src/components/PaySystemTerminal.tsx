@@ -249,12 +249,16 @@ export default function PaySystemTerminal() {
     setErrorMessage('');
 
     if (!isConnected || !address) {
-      if (openConnectModal) openConnectModal();
+      if (openConnectModal) {
+        openConnectModal();
+      } else {
+        setSendError('Please connect your Web3 wallet using the Connect Wallet button.');
+      }
       return;
     }
 
     if (!recipientAddress || !isAddress(recipientAddress)) {
-      setSendError('Please enter a valid recipient EVM address (0x...)');
+      setSendError('Please enter or scan a valid recipient address (0x...)');
       return;
     }
 
@@ -269,25 +273,12 @@ export default function PaySystemTerminal() {
       return;
     }
 
-    const availableBal = parseFloat(currentTokenBalance.replace(/,/g, ''));
-    if (parsedAmount > availableBal) {
-      setSendError(`Insufficient balance. You have ${currentTokenBalance} ${currentToken?.symbol}.`);
-      return;
-    }
-
-    // Check gas token
-    if (nativeGasBalance <= 0.0001) {
-      const gasSymbol = selectedChainId === POLYGON_CHAIN_ID ? 'POL' : 'ETH';
-      setSendError(`Insufficient gas fee token. You need native ${gasSymbol} to pay for blockchain gas fees.`);
-      return;
-    }
-
     // Check if on the correct chain
     if (chain?.id !== selectedChainId && switchChainAsync) {
       try {
         await switchChainAsync({ chainId: selectedChainId });
       } catch {
-        setSendError(`Please switch your wallet to ${selectedChainId === POLYGON_CHAIN_ID ? 'Polygon' : 'Ethereum'} to continue.`);
+        setSendError(`Please switch your wallet to ${selectedChainId === POLYGON_CHAIN_ID ? 'Polygon Mainnet' : 'Ethereum Mainnet'} to continue.`);
         return;
       }
     }
@@ -646,9 +637,9 @@ export default function PaySystemTerminal() {
                       setSendError(null);
                     }}
                     placeholder="0x... (Scan QR or paste recipient address)"
-                    className="w-full bg-emerald-950/90 border border-emerald-700/80 rounded-2xl pl-4 pr-24 py-3 text-xs sm:text-sm font-mono text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-300/60 focus:border-yellow-300"
+                    className="w-full bg-emerald-950/90 border border-emerald-700/80 rounded-2xl pl-4 pr-32 py-3 text-xs sm:text-sm font-mono text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-300/60 focus:border-yellow-300"
                   />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                     {recipientAddress ? (
                       isAddress(recipientAddress) ? (
                         <span className="px-2 py-0.5 rounded bg-emerald-800 text-yellow-200 text-[10px] font-bold flex items-center gap-1">
@@ -661,20 +652,56 @@ export default function PaySystemTerminal() {
                         </span>
                       )
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setScannerTarget('send');
-                          setIsScannerOpen(true);
-                        }}
-                        className="px-2 py-1 rounded-lg bg-[#042f22] border border-emerald-700 text-yellow-200 hover:text-white hover:bg-emerald-900 text-[11px] font-extrabold flex items-center gap-1 transition"
-                      >
-                        <QrCode className="w-3.5 h-3.5 text-yellow-300" />
-                        <span>Scan QR</span>
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              const text = await navigator.clipboard.readText();
+                              if (text) {
+                                setRecipientAddress(text.trim());
+                                setSendError(null);
+                              }
+                            } catch {
+                              // clipboard permissions
+                            }
+                          }}
+                          className="px-2 py-1 rounded-lg bg-emerald-900/80 border border-emerald-700 text-yellow-200 hover:text-white text-[10px] font-bold transition"
+                          title="Paste from clipboard"
+                        >
+                          Paste
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setScannerTarget('send');
+                            setIsScannerOpen(true);
+                          }}
+                          className="px-2 py-1 rounded-lg bg-[#042f22] border border-emerald-700 text-yellow-200 hover:text-white hover:bg-emerald-900 text-[11px] font-extrabold flex items-center gap-1 transition"
+                        >
+                          <QrCode className="w-3.5 h-3.5 text-yellow-300" />
+                          <span>Scan</span>
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
+
+                {!recipientAddress && (
+                  <div className="mt-1.5 flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400">Need a test recipient?</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRecipientAddress('0x1731536bDEcf43c0ad63F70bFdF26a6F50b6a9C7');
+                        setSendError(null);
+                      }}
+                      className="text-yellow-300 hover:underline font-semibold"
+                    >
+                      Autofill Merchant Gateway (0x1731...a9C7)
+                    </button>
+                  </div>
+                )}
 
                 {scannedSuccessToast && (
                   <div className="mt-2 p-2 rounded-xl bg-emerald-900/80 border border-yellow-300/40 text-yellow-200 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
@@ -690,35 +717,12 @@ export default function PaySystemTerminal() {
                   <label className="text-xs font-extrabold uppercase tracking-wider text-sky-300">
                     Amount to Send
                   </label>
-                  <div className="flex items-center gap-1.5">
-                    {[
-                      { label: '25%', factor: 0.25 },
-                      { label: '50%', factor: 0.5 },
-                      { label: '75%', factor: 0.75 },
-                      { label: 'MAX', factor: 1.0 },
-                    ].map((preset) => (
-                      <button
-                        key={preset.label}
-                        type="button"
-                        onClick={() => {
-                          const bal = parseFloat(currentTokenBalance.replace(/,/g, ''));
-                          if (!isNaN(bal) && bal > 0) {
-                            const val = (bal * preset.factor).toFixed(
-                              currentNetworkConfig?.decimals === 6 ? 2 : 4
-                            );
-                            setSendAmount(val);
-                            setSendError(null);
-                          }
-                        }}
-                        className="px-2 py-0.5 rounded-md bg-yellow-200 text-zinc-900 text-[10px] font-extrabold hover:bg-yellow-300 transition"
-                      >
-                        {preset.label}
-                      </button>
-                    ))}
-                  </div>
+                  <span className="text-[11px] text-yellow-200 font-semibold">
+                    Balance: {currentTokenBalance} {currentToken?.symbol}
+                  </span>
                 </div>
 
-                <div className="relative">
+                <div className="relative mb-2">
                   <input
                     type="number"
                     step="any"
@@ -727,8 +731,8 @@ export default function PaySystemTerminal() {
                       setSendAmount(e.target.value);
                       setSendError(null);
                     }}
-                    placeholder="0.00"
-                    className="w-full bg-emerald-950/90 border border-emerald-700/80 rounded-2xl px-4 py-3 text-base sm:text-lg font-mono font-bold text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-300/60 focus:border-yellow-300"
+                    placeholder="10.00"
+                    className="w-full bg-emerald-950/90 border border-emerald-700/80 rounded-2xl px-4 py-3.5 text-lg sm:text-xl font-mono font-bold text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-yellow-300/60 focus:border-yellow-300"
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                     <span className="px-2.5 py-1 rounded-xl bg-zinc-900 text-yellow-300 text-xs font-extrabold flex items-center gap-1.5">
@@ -738,14 +742,51 @@ export default function PaySystemTerminal() {
                   </div>
                 </div>
 
+                {/* Quick Fixed Amount & Percentage Presets */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 mr-0.5">Quick:</span>
+                  {['5.00', '10.00', '25.00', '50.00', '100.00', '250.00'].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => {
+                        setSendAmount(val);
+                        setSendError(null);
+                      }}
+                      className={`px-2 py-1 rounded-lg text-xs font-bold transition ${
+                        sendAmount === val
+                          ? 'bg-yellow-300 text-zinc-900 shadow-sm'
+                          : 'bg-[#042f22] text-yellow-200 hover:bg-emerald-900 border border-emerald-700/80'
+                      }`}
+                    >
+                      ${parseFloat(val).toFixed(0)}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const bal = parseFloat(currentTokenBalance.replace(/,/g, ''));
+                      if (!isNaN(bal) && bal > 0) {
+                        setSendAmount(bal.toString());
+                      } else {
+                        setSendAmount('100.00');
+                      }
+                      setSendError(null);
+                    }}
+                    className="px-2 py-1 rounded-lg bg-yellow-200 text-zinc-900 text-xs font-extrabold hover:bg-yellow-300 transition ml-auto"
+                  >
+                    MAX
+                  </button>
+                </div>
+
                 {/* Approx USD value */}
                 {sendAmount && parseFloat(sendAmount) > 0 && (
-                  <p className="text-right text-xs text-yellow-200 mt-1 font-semibold">
+                  <p className="text-right text-xs text-yellow-200 mt-1.5 font-semibold">
                     ≈ ${(
                       parseFloat(sendAmount) *
                       (prices[currentToken?.symbol || 'USDT'] || 1.0)
                     ).toFixed(2)}{' '}
-                    USD
+                    USD (Live On-Chain Value)
                   </p>
                 )}
               </div>
@@ -898,6 +939,15 @@ export default function PaySystemTerminal() {
                     {selectedChainId === POLYGON_CHAIN_ID ? '~0.002 POL (<$0.01)' : '~0.0009 ETH (~$2.40)'}
                   </span>
                 </div>
+
+                {isConnected && (
+                  <div className="flex items-center justify-between py-1.5 border-b border-emerald-800/60">
+                    <span className="text-slate-300">Wallet Gas Reserve</span>
+                    <span className="font-bold text-sky-300 font-mono">
+                      {nativeGasBalance.toFixed(4)} {selectedChainId === POLYGON_CHAIN_ID ? 'POL' : 'ETH'}
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between py-1.5 border-b border-emerald-800/60">
                   <span className="text-slate-300">Settlement Speed</span>

@@ -11,6 +11,7 @@ import {
   Info,
   HelpCircle,
   Image as ImageIcon,
+  Camera,
 } from 'lucide-react';
 import { parseCryptoQR, type ScannedQRData } from '@/lib/qrParser';
 
@@ -34,11 +35,14 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const animFrameIdRef = useRef<number | null>(null);
+  const lastScanTimeRef = useRef<number>(0);
+  const isScanningRef = useRef<boolean>(false);
 
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isPermissionDenied, setIsPermissionDenied] = useState(false);
-  const [isScanning, setIsScanning] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
   const [scannedResult, setScannedResult] = useState<ScannedQRData | null>(null);
   const [availableDevices, setAvailableDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
@@ -46,30 +50,114 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
   const [torchOn, setTorchOn] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
-  const animFrameIdRef = useRef<number | null>(null);
 
-  // Stop current video stream
-  const stopCamera = useCallback(() => {
+  // Stop camera tracks cleanly
+  const stopCameraTracks = useCallback(() => {
+    isScanningRef.current = false;
     if (animFrameIdRef.current) {
       cancelAnimationFrame(animFrameIdRef.current);
       animFrameIdRef.current = null;
     }
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch {
+          // ignore
+        }
+      });
+      streamRef.current = null;
     }
-    setIsScanning(false);
-  }, [stream]);
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
+    setTorchOn(false);
+  }, []);
 
-  // Start video stream with selected device / facing mode
-  const startCamera = useCallback(async (deviceId?: string) => {
+  // Continuous frame analysis with throttling to eliminate glitching & jumping
+  const scanLoop = useCallback(() => {
+    if (!isScanningRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    if (video && canvas && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      const now = performance.now();
+      // Scan every ~90ms (approx 11 fps) to keep video silky smooth and free CPU
+      if (now - lastScanTimeRef.current >= 90) {
+        lastScanTimeRef.current = now;
+
+        const videoW = video.videoWidth;
+        const videoH = video.videoHeight;
+
+        if (videoW > 0 && videoH > 0) {
+          // Only resize canvas if dimensions actually changed
+          if (canvas.width !== videoW || canvas.height !== videoH) {
+            canvas.width = videoW;
+            canvas.height = videoH;
+          }
+
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, videoW, videoH);
+            const imageData = ctx.getImageData(0, 0, videoW, videoH);
+
+            try {
+              const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'dontInvert',
+              });
+
+              if (code && code.data && isScanningRef.current) {
+                const parsed = parseCryptoQR(code.data);
+                if (parsed && parsed.address) {
+                  isScanningRef.current = false;
+                  setScannedResult(parsed);
+                  stopCameraTracks();
+
+                  // Haptic vibration feedback
+                  if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+                    try {
+                      navigator.vibrate([100, 50, 100]);
+                    } catch {
+                      // ignore
+                    }
+                  }
+
+                  setTimeout(() => {
+                    onScanSuccess(parsed);
+                    onClose();
+                  }, 500);
+                  return;
+                }
+              }
+            } catch (err) {
+              console.warn('jsQR scan parse error:', err);
+            }
+          }
+        }
+      }
+    }
+
+    if (isScanningRef.current) {
+      animFrameIdRef.current = requestAnimationFrame(scanLoop);
+    }
+  }, [onScanSuccess, onClose, stopCameraTracks]);
+
+  // Start camera stream safely
+  const startCameraStream = useCallback(async (deviceId?: string) => {
     setCameraError(null);
     setIsPermissionDenied(false);
     setScannedResult(null);
 
-    // Stop any existing stream
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
+    // Stop existing tracks first
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    if (animFrameIdRef.current) {
+      cancelAnimationFrame(animFrameIdRef.current);
+      animFrameIdRef.current = null;
     }
 
     try {
@@ -77,62 +165,79 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
         throw new Error('Camera access is not supported by your browser environment.');
       }
 
-      const constraints: MediaStreamConstraints = {
-        video: deviceId
-          ? { deviceId: { exact: deviceId } }
-          : {
-              facingMode: { ideal: 'environment' },
-              width: { ideal: 1280 },
-              height: { ideal: 720 },
-            },
-        audio: false,
-      };
+      const videoConstraints: MediaTrackConstraints = deviceId
+        ? { deviceId: { exact: deviceId } }
+        : {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 },
+          };
 
-      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
-      setStream(newStream);
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: videoConstraints,
+        audio: false,
+      });
+
+      streamRef.current = newStream;
 
       if (videoRef.current) {
         videoRef.current.srcObject = newStream;
         videoRef.current.setAttribute('playsinline', 'true');
-        await videoRef.current.play();
-      }
-
-      setIsScanning(true);
-
-      // Check if torch / flash is supported
-      const track = newStream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities ? (track.getCapabilities() as unknown as { torch?: boolean }) : null;
-      setHasTorch(Boolean(capabilities && capabilities.torch));
-
-      // Get available cameras list
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevs = devices.filter((d) => d.kind === 'videoinput');
-      setAvailableDevices(videoDevs);
-      if (!deviceId && videoDevs.length > 0) {
-        const activeTrack = track.getSettings();
-        if (activeTrack.deviceId) {
-          setSelectedDeviceId(activeTrack.deviceId);
+        videoRef.current.muted = true;
+        try {
+          await videoRef.current.play();
+        } catch {
+          // auto-play policy might resolve
         }
       }
+
+      isScanningRef.current = true;
+      setIsCameraActive(true);
+
+      // Check for torch capability
+      const videoTrack = newStream.getVideoTracks()[0];
+      if (videoTrack && videoTrack.getCapabilities) {
+        const caps = videoTrack.getCapabilities() as { torch?: boolean };
+        setHasTorch(Boolean(caps && caps.torch));
+      }
+
+      // Enumerate cameras
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevs = devices.filter((d) => d.kind === 'videoinput');
+        setAvailableDevices(videoDevs);
+        if (!deviceId && videoDevs.length > 0 && videoTrack) {
+          const settings = videoTrack.getSettings();
+          if (settings.deviceId) {
+            setSelectedDeviceId(settings.deviceId);
+          }
+        }
+      } catch {
+        // ignore device listing error
+      }
+
+      // Kick off smooth scan loop
+      animFrameIdRef.current = requestAnimationFrame(scanLoop);
     } catch (err: unknown) {
       const errorObj = err as { name?: string; message?: string };
-      console.warn('Camera stream error:', err);
-      let msg = 'Unable to access camera. Please allow camera permissions or upload a QR image.';
+      console.warn('Camera initialization error:', err);
+      let msg = 'Unable to access camera. Please allow camera permissions or upload an image.';
       if (errorObj?.name === 'NotAllowedError' || errorObj?.name === 'PermissionDeniedError') {
         setIsPermissionDenied(true);
-        msg = 'Camera permission was denied. You can enable it in your browser address bar (lock/tune icon) or easily upload/drag a QR code image screenshot below.';
+        msg = 'Camera permission was denied. You can enable it in your browser address bar or directly upload / drag a QR image screenshot below.';
       } else if (errorObj?.name === 'NotFoundError' || errorObj?.name === 'DevicesNotFoundError') {
-        msg = 'No video camera detected on your device. You can upload a QR image or screenshot instead.';
+        msg = 'No video camera detected on your device. You can upload a QR image or screenshot below.';
       }
       setCameraError(msg);
-      setIsScanning(false);
+      setIsCameraActive(false);
+      isScanningRef.current = false;
     }
-  }, [stream]);
+  }, [scanLoop]);
 
-  // Toggle torch / flashlight
+  // Flashlight toggle
   const toggleTorch = async () => {
-    if (!stream) return;
-    const track = stream.getVideoTracks()[0];
+    if (!streamRef.current) return;
+    const track = streamRef.current.getVideoTracks()[0];
     if (track && hasTorch) {
       try {
         const nextState = !torchOn;
@@ -141,83 +246,28 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
         });
         setTorchOn(nextState);
       } catch (e) {
-        console.warn('Torch toggle failed:', e);
+        console.warn('Torch toggle error:', e);
       }
     }
   };
 
-  // Continuous frame analysis via requestAnimationFrame
-  const scanLoop = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) {
-      animFrameIdRef.current = requestAnimationFrame(scanLoop);
-      return;
-    }
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-    if (video.readyState === video.HAVE_ENOUGH_DATA && ctx) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: 'dontInvert',
-      });
-
-      if (code && code.data) {
-        const parsed = parseCryptoQR(code.data);
-        if (parsed.address) {
-          setScannedResult(parsed);
-          stopCamera();
-
-          if (typeof navigator.vibrate === 'function') {
-            navigator.vibrate([100, 50, 100]);
-          }
-
-          setTimeout(() => {
-            onScanSuccess(parsed);
-            onClose();
-          }, 600);
-          return;
-        }
-      }
-    }
-
-    animFrameIdRef.current = requestAnimationFrame(scanLoop);
-  }, [onScanSuccess, onClose, stopCamera]);
-
-  useEffect(() => {
-    if (isScanning) {
-      animFrameIdRef.current = requestAnimationFrame(scanLoop);
-    }
-    return () => {
-      if (animFrameIdRef.current) {
-        cancelAnimationFrame(animFrameIdRef.current);
-        animFrameIdRef.current = null;
-      }
-    };
-  }, [isScanning, scanLoop]);
-
+  // Lifecycle: open/close
   useEffect(() => {
     if (isOpen) {
-      startCamera();
+      startCameraStream();
     } else {
-      stopCamera();
+      stopCameraTracks();
       setScannedResult(null);
       setCameraError(null);
       setIsPermissionDenied(false);
-      setTorchOn(false);
       setShowGuide(false);
     }
     return () => {
-      stopCamera();
+      stopCameraTracks();
     };
-  }, [isOpen, startCamera, stopCamera]);
+  }, [isOpen, startCameraStream, stopCameraTracks]);
 
-  // Process image file for QR
+  // Process static image file
   const processImageFile = (file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -237,16 +287,16 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
           const parsed = parseCryptoQR(code.data);
           if (parsed.address) {
             setScannedResult(parsed);
-            stopCamera();
+            stopCameraTracks();
             setTimeout(() => {
               onScanSuccess(parsed);
               onClose();
-            }, 600);
+            }, 500);
           } else {
-            setCameraError(`QR code found but no valid crypto address detected: "${code.data.slice(0, 60)}"`);
+            setCameraError(`QR code found but no crypto address recognized: "${code.data.slice(0, 60)}"`);
           }
         } else {
-          setCameraError('No readable QR code found in the image. Please try a clearer screenshot or photo.');
+          setCameraError('No readable QR code found in the selected image. Please try a clearer screenshot.');
         }
       };
       img.src = event.target?.result as string;
@@ -274,7 +324,7 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -282,7 +332,7 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
     >
-      <div className="relative w-full max-w-lg bg-[#022c22] border border-emerald-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative w-full max-w-lg bg-[#022c22] border border-emerald-700/90 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 bg-[#042f22] border-b border-emerald-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -292,7 +342,9 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
             <div>
               <h3 className="text-base font-extrabold text-white">{title}</h3>
               <p className="text-xs text-yellow-200/90 font-medium">
-                {expectedType === 'btc' ? 'Bitcoin UTXO BIP-21 or Address' : 'Polygon & Ethereum EIP-681 / Address'}
+                {expectedType === 'btc'
+                  ? 'Bitcoin UTXO BIP-21 or Address'
+                  : 'Polygon & Ethereum EIP-681 / Address'}
               </p>
             </div>
           </div>
@@ -315,11 +367,11 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
           </div>
         </div>
 
-        {/* Viewfinder / Video Canvas area */}
+        {/* Viewfinder Video Canvas */}
         <div className="relative bg-zinc-950 aspect-[4/3] w-full flex items-center justify-center overflow-hidden">
           <canvas ref={canvasRef} className="hidden" />
 
-          {/* Active Live Video Element */}
+          {/* Video Stream Element */}
           <video
             ref={videoRef}
             className={`w-full h-full object-cover ${cameraError ? 'hidden' : 'block'}`}
@@ -328,38 +380,43 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
             playsInline
           />
 
-          {/* Scanner Optical Viewfinder Overlay */}
-          {!cameraError && isScanning && !scannedResult && (
+          {/* Smooth, Non-glitching Optical Viewfinder */}
+          {!cameraError && isCameraActive && !scannedResult && (
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <div className="relative w-64 h-64 sm:w-72 sm:h-72 border-2 border-yellow-300/80 rounded-2xl shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]">
-                {/* 4 Corner Markers */}
-                <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-yellow-300 rounded-tl-lg" />
-                <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-yellow-300 rounded-tr-lg" />
-                <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-yellow-300 rounded-bl-lg" />
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-yellow-300 rounded-br-lg" />
+              <div className="relative w-64 h-64 sm:w-72 sm:h-72 border border-yellow-300/60 rounded-2xl shadow-[0_0_0_9999px_rgba(0,0,0,0.65)] overflow-hidden">
+                {/* 4 Crisp Corner Brackets */}
+                <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-yellow-300 rounded-tl-lg" />
+                <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-yellow-300 rounded-tr-lg" />
+                <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-yellow-300 rounded-bl-lg" />
+                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-yellow-300 rounded-br-lg" />
 
-                {/* Laser scan line */}
-                <div className="absolute left-2 right-2 h-0.5 bg-yellow-300 shadow-[0_0_12px_#fde047] animate-bounce duration-1000 top-1/2 -translate-y-1/2" />
+                {/* Silky-smooth scanning laser beam */}
+                <div
+                  className="absolute left-0 right-0 h-0.5 bg-yellow-300 shadow-[0_0_12px_#fde047]"
+                  style={{
+                    animation: 'scanLaser 2.2s ease-in-out infinite alternate',
+                  }}
+                />
 
-                <div className="absolute bottom-2 inset-x-0 text-center">
-                  <span className="px-2.5 py-0.5 rounded-full bg-zinc-900/90 text-yellow-300 text-[10px] font-black tracking-wider uppercase">
-                    Detecting Crypto Address...
+                <div className="absolute bottom-3 inset-x-0 text-center">
+                  <span className="px-3 py-1 rounded-full bg-zinc-900/90 text-yellow-300 text-[10px] font-black tracking-wider uppercase border border-yellow-300/30">
+                    Align QR Inside Frame
                   </span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Drag and drop overlay */}
+          {/* Drag-over overlay */}
           {isDragging && (
-            <div className="absolute inset-0 bg-emerald-950/95 border-2 border-dashed border-yellow-300 flex flex-col items-center justify-center p-6 text-center z-10">
-              <Upload className="w-12 h-12 text-yellow-300 mb-2 animate-bounce" />
+            <div className="absolute inset-0 bg-emerald-950/95 border-2 border-dashed border-yellow-300 flex flex-col items-center justify-center p-6 text-center z-10 animate-in fade-in duration-150">
+              <Upload className="w-12 h-12 text-yellow-300 mb-2 animate-pulse" />
               <p className="text-sm font-extrabold text-white">Drop QR Code Image Here</p>
               <p className="text-xs text-yellow-200">Will automatically parse address instantly</p>
             </div>
           )}
 
-          {/* Success Overlay state */}
+          {/* Success Overlay */}
           {scannedResult && (
             <div className="absolute inset-0 bg-emerald-950/95 flex flex-col items-center justify-center p-6 text-center animate-in zoom-in-95 duration-200">
               <div className="w-16 h-16 rounded-full bg-yellow-200 text-zinc-900 flex items-center justify-center mb-3 shadow-lg">
@@ -377,20 +434,20 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
             </div>
           )}
 
-          {/* Camera Error / Permission Denied State */}
+          {/* Camera Error / Permission Screen */}
           {cameraError && (
-            <div className="p-5 text-center max-w-md flex flex-col items-center justify-center w-full h-full bg-[#022c22]/90 backdrop-blur">
+            <div className="p-5 text-center max-w-md flex flex-col items-center justify-center w-full h-full bg-[#022c22]/95 backdrop-blur">
               <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/50 text-yellow-300 flex items-center justify-center mb-2.5 shadow-md">
                 <AlertCircle className="w-6 h-6" />
               </div>
               <h4 className="text-sm font-extrabold text-white mb-1">
-                {isPermissionDenied ? 'Camera Access Denied' : 'Camera Unavailable'}
+                {isPermissionDenied ? 'Camera Access Denied' : 'Camera Notice'}
               </h4>
               <p className="text-xs text-slate-300 mb-3 px-2 leading-relaxed">
                 {cameraError}
               </p>
 
-              {/* Direct Drag & Drop / Upload Box */}
+              {/* Upload QR Box */}
               <div
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full border-2 border-dashed border-emerald-600 hover:border-yellow-300 bg-emerald-950/70 hover:bg-emerald-950 cursor-pointer rounded-2xl p-4 mb-3 transition flex flex-col items-center justify-center gap-1.5"
@@ -410,7 +467,7 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
               <div className="flex flex-wrap justify-center gap-2">
                 <button
                   type="button"
-                  onClick={() => startCamera(selectedDeviceId)}
+                  onClick={() => startCameraStream(selectedDeviceId)}
                   className="px-4 py-2 rounded-xl bg-yellow-200 text-zinc-900 text-xs font-extrabold flex items-center gap-1.5 hover:bg-yellow-300 transition shadow"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
@@ -429,7 +486,7 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
           )}
         </div>
 
-        {/* How to enable permissions expandable guide */}
+        {/* Expandable Camera Permission Guide */}
         {showGuide && (
           <div className="p-4 bg-[#032016] border-t border-emerald-800 text-xs space-y-2 text-slate-300 animate-in slide-in-from-top-2 duration-200">
             <div className="flex items-center gap-1.5 text-yellow-300 font-bold">
@@ -439,34 +496,35 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
             <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-200 pl-1">
               <li>Click the <strong>Lock (🔒) or Tune (⚙️) icon</strong> on the left side of your browser URL bar.</li>
               <li>Toggle <strong>Camera</strong> from &quot;Block&quot; to <strong>&quot;Allow&quot;</strong>.</li>
-              <li>Refresh or click <strong>&quot;Try Camera Again&quot;</strong> above.</li>
-              <li>If testing inside an embedded preview iframe, click the <strong>Open in New Tab</strong> button in the top-right header for direct hardware access.</li>
+              <li>Click <strong>&quot;Try Camera Again&quot;</strong> above.</li>
+              <li>If you prefer, simply upload a QR code image or screenshot directly.</li>
             </ol>
           </div>
         )}
 
-        {/* Footer Controls */}
+        {/* Footer */}
         <div className="p-4 bg-[#032419] border-t border-emerald-800/80 flex items-center justify-between gap-3">
-          {/* Switch Camera if multiple available */}
           {availableDevices.length > 1 && (
-            <select
-              value={selectedDeviceId}
-              onChange={(e) => {
-                setSelectedDeviceId(e.target.value);
-                startCamera(e.target.value);
-              }}
-              className="bg-emerald-950 border border-emerald-700 text-xs text-white rounded-xl px-2.5 py-1.5 font-bold focus:outline-none focus:ring-1 focus:ring-yellow-300"
-            >
-              {availableDevices.map((dev, idx) => (
-                <option key={dev.deviceId} value={dev.deviceId}>
-                  {dev.label || `Camera ${idx + 1}`}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-1.5">
+              <Camera className="w-3.5 h-3.5 text-slate-400" />
+              <select
+                value={selectedDeviceId}
+                onChange={(e) => {
+                  setSelectedDeviceId(e.target.value);
+                  startCameraStream(e.target.value);
+                }}
+                className="bg-emerald-950 border border-emerald-700 text-xs text-white rounded-xl px-2.5 py-1.5 font-bold focus:outline-none focus:ring-1 focus:ring-yellow-300"
+              >
+                {availableDevices.map((dev, idx) => (
+                  <option key={dev.deviceId} value={dev.deviceId}>
+                    {dev.label || `Camera ${idx + 1}`}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
 
-          {/* Flashlight toggle if supported */}
-          {hasTorch && isScanning && (
+          {hasTorch && isCameraActive && (
             <button
               type="button"
               onClick={toggleTorch}
@@ -481,7 +539,6 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
             </button>
           )}
 
-          {/* Hidden File Input */}
           <input
             ref={fileInputRef}
             type="file"
@@ -490,7 +547,6 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
             onChange={handleFileUpload}
           />
 
-          {/* Upload QR screenshot button */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -501,6 +557,14 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
           </button>
         </div>
       </div>
+
+      <style>{`
+        @keyframes scanLaser {
+          0% { top: 8%; opacity: 0.8; }
+          50% { opacity: 1; }
+          100% { top: 92%; opacity: 0.8; }
+        }
+      `}</style>
     </div>
   );
 };

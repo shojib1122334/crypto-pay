@@ -7,6 +7,7 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from 'wagmi';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import {
   ArrowRight,
   Loader2,
@@ -17,6 +18,7 @@ import {
   Fuel,
   Info,
   FileText,
+  Wallet,
 } from 'lucide-react';
 import {
   isAddress,
@@ -141,6 +143,7 @@ export default function CustomerPaymentView({
   params,
 }: CustomerPaymentViewProps) {
   const { address, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
   const publicClient = usePublicClient({ chainId: POLYGON_CHAIN_ID });
   const token = getToken(params.token);
   const targetChainId = token?.chainId ?? POLYGON_CHAIN_ID;
@@ -355,7 +358,11 @@ export default function CustomerPaymentView({
     }
 
     if (!isConnected || !address) {
-      setErrorMessage('Please connect your Web3 wallet using the header button first.');
+      if (openConnectModal) {
+        openConnectModal();
+      } else {
+        setErrorMessage('Please connect your Web3 wallet using the Connect Wallet button.');
+      }
       return;
     }
 
@@ -454,6 +461,7 @@ export default function CustomerPaymentView({
     isValidMerchant,
     merchantAddress,
     nativeBalanceData,
+    openConnectModal,
     params.sessionId,
     publicClient,
     requestSwitch,
@@ -776,12 +784,38 @@ export default function CustomerPaymentView({
                 ? 'Awaiting wallet signature...'
                 : 'Confirming on Polygon blockchain...'}
             </div>
+          ) : !isConnected ? (
+            <button
+              onClick={handlePay}
+              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 px-5 py-4 text-white font-bold text-sm shadow-md shadow-blue-500/20 active:scale-[0.99] transition cursor-pointer"
+            >
+              <Wallet className="w-4 h-4" />
+              <span>Connect Wallet & Pay {amountDisplay} {tokenLabel}</span>
+              <ArrowRight className="w-4 h-4 ml-0.5" />
+            </button>
+          ) : !isCorrect ? (
+            <button
+              onClick={requestSwitch}
+              disabled={switching}
+              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 px-5 py-4 text-white font-bold text-sm shadow-md shadow-amber-500/20 active:scale-[0.99] transition disabled:opacity-50"
+            >
+              {switching ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Switching to Polygon Mainnet...</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Switch to Polygon & Pay {amountDisplay} {tokenLabel}</span>
+                  <ArrowRight className="w-4 h-4 ml-0.5" />
+                </>
+              )}
+            </button>
           ) : (
             <button
               onClick={handlePay}
-              disabled={
-                !isConnected || !isCorrect || sending || loadingSession || insufficientTokenFunds
-              }
+              disabled={sending || loadingSession || (insufficientTokenFunds && payState === 'idle')}
               className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 px-5 py-4 text-white font-bold text-sm shadow-md shadow-blue-500/20 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <TokenIcon token={params.token} size={22} />

@@ -596,12 +596,24 @@ export default function MerchantDashboard() {
                         ) : (
                           <>
                             <Copy className="w-3.5 h-3.5 text-slate-500" />
-                            Copy Payment Link
+                            Copy Link
                           </>
                         )}
                       </button>
                     )}
                   </div>
+
+                  {webLink && (
+                    <a
+                      href={webLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 px-3 py-2.5 text-xs font-bold text-blue-700 shadow-xs transition"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
+                      Open Customer Pay Page
+                    </a>
+                  )}
 
                   <button
                     onClick={handleDownload}

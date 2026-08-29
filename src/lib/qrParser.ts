@@ -9,7 +9,7 @@ export interface ScannedQRData {
 }
 
 /**
- * Robust parser for various crypto QR URI standards (EIP-681, BIP-21, raw addresses, etc.)
+ * Robust parser for various crypto QR URI standards (EIP-681, Polygon/Ethereum, raw EVM addresses, etc.)
  */
 export function parseCryptoQR(rawText: string): ScannedQRData {
   const text = (rawText || '').trim();
@@ -19,28 +19,7 @@ export function parseCryptoQR(rawText: string): ScannedQRData {
     return { raw: text, address: text };
   }
 
-  // 2. Bitcoin BIP-21 URI (e.g. bitcoin:1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa?amount=0.001)
-  if (text.toLowerCase().startsWith('bitcoin:') || text.toLowerCase().startsWith('bitcoincash:')) {
-    const parts = text.split('?');
-    const prefixRemoved = parts[0].replace(/^(bitcoin:|bitcoincash:)/i, '');
-    const cleanAddr = prefixRemoved.trim();
-    let amount: string | undefined;
-
-    if (parts[1]) {
-      const params = new URLSearchParams(parts[1]);
-      if (params.get('amount')) {
-        amount = params.get('amount') || undefined;
-      }
-    }
-    return {
-      raw: text,
-      address: cleanAddr,
-      amount,
-      tokenSymbol: 'BTC',
-    };
-  }
-
-  // 3. EIP-681 / Ethereum standard URIs
+  // 2. EIP-681 / Ethereum standard URIs
   // Patterns:
   // - ethereum:0x1234...
   // - ethereum:0xContract@137/transfer?address=0xRecipient&uint256=1000000
@@ -95,22 +74,12 @@ export function parseCryptoQR(rawText: string): ScannedQRData {
     };
   }
 
-  // 4. Check if text contains an EVM address inside any random string/URL
+  // 3. Check if text contains an EVM address inside any random string/URL
   const evmMatch = text.match(/0x[a-fA-F0-9]{40}/);
   if (evmMatch && isAddress(evmMatch[0])) {
     return {
       raw: text,
       address: evmMatch[0],
-    };
-  }
-
-  // 5. Check for Bitcoin address pattern (1..., 3..., bc1...)
-  const btcMatch = text.match(/(bc1[a-zA-HJ-NP-Z0-9]{25,62}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})/);
-  if (btcMatch) {
-    return {
-      raw: text,
-      address: btcMatch[0],
-      tokenSymbol: 'BTC',
     };
   }
 
