@@ -11,6 +11,7 @@ import CustomerPaymentView from '@/components/CustomerPaymentView';
 import SplashIntro from '@/components/SplashIntro';
 import BottomNavBar from '@/components/BottomNavBar';
 import ComingSoonPage from '@/components/ComingSoonPage';
+import TransactionHistoryView from '@/components/TransactionHistoryView';
 import { getCurrentPaymentParams } from '@/lib/payments';
 import type { NavTab } from '@/types/navigation';
 
@@ -41,7 +42,7 @@ function parseTabFromHash(hashStr: string): NavTab {
   if (clean === 'pay-system' || clean === 'pay' || clean === 'how-it-works') {
     return 'pay-system';
   }
-  if (clean === 'activity') {
+  if (clean === 'activity' || clean === 'transactions' || clean === 'history') {
     return 'activity';
   }
   if (clean === 'settings') {
@@ -100,9 +101,20 @@ function AppContent() {
         />
       )}
 
-      <div className="min-h-screen relative flex flex-col bg-[#F8FAFC] text-[#0F172A] selection:bg-blue-600 selection:text-white">
+      <div
+        className={`min-h-screen relative flex flex-col transition-colors duration-200 ${
+          activeTab === 'activity'
+            ? 'bg-black text-white'
+            : activeTab === 'pay-system'
+            ? 'bg-[#042f22] text-white'
+            : 'bg-[#F8FAFC] text-[#0F172A]'
+        } selection:bg-blue-600 selection:text-white`}
+      >
         {/* Crisp Header */}
-        <Header activeTab={activeTab} onNavigateTab={handleTabChange} />
+        <Header
+          activeTab={activeTab}
+          onNavigateTab={handleTabChange}
+        />
 
         {/* Main Content Area with safe bottom spacing for the edge-to-edge bottom bar */}
         <main className="relative z-10 flex-1 pb-20 sm:pb-24">
@@ -124,10 +136,10 @@ function AppContent() {
             </div>
           )}
 
-          {/* Activity Tab (Only Coming Soon) */}
-          {activeTab === 'activity' && <ComingSoonPage />}
+          {/* Activity Tab (Real Transaction History & Verification Ledger) */}
+          {activeTab === 'activity' && <TransactionHistoryView />}
 
-          {/* Settings Tab (Only Coming Soon) */}
+          {/* Settings Tab (Coming Soon) */}
           {activeTab === 'settings' && <ComingSoonPage />}
         </main>
 

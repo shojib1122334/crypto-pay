@@ -10,6 +10,10 @@ import {
   Clock,
   Zap,
   ArrowUpRight,
+  ShieldCheck,
+  CheckCircle2,
+  FileText,
+  ArrowRight,
 } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import {
@@ -17,6 +21,7 @@ import {
   buildPaymentQRUri,
   createPaymentSession,
   subscribeToPaymentSession,
+  updatePaymentSession,
   STATUS_LABELS,
   STATUS_ORDER,
   type PaymentLinkParams,
@@ -24,6 +29,11 @@ import {
 import { TOKEN_LIST, type TokenSymbol } from '@/lib/tokens';
 import type { PaymentSession, PaymentStatus } from '@/lib/supabase';
 import { TokenIcon } from '@/components/TokenIcon';
+import {
+  verifyOnChainPayment,
+  generatePaymentReceiptPdf,
+  type VerifiedTransactionRecord,
+} from '@/lib/transactionHistory';
 
 const STATUS_BADGE_CONFIG: Record<
   PaymentStatus,
@@ -44,7 +54,7 @@ const STATUS_BADGE_CONFIG: Record<
     border: 'border-blue-500/30',
   },
   success: {
-    label: 'Paid',
+    label: 'Paid & Verified',
     bg: 'bg-emerald-950/50',
     text: 'text-emerald-300 font-semibold',
     dot: 'bg-emerald-400 shadow-[0_0_6px_#34D399]',
@@ -82,6 +92,12 @@ export default function MerchantDashboard() {
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [secondsRemaining, setSecondsRemaining] = useState(1800);
+
+  // Verification state
+  const [verifyInputHash, setVerifyInputHash] = useState('');
+  const [isVerifyingHash, setIsVerifyingHash] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [verifiedRecord, setVerifiedRecord] = useState<VerifiedTransactionRecord | null>(null);
 
   const qrRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -161,6 +177,47 @@ export default function MerchantDashboard() {
     setGenerating(false);
   };
 
+  const handleVerifyPayment = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!verifyInputHash.trim()) return;
+
+    setIsVerifyingHash(true);
+    setVerifyError(null);
+
+    const result = await verifyOnChainPayment(verifyInputHash.trim(), {
+      expectedMerchant: address,
+      expectedAmount: amount,
+      expectedToken: selectedToken,
+      sessionId: sessionId || undefined,
+    });
+
+    setIsVerifyingHash(false);
+
+    if (result.success && result.record) {
+      setVerifiedRecord(result.record);
+      // Mark session status as success if session exists
+      if (sessionId) {
+        setSession((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: 'success',
+                tx_hash: result.record?.txHash || null,
+                customer_address: result.record?.senderAddress || null,
+              }
+            : null
+        );
+        updatePaymentSession(sessionId, {
+          status: 'success',
+          tx_hash: result.record.txHash,
+          customer_address: result.record.senderAddress,
+        });
+      }
+    } else {
+      setVerifyError(result.error || 'Unable to verify transaction on Polygon Mainnet.');
+    }
+  };
+
   const handleCopyPayload = () => {
     if (!qrPayload) return;
     navigator.clipboard.writeText(qrPayload);
@@ -197,7 +254,7 @@ export default function MerchantDashboard() {
     URL.revokeObjectURL(url);
   };
 
-  const currentStatus: PaymentStatus = session?.status ?? 'pending';
+  const currentStatus: PaymentStatus = verifiedRecord ? 'success' : (session?.status ?? 'pending');
   const activeStep = STEP_INDEX[currentStatus];
   const activeTokenConfig = TOKEN_LIST.find((t) => t.symbol === selectedToken);
   const currentTokenLabel = activeTokenConfig?.label ?? 'USDT';
@@ -210,9 +267,8 @@ export default function MerchantDashboard() {
   return (
     <div id="merchant-dashboard" className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-20 sm:pb-28">
       
-      {/* Dashboard Welcome & Overview Hero Banner with attached illustration graphic */}
+      {/* Dashboard Welcome & Overview Hero Banner */}
       <div className="relative overflow-hidden bg-white rounded-3xl border border-slate-200 shadow-sm mb-6 sm:mb-8 transition-all">
-        {/* Attached Illustration Graphic on the right side of the card */}
         <div
           className="absolute top-0 right-0 bottom-0 w-1/3 sm:w-2/5 md:w-1/2 bg-cover bg-right bg-no-repeat pointer-events-none"
           style={{
@@ -234,7 +290,7 @@ export default function MerchantDashboard() {
             Create and manage crypto payment requests with instant on-chain settlement.
           </p>
 
-          <div className="mt-4 flex items-center gap-2 flex-wrap">
+          <div className="mt-4 flex items-center gap-2.5 flex-wrap">
             <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-50 border border-slate-200 text-slate-700 shadow-xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               Settlements: Direct to Wallet
@@ -416,7 +472,7 @@ export default function MerchantDashboard() {
                 </div>
               </div>
 
-              {/* Primary Action Button (Large Gradient Button) */}
+              {/* Primary Action Button */}
               <button
                 onClick={handleGenerate}
                 disabled={generating || isConnecting}
@@ -492,7 +548,7 @@ export default function MerchantDashboard() {
                   />
                 </div>
 
-                {/* EIP-681 Standard URI Box - Positioned slightly below the generated QR code */}
+                {/* EIP-681 Standard URI Box */}
                 <div className="mt-5 w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
@@ -617,25 +673,157 @@ export default function MerchantDashboard() {
                 })}
               </div>
 
-              {/* Transaction Hash */}
-              {session?.tx_hash && (
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <div>
-                    <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                      Transaction Hash
-                    </p>
-                    <p className="text-xs font-mono text-slate-800 truncate max-w-[200px] sm:max-w-xs">
-                      {session.tx_hash}
-                    </p>
+              {/* Verify Payment Section directly below Stepper */}
+              <div className="pt-4 border-t border-slate-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-blue-600" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                      Verify Payment
+                    </span>
                   </div>
-                  <a
-                    href={`https://polygonscan.com/tx/${session.tx_hash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 transition"
-                  >
-                    Polygonscan <ArrowUpRight className="w-3 h-3" />
-                  </a>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    On-chain validation
+                  </span>
+                </div>
+
+                {/* If already verified, show real verified record summary */}
+                {verifiedRecord ? (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                          <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-emerald-900">
+                            Payment Verified (Success)
+                          </p>
+                          <p className="text-[11px] text-emerald-700">
+                            Recorded in Activity under Transaction History
+                          </p>
+                        </div>
+                      </div>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        Finalized
+                      </span>
+                    </div>
+
+                    <div className="text-xs space-y-1.5 bg-white/80 rounded-lg p-3 border border-emerald-200/60 font-medium">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Amount Settled:</span>
+                        <span className="font-bold text-slate-900">
+                          +{verifiedRecord.amount} {verifiedRecord.tokenLabel}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Exact Time:</span>
+                        <span className="text-slate-800 font-semibold">
+                          {verifiedRecord.formattedDate || new Date(verifiedRecord.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Polygon Block:</span>
+                        <span className="font-mono text-slate-800 font-semibold">
+                          #{verifiedRecord.blockNumber}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                        <span className="text-slate-500">Tx Hash:</span>
+                        <a
+                          href={`https://polygonscan.com/tx/${verifiedRecord.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-blue-600 hover:underline inline-flex items-center gap-1"
+                        >
+                          {verifiedRecord.txHash.slice(0, 8)}...{verifiedRecord.txHash.slice(-6)}
+                          <ArrowUpRight className="w-3 h-3" />
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                      <button
+                        onClick={() => generatePaymentReceiptPdf(verifiedRecord)}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs active:scale-95 transition"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>Download Receipt (PDF)</span>
+                      </button>
+                      <a
+                        href="#activity"
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold shadow-xs active:scale-95 transition"
+                      >
+                        <span>View in Activity</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleVerifyPayment} className="space-y-2">
+                    <p className="text-xs text-slate-600">
+                      Enter the transaction hash here to display 'Success' status and save record.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        placeholder="Paste transaction hash (0x...)"
+                        value={verifyInputHash}
+                        onChange={(e) => {
+                          setVerifyInputHash(e.target.value);
+                          setVerifyError(null);
+                        }}
+                        className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-mono text-slate-900 placeholder:text-slate-400 placeholder:font-sans focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+                      />
+                      <button
+                        type="submit"
+                        disabled={isVerifyingHash || !verifyInputHash.trim()}
+                        className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs active:scale-95 transition flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                      >
+                        {isVerifyingHash ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Verifying...</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>Verify Payment</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {verifyError && (
+                      <p className="text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 rounded-lg p-2.5">
+                        {verifyError}
+                      </p>
+                    )}
+                  </form>
+                )}
+              </div>
+
+              {/* Transaction Hash link */}
+              {session?.tx_hash && !verifiedRecord && (
+                <div className="pt-3 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                        Transaction Hash
+                      </p>
+                      <p className="text-xs font-mono text-slate-800 truncate max-w-[200px] sm:max-w-xs">
+                        {session.tx_hash}
+                      </p>
+                    </div>
+                    <a
+                      href={`https://polygonscan.com/tx/${session.tx_hash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 transition"
+                    >
+                      Polygonscan <ArrowUpRight className="w-3 h-3" />
+                    </a>
+                  </div>
                 </div>
               )}
             </div>

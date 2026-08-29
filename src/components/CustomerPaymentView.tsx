@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Fuel,
   Info,
+  FileText,
 } from 'lucide-react';
 import {
   isAddress,
@@ -36,6 +37,15 @@ import type { PaymentSession } from '@/lib/supabase';
 import { useEnsureNetwork } from '@/hooks/useEnsurePolygon';
 import { getToken, ERC20_ABI, POLYGON_CHAIN_ID } from '@/lib/tokens';
 import { TokenIcon } from '@/components/TokenIcon';
+import {
+  saveVerifiedTransaction,
+  generatePaymentReceiptPdf,
+  type VerifiedTransactionRecord,
+} from '@/lib/transactionHistory';
+
+interface CustomerPaymentViewProps {
+  params: PaymentLinkParams;
+}
 
 type PayState = 'idle' | 'sending' | 'confirming' | 'success' | 'error';
 
@@ -129,9 +139,7 @@ function parseTransactionError(err: unknown): { userMessage: string; techDetail:
 
 export default function CustomerPaymentView({
   params,
-}: {
-  params: PaymentLinkParams;
-}) {
+}: CustomerPaymentViewProps) {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient({ chainId: POLYGON_CHAIN_ID });
   const token = getToken(params.token);
@@ -146,6 +154,7 @@ export default function CustomerPaymentView({
   const [techErrorDetails, setTechErrorDetails] = useState<string | null>(null);
   const [loadingSession, setLoadingSession] = useState(true);
   const [transferVerified, setTransferVerified] = useState(false);
+  const [verifiedRecord, setVerifiedRecord] = useState<VerifiedTransactionRecord | null>(null);
 
   // Validate and checksum merchant address
   const isValidMerchant = isAddress(params.merchantAddress);
@@ -245,8 +254,6 @@ export default function CustomerPaymentView({
   // Handle Receipt Confirmation
   useEffect(() => {
     if (isConfirmed && receipt && payState === 'confirming' && token) {
-      console.log('[CryptoPay Receipt Confirmed]:', receipt);
-
       let foundValidLog = false;
       try {
         for (const log of receipt.logs) {
@@ -277,6 +284,26 @@ export default function CustomerPaymentView({
       setTransferVerified(foundValidLog);
       setPayState('success');
 
+      // Create and persist verified record to Activity / Transaction History
+      const now = new Date();
+      const newRecord: VerifiedTransactionRecord = {
+        id: `tx_${receipt.transactionHash.slice(0, 10)}_${Date.now()}`,
+        txHash: receipt.transactionHash,
+        senderAddress: address || '0x...',
+        recipientAddress: merchantAddress,
+        amount: amountDisplay,
+        token: params.token,
+        tokenLabel,
+        blockNumber: Number(receipt.blockNumber),
+        timestamp: now.getTime(),
+        formattedDate: now.toLocaleString(),
+        status: 'success',
+        sessionId: params.sessionId,
+      };
+
+      setVerifiedRecord(newRecord);
+      saveVerifiedTransaction(newRecord);
+
       if (params.sessionId) {
         updatePaymentSession(params.sessionId, {
           status: 'success',
@@ -293,6 +320,9 @@ export default function CustomerPaymentView({
     payState,
     token,
     params.sessionId,
+    params.token,
+    amountDisplay,
+    tokenLabel,
     address,
     merchantAddress,
     refetchTokenBalance,
@@ -358,7 +388,7 @@ export default function CustomerPaymentView({
     // 5. POL/MATIC Gas verification
     if (nativeBalanceData && nativeBalanceData.value === 0n) {
       setErrorMessage(
-        'Insufficient POL/MATIC for gas. Your wallet needs a small amount of POL/MATIC to pay Polygon network transaction fees.',
+        'Insufficient POL/MATIC for gas. Your wallet needs a small amount of POL to pay Polygon network transaction fees.',
       );
       return;
     }
@@ -503,17 +533,29 @@ export default function CustomerPaymentView({
             )}
           </div>
 
-          {explorerTxUrl && (
-            <a
-              href={explorerTxUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-5 py-3.5 shadow-md shadow-blue-500/20 transition"
-            >
-              View on Polygonscan
-              <ExternalLink className="w-4 h-4" />
-            </a>
-          )}
+          <div className="flex flex-col gap-2.5">
+            {verifiedRecord && (
+              <button
+                onClick={() => generatePaymentReceiptPdf(verifiedRecord)}
+                className="inline-flex items-center justify-center gap-2 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-5 py-3.5 shadow-md shadow-emerald-500/20 active:scale-[0.99] transition"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Download Payment Receipt (PDF)</span>
+              </button>
+            )}
+
+            {explorerTxUrl && (
+              <a
+                href={explorerTxUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm px-5 py-3.5 shadow-md transition"
+              >
+                <span>View on Polygonscan</span>
+                <ExternalLink className="w-4 h-4 text-slate-300" />
+              </a>
+            )}
+          </div>
         </div>
       </div>
     );

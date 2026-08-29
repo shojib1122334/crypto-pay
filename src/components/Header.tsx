@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Menu, X, ArrowUpRight, Wallet } from 'lucide-react';
+import { Wallet } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 import type { NavTab } from '@/types/navigation';
 
@@ -10,17 +9,26 @@ interface HeaderProps {
 }
 
 export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isActivity = activeTab === 'activity';
+  const isPaySystem = activeTab === 'pay-system';
+  const isDark = isActivity || isPaySystem;
 
   const handleNav = (tab: NavTab) => {
-    setMobileMenuOpen(false);
     if (onNavigateTab) {
       onNavigateTab(tab);
     }
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-slate-200/90 shadow-xs">
+    <header
+      className={`sticky top-0 z-50 transition-colors duration-200 ${
+        isActivity
+          ? 'bg-black border-b border-zinc-800 shadow-lg text-white'
+          : isPaySystem
+          ? 'bg-[#022c22] border-b border-emerald-800/80 shadow-lg text-white'
+          : 'bg-white border-b border-slate-200/90 shadow-xs'
+      }`}
+    >
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-[4.25rem] flex items-center justify-between gap-2">
         {/* Left Side: Brand Logo, Name, and Polygon Network Badge */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
@@ -36,8 +44,16 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
           </button>
 
           {/* Polygon Network Badge */}
-          <div className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+          <div
+            className={`inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider transition-colors ${
+              isActivity
+                ? 'bg-zinc-900 text-yellow-400 border border-zinc-800 shadow-2xs'
+                : isPaySystem
+                ? 'bg-emerald-950 text-yellow-200 border border-emerald-700 shadow-2xs'
+                : 'bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs'
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${isDark ? 'bg-yellow-400' : 'bg-teal-500'} animate-pulse`} />
             <span>POLYGON</span>
           </div>
         </div>
@@ -48,7 +64,11 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
             onClick={() => handleNav('dashboard')}
             className={`text-sm font-semibold transition-colors ${
               activeTab === 'dashboard'
-                ? 'text-blue-600 font-bold'
+                ? isDark
+                  ? 'text-yellow-400 font-bold'
+                  : 'text-blue-600 font-bold'
+                : isDark
+                ? 'text-zinc-400 hover:text-white'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -58,7 +78,11 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
             onClick={() => handleNav('pay-system')}
             className={`text-sm font-semibold transition-colors ${
               activeTab === 'pay-system'
-                ? 'text-blue-600 font-bold'
+                ? isDark
+                  ? 'text-yellow-400 font-bold'
+                  : 'text-blue-600 font-bold'
+                : isDark
+                ? 'text-zinc-400 hover:text-white'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -68,7 +92,11 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
             onClick={() => handleNav('activity')}
             className={`text-sm font-semibold transition-colors ${
               activeTab === 'activity'
-                ? 'text-blue-600 font-bold'
+                ? isDark
+                  ? 'text-yellow-400 font-bold'
+                  : 'text-blue-600 font-bold'
+                : isDark
+                ? 'text-zinc-400 hover:text-white'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -78,7 +106,11 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
             onClick={() => handleNav('settings')}
             className={`text-sm font-semibold transition-colors ${
               activeTab === 'settings'
-                ? 'text-blue-600 font-bold'
+                ? isDark
+                  ? 'text-yellow-400 font-bold'
+                  : 'text-blue-600 font-bold'
+                : isDark
+                ? 'text-zinc-400 hover:text-white'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -86,7 +118,7 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
           </button>
         </nav>
 
-        {/* Right Side: Connect Wallet Button & Hamburger Menu */}
+        {/* Right Side: Connect Wallet Button */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           <div className="header-connect-wrapper">
             <ConnectButton.Custom>
@@ -117,7 +149,13 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
                           <button
                             onClick={openConnectModal}
                             type="button"
-                            className="inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold shadow-xs shadow-blue-500/20 active:scale-[0.98] transition-all whitespace-nowrap"
+                            className={`inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl ${
+                              isActivity
+                                ? 'bg-yellow-400 hover:bg-yellow-300 text-black shadow-xs shadow-yellow-500/20'
+                                : isPaySystem
+                                ? 'bg-yellow-200 hover:bg-yellow-300 text-zinc-900 shadow-md font-bold'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs shadow-blue-500/20'
+                            } text-xs sm:text-sm font-bold active:scale-[0.98] transition-all whitespace-nowrap`}
                           >
                             <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             <span>Connect Wallet</span>
@@ -129,7 +167,7 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
                           <button
                             onClick={openChainModal}
                             type="button"
-                            className="inline-flex items-center justify-center px-3 py-2 rounded-xl sm:rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold shadow-xs transition whitespace-nowrap"
+                            className="inline-flex items-center justify-center px-3 py-2 rounded-xl sm:rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold shadow-xs transition whitespace-nowrap"
                           >
                             Wrong Network
                           </button>
@@ -139,7 +177,13 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
                         <div className="flex items-center gap-1.5 sm:gap-2">
                           <button
                             onClick={openChainModal}
-                            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold border border-slate-200 transition"
+                            className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition ${
+                              isActivity
+                                ? 'bg-zinc-900 hover:bg-zinc-800 text-white border-zinc-800'
+                                : isPaySystem
+                                ? 'bg-emerald-950 hover:bg-emerald-900 text-white border-emerald-700'
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200'
+                            }`}
                             type="button"
                           >
                             {chain.hasIcon && (
@@ -158,9 +202,15 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
                           <button
                             onClick={openAccountModal}
                             type="button"
-                            className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-xs transition whitespace-nowrap"
+                            className={`inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl ${
+                              isActivity
+                                ? 'bg-zinc-900 border border-zinc-800 text-yellow-400 hover:bg-zinc-850'
+                                : isPaySystem
+                                ? 'bg-emerald-950 border border-emerald-700 text-yellow-200 hover:bg-emerald-900'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            } text-xs sm:text-sm font-bold shadow-xs transition whitespace-nowrap`}
                           >
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
                             {account.displayName}
                           </button>
                         </div>
@@ -171,69 +221,8 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
               }}
             </ConnectButton.Custom>
           </div>
-
-          {/* Hamburger Menu Toggle Button (Always visible on mobile/tablet, and accessible) */}
-          <button
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="p-2 sm:p-2.5 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition border border-transparent hover:border-slate-200 active:scale-95"
-            aria-label="Toggle navigation menu"
-            aria-expanded={mobileMenuOpen}
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
-          </button>
         </div>
       </div>
-
-      {/* Mobile Drawer Menu */}
-      {mobileMenuOpen && (
-        <div className="bg-white border-b border-slate-200 px-4 py-3 space-y-1.5 shadow-lg animate-in slide-in-from-top-2 duration-150">
-          <button
-            onClick={() => handleNav('dashboard')}
-            className={`w-full flex items-center justify-between text-left py-2.5 px-3 rounded-xl text-sm font-semibold transition ${
-              activeTab === 'dashboard'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                : 'text-slate-800 hover:bg-slate-50'
-            }`}
-          >
-            <span>Dashboard</span>
-            <ArrowUpRight className="w-4 h-4 text-slate-400" />
-          </button>
-          <button
-            onClick={() => handleNav('pay-system')}
-            className={`w-full flex items-center justify-between text-left py-2.5 px-3 rounded-xl text-sm font-semibold transition ${
-              activeTab === 'pay-system'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                : 'text-slate-800 hover:bg-slate-50'
-            }`}
-          >
-            <span>Pay system</span>
-            <ArrowUpRight className="w-4 h-4 text-slate-400" />
-          </button>
-          <button
-            onClick={() => handleNav('activity')}
-            className={`w-full flex items-center justify-between text-left py-2.5 px-3 rounded-xl text-sm font-semibold transition ${
-              activeTab === 'activity'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                : 'text-slate-800 hover:bg-slate-50'
-            }`}
-          >
-            <span>Activity</span>
-            <ArrowUpRight className="w-4 h-4 text-slate-400" />
-          </button>
-          <button
-            onClick={() => handleNav('settings')}
-            className={`w-full flex items-center justify-between text-left py-2.5 px-3 rounded-xl text-sm font-semibold transition ${
-              activeTab === 'settings'
-                ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                : 'text-slate-800 hover:bg-slate-50'
-            }`}
-          >
-            <span>Settings</span>
-            <ArrowUpRight className="w-4 h-4 text-slate-400" />
-          </button>
-        </div>
-      )}
     </header>
   );
 }
-

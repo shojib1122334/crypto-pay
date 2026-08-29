@@ -41,11 +41,21 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   activeTab,
   onTabChange,
 }) => {
+  const isActivity = activeTab === 'activity';
+  const isPaySystem = activeTab === 'pay-system';
+  const isDark = isActivity || isPaySystem;
+
   return (
     <nav
       id="cryptopay-bottom-nav"
       aria-label="Main Navigation"
-      className="fixed bottom-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
+      className={`fixed bottom-0 left-0 right-0 w-full z-50 transition-colors duration-200 ${
+        isActivity
+          ? 'bg-black/95 backdrop-blur-md border-t border-zinc-800 shadow-[0_-4px_25px_rgba(0,0,0,0.9)]'
+          : isPaySystem
+          ? 'bg-[#022c22]/95 backdrop-blur-md border-t border-emerald-800 shadow-[0_-4px_25px_rgba(0,0,0,0.8)]'
+          : 'bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]'
+      }`}
       style={{
         paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0px))',
       }}
@@ -60,9 +70,13 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               key={item.id}
               id={`nav-tab-${item.id}`}
               onClick={() => onTabChange(item.id)}
-              className={`relative flex flex-col items-center justify-center min-w-[64px] sm:min-w-[76px] py-1.5 px-2 rounded-xl transition-colors duration-150 group select-none ${
+              className={`relative flex flex-col items-center justify-center min-w-[72px] sm:min-w-[88px] py-1.5 px-3 rounded-xl transition-colors duration-150 group select-none ${
                 isActive
-                  ? 'text-blue-600'
+                  ? isDark
+                    ? 'text-yellow-400'
+                    : 'text-blue-600'
+                  : isDark
+                  ? 'text-slate-400 hover:text-white'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -71,7 +85,13 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 <motion.div
                   layoutId="active-bottom-bar-indicator"
                   transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                  className="absolute inset-0 bg-blue-50 border border-blue-200/60 rounded-xl"
+                  className={`absolute inset-0 rounded-xl ${
+                    isActivity
+                      ? 'bg-yellow-500/10 border border-yellow-500/30'
+                      : isPaySystem
+                      ? 'bg-yellow-400/15 border border-yellow-400/40'
+                      : 'bg-blue-50 border border-blue-200/60'
+                  }`}
                 />
               )}
 
@@ -80,7 +100,9 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1 w-1.5 h-1.5 rounded-full bg-blue-600"
+                  className={`absolute -top-1 w-1.5 h-1.5 rounded-full ${
+                    isDark ? 'bg-yellow-400' : 'bg-blue-600'
+                  }`}
                 />
               )}
 
@@ -88,7 +110,11 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 <Icon
                   className={`w-5 h-5 transition-transform duration-150 ${
                     isActive
-                      ? 'text-blue-600 scale-110'
+                      ? isDark
+                        ? 'text-yellow-400 scale-110'
+                        : 'text-blue-600 scale-110'
+                      : isDark
+                      ? 'text-slate-400 group-hover:scale-105'
                       : 'text-slate-500 group-hover:scale-105'
                   }`}
                   strokeWidth={isActive ? 2.3 : 1.8}
@@ -98,7 +124,11 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               <span
                 className={`relative text-[11px] sm:text-xs font-semibold tracking-tight mt-1 transition-colors ${
                   isActive
-                    ? 'text-blue-600 font-bold'
+                    ? isDark
+                      ? 'text-yellow-400 font-bold'
+                      : 'text-blue-600 font-bold'
+                    : isDark
+                    ? 'text-slate-400 group-hover:text-white'
                     : 'text-slate-500 group-hover:text-slate-800'
                 }`}
               >
