@@ -1,5 +1,5 @@
 import React from 'react';
-import { Smartphone, Download, CheckCircle2, ShieldCheck, Wifi, WifiOff, Globe, Layers } from 'lucide-react';
+import { Download, CheckCircle2, ShieldCheck, Wifi, WifiOff, Globe, Layers } from 'lucide-react';
 import { usePWA } from '@/hooks/usePWA';
 
 export const ComingSoonPage: React.FC = () => {
@@ -13,8 +13,13 @@ export const ComingSoonPage: React.FC = () => {
       {/* App & Terminal Settings Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-950 border border-zinc-800 rounded-3xl p-6 shadow-xl">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-[#3B82F6]/40 text-[#3B82F6] flex items-center justify-center font-black shadow-[0_0_20px_rgba(59,130,246,0.15)]">
-            <Smartphone className="w-7 h-7" />
+          <div className="w-14 h-14 rounded-2xl overflow-hidden bg-zinc-900 border border-[#3B82F6]/50 flex items-center justify-center font-black shadow-[0_0_20px_rgba(59,130,246,0.25)] flex-shrink-0">
+            <img
+              src="/icons/icon-192x192.png"
+              alt="CryptoPay Logo"
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">

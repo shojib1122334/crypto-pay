@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, X, Smartphone, Share, PlusSquare, Check } from 'lucide-react';
+import { Download, X, Share, PlusSquare, Check } from 'lucide-react';
 import { usePWA } from '@/hooks/usePWA';
 
 export const PWAInstallPrompt: React.FC = () => {
@@ -46,8 +46,13 @@ export const PWAInstallPrompt: React.FC = () => {
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-[#3B82F6]/30 flex items-center justify-center text-[#3B82F6] flex-shrink-0 shadow-xs">
-              <Smartphone className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-900 border border-[#3B82F6]/40 flex items-center justify-center flex-shrink-0 shadow-xs">
+              <img
+                src="/icons/icon-192x192.png"
+                alt="CryptoPay App Icon"
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
@@ -116,8 +121,13 @@ export const PWAInstallPrompt: React.FC = () => {
               <X className="w-4 h-4" />
             </button>
 
-            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-[#3B82F6]/40 flex items-center justify-center text-[#3B82F6] mx-auto mb-4 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-              <Smartphone className="w-7 h-7" />
+            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-900 border border-[#3B82F6]/50 flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+              <img
+                src="/icons/icon-192x192.png"
+                alt="CryptoPay Logo"
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
 
             <h3 className="text-lg font-bold text-[#FFFFFF]">Install on iPhone / iPad</h3>
