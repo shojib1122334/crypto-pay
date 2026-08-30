@@ -42,8 +42,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   onTabChange,
 }) => {
   const isActivity = activeTab === 'activity';
-  const isPaySystem = activeTab === 'pay-system';
-  const isDark = isActivity || isPaySystem;
+  const isDark = isActivity;
 
   return (
     <nav
@@ -52,8 +51,6 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
       className={`fixed bottom-0 left-0 right-0 w-full z-50 transition-colors duration-200 ${
         isActivity
           ? 'bg-black/95 backdrop-blur-md border-t border-zinc-800 shadow-[0_-4px_25px_rgba(0,0,0,0.9)]'
-          : isPaySystem
-          ? 'bg-[#022c22]/95 backdrop-blur-md border-t border-emerald-800 shadow-[0_-4px_25px_rgba(0,0,0,0.8)]'
           : 'bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]'
       }`}
       style={{
@@ -88,8 +85,6 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
                   className={`absolute inset-0 rounded-xl ${
                     isActivity
                       ? 'bg-yellow-500/10 border border-yellow-500/30'
-                      : isPaySystem
-                      ? 'bg-yellow-400/15 border border-yellow-400/40'
                       : 'bg-blue-50 border border-blue-200/60'
                   }`}
                 />

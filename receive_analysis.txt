@@ -1,0 +1,134 @@
+This UI screenshot displays a web application page designed for generating a payment QR code. The layout is structured into two main vertical panels within a larger, white background container, with a header at the very top.
+
+---
+
+### **Overall Structure & Layout:**
+
+The page is divided into two primary columns:
+1.  **Left Panel (Input/Form Area):** This is wider and contains the steps for configuring the QR code.
+2.  **Right Panel (Output/Display Area):** This is narrower and displays the generated QR code and its details.
+
+Both panels are visually distinct, appearing as cards with rounded corners and subtle shadows, suggesting a modern, clean aesthetic.
+
+---
+
+### **Top Header:**
+
+*   **Main Title (H1):** "Create Receive QR" (Dark grey, bold, large font)
+*   **Subtitle/Description:** "Enter receiver address and amount to generate payment QR" (Dark grey, smaller font)
+
+---
+
+### **Left Panel: Input / Form Area (From Top to Bottom)**
+
+This panel outlines four numbered steps, each with a clear label, input fields, or selection options.
+
+**1. Section: 01 Receiver Address**
+    *   **Label:** A green circle with "01" inside, followed by "Receiver Address" (Dark grey, bold).
+    *   **Icon:** A small grey question mark icon `(?)` to the right of "Receiver Address".
+    *   **Input Field:**
+        *   Type: Text input field with a light grey border and rounded corners.
+        *   Value: `0x82af8d4a...A91F2b3c4D56e7F8` (Truncated hexadecimal string, representing a blockchain address).
+        *   **Icon (inside input):** A grey "copy" icon (two overlapping squares) on the right side of the input field.
+    *   **Validation Message:**
+        *   Icon: A green circle with a white checkmark inside.
+        *   Text: "Valid address" (Green text).
+
+**2. Section: 02 Select Network**
+    *   **Label:** A green circle with "02" inside, followed by "Select Network" (Dark grey, bold).
+    *   **Selection Buttons (Horizontal Group):** Two distinct button-like elements side-by-side.
+        *   **Selected Option:** "Polygon"
+            *   Icon: Purple geometric hexagon (Polygon logo).
+            *   Text: "Polygon"
+            *   Style: Purple border, purple icon, purple text, white background.
+        *   **Unselected Option:** "Ethereum"
+            *   Icon: Grey diamond shape (Ethereum logo).
+            *   Text: "Ethereum"
+            *   Style: Light grey border, grey icon, grey text, white background.
+
+**3. Section: 03 Select Token**
+    *   **Label:** A green circle with "03" inside, followed by "Select Token" (Dark grey, bold).
+    *   **Selection Buttons (Horizontal Group):** Three distinct button-like elements.
+        *   **Selected Option:** "USDT"
+            *   Icon: Green 'T' inside a circle (USDT logo).
+            *   Text: "USDT"
+            *   Style: Green border, green icon, green text, white background.
+        *   **Unselected Option:** "USDC"
+            *   Icon: Blue '$' inside a circle (USDC logo).
+            *   Text: "USDC"
+            *   Style: Light grey border, blue icon, grey text, white background.
+        *   **Unselected Option:** "VERSE"
+            *   Icon: Purple 'V' inside a circle (VERSE logo).
+            *   Text: "VERSE"
+            *   Style: Light grey border, purple icon, grey text, white background.
+
+**4. Section: 04 Amount (Optional)**
+    *   **Label:** A green circle with "04" inside, followed by "Amount (Optional)" (Dark grey, bold).
+    *   **Input Field:**
+        *   Type: Number input field with a light grey border and rounded corners.
+        *   Value: `50.00`
+        *   **Suffix/Unit:** "USDT" (Light grey text, non-editable, displayed to the right of the input value within the same field visually).
+    *   **Helper Text:** "If amount is set, the wallet will pre-fill this amount." (Light grey text).
+
+**5. Action Button:**
+    *   **Text:** "Generate Payment QR" (White text, bold).
+    *   **Icon:** Two small white overlapping squares (resembling a QR code or multiple windows icon) to the right of the text.
+    *   **Style:** Large, prominent button with a solid green background and rounded corners.
+
+**6. Information / Hint:**
+    *   Icon: A green circle with a white checkmark inside.
+    *   Text: "QR will include address, network, token and amount (if set)." (Dark grey text).
+
+---
+
+### **Right Panel: Payment QR Display Area (From Top to Bottom)**
+
+This panel showcases the generated QR code and related payment details. It has rounded corners and a subtle shadow, matching the styling of the left panel.
+
+**1. Header:**
+    *   **Title:** "Payment QR" (Dark grey, bold).
+    *   **Status Tag:** "LIVE" (White text inside a rounded green pill-shaped background, indicating real-time status).
+
+**2. QR Code Display:**
+    *   A large square area displaying a black and white QR code pattern.
+    *   **Central Logo:** A custom logo is embedded in the center of the QR code, featuring a black background with a white circle containing a dark grey 'C' and a small green arc/dot beside it.
+
+**3. Payment Details Section:**
+    *   **Title:** "Payment Details" (Green text, slightly bold).
+    *   **Details List (Key-Value Pairs):** Each detail is presented with an icon, a label, and its corresponding value.
+        *   **Network:**
+            *   Icon: Purple geometric hexagon (Polygon logo).
+            *   Label: "Network"
+            *   Value: "Polygon"
+        *   **Token:**
+            *   Icon: Green 'T' inside a circle (USDT logo).
+            *   Label: "Token"
+            *   Value: "USDT"
+        *   **Amount:**
+            *   Icon: Grey clock/timer icon.
+            *   Label: "Amount"
+            *   Value: "50.00 USDT"
+        *   **Receiver:**
+            *   Icon: Grey person/user icon.
+            *   Label: "Receiver"
+            *   Value: `0x82af...A91F2` (Truncated hexadecimal string, matching the input address on the left).
+
+**4. Action Buttons (Below Payment Details):**
+    *   **Button 1: Share QR**
+        *   Icon: Green up-arrow pointing out of a box (share icon).
+        *   Text: "Share QR" (Green text).
+        *   Style: White background, green border, rounded corners.
+    *   **Button 2: Download QR**
+        *   Icon: Green down-arrow pointing into a box (download icon).
+        *   Text: "Download QR" (Green text).
+        *   Style: White background, green border, rounded corners.
+
+---
+
+### **Styling & Aesthetics Summary:**
+
+*   **Color Palette:** Primarily white background with dark grey text. Accent colors include various shades of green (for primary actions, checkmarks, success indicators), purple (Polygon, VERSE), and blue (USDC), along with neutral grey for unselected states and secondary icons.
+*   **Typography:** Clear, legible sans-serif font throughout. Hierarchy is established through font size, weight, and color.
+*   **Icons:** Consistent use of simple, flat icons for branding (networks, tokens), actions (copy, share, download), and status (checkmarks, optional).
+*   **Spacing:** Ample whitespace is used to separate sections and elements, enhancing readability and user experience.
+*   **Interactivity:** Hover effects or active states are implied for buttons and selection options by the subtle changes in border and text color. The selected options are clearly highlighted.

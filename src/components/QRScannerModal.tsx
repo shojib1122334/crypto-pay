@@ -22,7 +22,6 @@ interface QRScannerModalProps {
   onClose: () => void;
   onScanSuccess: (data: ScannedQRData) => void;
   title?: string;
-  expectedType?: 'evm' | 'btc' | 'any';
 }
 
 export const QRScannerModal: React.FC<QRScannerModalProps> = ({
@@ -30,7 +29,6 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
   onClose,
   onScanSuccess,
   title = 'Scan Recipient QR Code',
-  expectedType = 'evm',
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -342,9 +340,7 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
             <div>
               <h3 className="text-base font-extrabold text-white">{title}</h3>
               <p className="text-xs text-yellow-200/90 font-medium">
-                {expectedType === 'btc'
-                  ? 'Bitcoin UTXO BIP-21 or Address'
-                  : 'Polygon & Ethereum EIP-681 / Address'}
+                Polygon & Ethereum EIP-681 / Address
               </p>
             </div>
           </div>

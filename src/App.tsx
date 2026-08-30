@@ -105,8 +105,6 @@ function AppContent() {
         className={`min-h-screen relative flex flex-col transition-colors duration-200 ${
           activeTab === 'activity'
             ? 'bg-black text-white'
-            : activeTab === 'pay-system'
-            ? 'bg-[#042f22] text-white'
             : 'bg-[#F8FAFC] text-[#0F172A]'
         } selection:bg-blue-600 selection:text-white`}
       >
@@ -129,7 +127,7 @@ function AppContent() {
             </>
           )}
 
-          {/* Pay System Tab (Multi-Chain Web3 Terminal: Send, Receive, Balances, BTC) */}
+          {/* Pay System Tab (Web3 Terminal: Send Crypto, Receive Crypto QR, Token Balance) */}
           {activeTab === 'pay-system' && (
             <div id="pay-system-page">
               <PaySystemTerminal />

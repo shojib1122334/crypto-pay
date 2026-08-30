@@ -159,6 +159,8 @@ export default function CustomerPaymentView({
   const [transferVerified, setTransferVerified] = useState(false);
   const [verifiedRecord, setVerifiedRecord] = useState<VerifiedTransactionRecord | null>(null);
 
+  const tokenLabel = token?.label ?? params.token.toUpperCase();
+
   // Validate and checksum merchant address
   const isValidMerchant = isAddress(params.merchantAddress);
   const merchantAddress: Address = isValidMerchant
@@ -298,10 +300,13 @@ export default function CustomerPaymentView({
         token: params.token,
         tokenLabel,
         blockNumber: Number(receipt.blockNumber),
-        timestamp: now.getTime(),
+        timestamp: now.toISOString(),
         formattedDate: now.toLocaleString(),
         status: 'success',
+        network: 'Polygon Mainnet',
+        chainId: POLYGON_CHAIN_ID,
         sessionId: params.sessionId,
+        verifiedAt: now.toISOString(),
       };
 
       setVerifiedRecord(newRecord);
@@ -476,7 +481,6 @@ export default function CustomerPaymentView({
       ? `https://polygonscan.com/tx/${txHash}`
       : null;
 
-  const tokenLabel = token?.label ?? params.token.toUpperCase();
   const insufficientTokenFunds =
     tokenBalance !== undefined && amountRaw > 0n && tokenBalance < amountRaw;
   const insufficientGas =

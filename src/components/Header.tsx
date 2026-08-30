@@ -10,8 +10,7 @@ interface HeaderProps {
 
 export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
   const isActivity = activeTab === 'activity';
-  const isPaySystem = activeTab === 'pay-system';
-  const isDark = isActivity || isPaySystem;
+  const isDark = isActivity;
 
   const handleNav = (tab: NavTab) => {
     if (onNavigateTab) {
@@ -24,9 +23,7 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
       className={`sticky top-0 z-50 transition-colors duration-200 ${
         isActivity
           ? 'bg-black border-b border-zinc-800 shadow-lg text-white'
-          : isPaySystem
-          ? 'bg-[#022c22] border-b border-emerald-800/80 shadow-lg text-white'
-          : 'bg-white border-b border-slate-200/90 shadow-xs'
+          : 'bg-white border-b border-slate-200/90 shadow-xs text-slate-900'
       }`}
     >
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-[4.25rem] flex items-center justify-between gap-2">
@@ -48,8 +45,6 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
             className={`inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider transition-colors ${
               isActivity
                 ? 'bg-zinc-900 text-yellow-400 border border-zinc-800 shadow-2xs'
-                : isPaySystem
-                ? 'bg-emerald-950 text-yellow-200 border border-emerald-700 shadow-2xs'
                 : 'bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs'
             }`}
           >
@@ -152,8 +147,6 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
                             className={`inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl ${
                               isActivity
                                 ? 'bg-yellow-400 hover:bg-yellow-300 text-black shadow-xs shadow-yellow-500/20'
-                                : isPaySystem
-                                ? 'bg-yellow-200 hover:bg-yellow-300 text-zinc-900 shadow-md font-bold'
                                 : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs shadow-blue-500/20'
                             } text-xs sm:text-sm font-bold active:scale-[0.98] transition-all whitespace-nowrap`}
                           >
@@ -180,8 +173,6 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
                             className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition ${
                               isActivity
                                 ? 'bg-zinc-900 hover:bg-zinc-800 text-white border-zinc-800'
-                                : isPaySystem
-                                ? 'bg-emerald-950 hover:bg-emerald-900 text-white border-emerald-700'
                                 : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200'
                             }`}
                             type="button"
@@ -205,8 +196,6 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
                             className={`inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl ${
                               isActivity
                                 ? 'bg-zinc-900 border border-zinc-800 text-yellow-400 hover:bg-zinc-850'
-                                : isPaySystem
-                                ? 'bg-emerald-950 border border-emerald-700 text-yellow-200 hover:bg-emerald-900'
                                 : 'bg-blue-600 hover:bg-blue-700 text-white'
                             } text-xs sm:text-sm font-bold shadow-xs transition whitespace-nowrap`}
                           >

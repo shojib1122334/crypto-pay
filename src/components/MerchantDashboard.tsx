@@ -129,11 +129,55 @@ export default function MerchantDashboard() {
 
   useEffect(() => {
     if (!sessionId) return;
-    const unsubscribe = subscribeToPaymentSession(sessionId, (s) => {
+    const unsubscribe = subscribeToPaymentSession(sessionId, async (s) => {
       setSession(s);
+      if (s?.status === 'success' && s.tx_hash && !verifiedRecord) {
+        const result = await verifyOnChainPayment(s.tx_hash, {
+          expectedMerchant: address,
+          expectedAmount: amount,
+          expectedToken: selectedToken,
+          sessionId,
+        });
+        if (result.success && result.record) {
+          setVerifiedRecord(result.record);
+        }
+      }
     });
     return unsubscribe;
-  }, [sessionId]);
+  }, [sessionId, address, amount, selectedToken, verifiedRecord]);
+
+  // Listen to global cryptopay history updates for real-time detection
+  useEffect(() => {
+    const handleHistoryUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<VerifiedTransactionRecord>;
+      const record = customEvent.detail;
+      if (!record) return;
+
+      if (sessionId && record.sessionId === sessionId) {
+        setVerifiedRecord(record);
+        setSession((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: 'success',
+                tx_hash: record.txHash,
+                customer_address: record.senderAddress,
+              }
+            : null
+        );
+      } else if (
+        address &&
+        record.recipientAddress?.toLowerCase() === address.toLowerCase() &&
+        record.token?.toLowerCase() === selectedToken.toLowerCase() &&
+        parseFloat(record.amount) === parseFloat(amount)
+      ) {
+        setVerifiedRecord(record);
+      }
+    };
+
+    window.addEventListener('cryptopay_history_update', handleHistoryUpdate);
+    return () => window.removeEventListener('cryptopay_history_update', handleHistoryUpdate);
+  }, [sessionId, address, selectedToken, amount]);
 
   const handleGenerate = async () => {
     setError(null);
