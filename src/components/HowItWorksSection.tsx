@@ -120,43 +120,43 @@ const COMPARISON_ITEMS = [
 
 export default function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Top Hero Banner in Deep Green */}
-      <div className="bg-[#022c22] rounded-3xl p-6 sm:p-10 border border-emerald-700/60 shadow-2xl relative overflow-hidden mb-8">
+    <section id="how-it-works" className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-white">
+      {/* Top Hero Banner in Pure Black & Refined Zinc */}
+      <div className="bg-zinc-950 rounded-3xl p-6 sm:p-10 border border-zinc-800 shadow-2xl relative overflow-hidden mb-8">
         <div className="relative z-10 text-center max-w-3xl mx-auto">
-          {/* Light Blue Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-900/80 border border-emerald-600/70 text-sky-300 text-xs font-bold uppercase tracking-wider mb-4 shadow-sm">
-            <Cpu className="w-3.5 h-3.5 text-sky-300" />
+          {/* Blue Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900 border border-[#3B82F6]/40 text-[#3B82F6] text-xs font-bold uppercase tracking-wider mb-4 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+            <Cpu className="w-3.5 h-3.5 text-[#3B82F6]" />
             <span>Decentralized Payment Protocol</span>
           </div>
 
           {/* 30% White Heading */}
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#FFFFFF] tracking-tight leading-tight">
             How CryptoPay Works
           </h1>
 
-          {/* 20% Light Yellow Subtitle */}
-          <p className="mt-3 text-base sm:text-lg font-semibold text-yellow-200 leading-snug">
+          {/* 20% Yellow Subtitle */}
+          <p className="mt-3 text-base sm:text-lg font-semibold text-[#FACC15] leading-snug">
             Standardized EIP-681 Web3 Point-of-Sale & Direct Merchant Invoicing
           </p>
 
-          {/* 10% Light Gray Helper Text */}
-          <p className="mt-2 text-xs sm:text-sm text-slate-300 max-w-2xl mx-auto leading-relaxed">
+          {/* Helper Text */}
+          <p className="mt-2 text-xs sm:text-sm text-zinc-400 max-w-2xl mx-auto leading-relaxed">
             Eliminate costly merchant processors, delayed settlements, and chargeback disputes. Accept USDT, USDC, and VERSE on Polygon with instant wallet-to-wallet transfers.
           </p>
 
-          {/* 20% Dark Charcoal Tags in High-Contrast Badges */}
+          {/* Badges */}
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-6">
-            <span className="px-3.5 py-1.5 rounded-full bg-yellow-200 text-zinc-900 font-extrabold text-xs shadow-md">
+            <span className="px-3.5 py-1.5 rounded-full bg-zinc-900 border border-[#00E676]/40 text-[#00E676] font-extrabold text-xs shadow-xs">
               0% Platform Fee
             </span>
-            <span className="px-3.5 py-1.5 rounded-full bg-sky-200 text-zinc-900 font-extrabold text-xs shadow-md">
+            <span className="px-3.5 py-1.5 rounded-full bg-zinc-900 border border-[#3B82F6]/40 text-[#3B82F6] font-extrabold text-xs shadow-xs">
               Fast ~2s Finality
             </span>
-            <span className="px-3.5 py-1.5 rounded-full bg-white text-zinc-900 font-extrabold text-xs shadow-md">
+            <span className="px-3.5 py-1.5 rounded-full bg-zinc-900 border border-[#00E676]/40 text-[#00E676] font-extrabold text-xs shadow-xs">
               Zero Chargeback Risk
             </span>
-            <span className="px-3.5 py-1.5 rounded-full bg-emerald-200 text-zinc-900 font-extrabold text-xs shadow-md">
+            <span className="px-3.5 py-1.5 rounded-full bg-zinc-900 border border-[#FACC15]/40 text-[#FACC15] font-extrabold text-xs shadow-xs">
               EIP-681 Compliant
             </span>
           </div>
@@ -164,18 +164,18 @@ export default function HowItWorksSection() {
       </div>
 
       {/* 4-Step Interactive Workflow */}
-      <div className="bg-[#032419] rounded-3xl p-6 sm:p-8 border border-emerald-700/60 shadow-xl mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-5 border-b border-emerald-800">
+      <div className="bg-zinc-950 rounded-3xl p-6 sm:p-8 border border-zinc-800 shadow-xl mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-5 border-b border-zinc-800">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-sky-300 block mb-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#3B82F6] block mb-1">
               End-to-End Workflow
             </span>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#FFFFFF] tracking-tight">
               4 Simple Steps to Accept Web3 Payments
             </h2>
           </div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-700 text-yellow-200 text-xs font-bold">
-            <Layers className="w-3.5 h-3.5 text-yellow-200" />
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-[#FACC15] text-xs font-bold">
+            <Layers className="w-3.5 h-3.5 text-[#FACC15]" />
             <span>Polygon Mainnet (137)</span>
           </div>
         </div>
@@ -187,44 +187,44 @@ export default function HowItWorksSection() {
             return (
               <div
                 key={idx}
-                className="bg-[#042f22] hover:bg-[#053828] rounded-2xl p-5 sm:p-6 border border-emerald-700/50 flex flex-col justify-between shadow-lg transition-all duration-200 hover:border-emerald-500"
+                className="bg-zinc-900 hover:bg-zinc-850 rounded-2xl p-5 sm:p-6 border border-zinc-800 flex flex-col justify-between shadow-lg transition-all duration-200 hover:border-zinc-700"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-950 border border-emerald-600/60 text-sky-300 flex items-center justify-center shadow-inner">
-                      <Icon className="w-6 h-6 text-sky-300" />
+                    <div className="w-12 h-12 rounded-xl bg-zinc-950 border border-zinc-800 text-[#3B82F6] flex items-center justify-center shadow-inner">
+                      <Icon className="w-6 h-6 text-[#3B82F6]" />
                     </div>
-                    {/* 20% Light Yellow Number */}
-                    <span className="text-2xl font-black text-yellow-200 tracking-tight font-mono">
+                    {/* Yellow Number */}
+                    <span className="text-2xl font-black text-[#FACC15] tracking-tight font-mono">
                       {step.number}
                     </span>
                   </div>
 
-                  {/* 20% Dark Charcoal Tag inside high-contrast badge */}
+                  {/* Badge */}
                   <div className="mb-2.5">
-                    <span className="inline-block px-2.5 py-0.5 rounded-md bg-yellow-200 text-zinc-900 text-[10px] font-extrabold uppercase tracking-wide">
+                    <span className="inline-block px-2.5 py-0.5 rounded-md bg-zinc-950 border border-[#00E676]/40 text-[#00E676] text-[10px] font-extrabold uppercase tracking-wide">
                       {step.charcoalTag}
                     </span>
                   </div>
 
-                  {/* 30% White Step Title */}
-                  <h3 className="text-lg font-bold text-white mb-2 tracking-tight">
+                  {/* White Step Title */}
+                  <h3 className="text-lg font-bold text-[#FFFFFF] mb-2 tracking-tight">
                     {step.title}
                   </h3>
 
-                  {/* 10% Light Gray Step Description */}
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  {/* Gray Step Description */}
+                  <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
                     {step.description}
                   </p>
                 </div>
 
-                <div className="mt-5 pt-3.5 border-t border-emerald-800/80 flex items-center justify-between text-xs">
-                  {/* 20% Light Yellow Highlight */}
-                  <span className="font-bold text-yellow-200 text-[11px]">
+                <div className="mt-5 pt-3.5 border-t border-zinc-800 flex items-center justify-between text-xs">
+                  {/* Yellow Highlight */}
+                  <span className="font-bold text-[#FACC15] text-[11px]">
                     {step.highlight}
                   </span>
-                  {/* 20% Light Blue Step Counter */}
-                  <span className="font-semibold text-sky-300 text-[11px]">
+                  {/* Blue Step Counter */}
+                  <span className="font-semibold text-[#3B82F6] text-[11px]">
                     Step {idx + 1}/4
                   </span>
                 </div>
@@ -235,15 +235,15 @@ export default function HowItWorksSection() {
       </div>
 
       {/* Protocol Features & Security Highlights */}
-      <div className="bg-[#022c22] rounded-3xl p-6 sm:p-8 border border-emerald-700/60 shadow-xl mb-8">
+      <div className="bg-zinc-950 rounded-3xl p-6 sm:p-8 border border-zinc-800 shadow-xl mb-8">
         <div className="text-center max-w-2xl mx-auto mb-8">
-          <span className="text-xs font-bold uppercase tracking-wider text-sky-300 block mb-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#3B82F6] block mb-1">
             Technical Architecture
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#FFFFFF] tracking-tight">
             Engineered for Retail & Online Merchants
           </h2>
-          <p className="text-xs sm:text-sm text-yellow-200 mt-1 font-medium">
+          <p className="text-xs sm:text-sm text-[#FACC15] mt-1 font-medium">
             Robust on-chain reliability without centralized intermediaries
           </p>
         </div>
@@ -254,44 +254,44 @@ export default function HowItWorksSection() {
             return (
               <div
                 key={idx}
-                className="bg-[#042f22] rounded-2xl p-5 sm:p-6 border border-emerald-700/60 shadow-md flex flex-col justify-between"
+                className="bg-zinc-900 rounded-2xl p-5 sm:p-6 border border-zinc-800 shadow-md flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-950 border border-emerald-600/70 text-sky-300 flex items-center justify-center flex-shrink-0">
-                        <Icon className="w-5 h-5 text-sky-300" />
+                      <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-800 text-[#3B82F6] flex items-center justify-center flex-shrink-0">
+                        <Icon className="w-5 h-5 text-[#3B82F6]" />
                       </div>
                       <div>
-                        {/* 30% White Title */}
-                        <h3 className="text-base font-bold text-white tracking-tight">
+                        {/* White Title */}
+                        <h3 className="text-base font-bold text-[#FFFFFF] tracking-tight">
                           {feature.title}
                         </h3>
-                        {/* 20% Light Yellow Subtitle */}
-                        <p className="text-xs font-semibold text-yellow-200">
+                        {/* Yellow Subtitle */}
+                        <p className="text-xs font-semibold text-[#FACC15]">
                           {feature.subtitle}
                         </p>
                       </div>
                     </div>
 
-                    {/* 20% Dark Charcoal Pill */}
-                    <span className="px-2.5 py-1 rounded-full bg-sky-200 text-zinc-900 text-[10px] font-extrabold whitespace-nowrap shadow-xs">
+                    {/* Pill */}
+                    <span className="px-2.5 py-1 rounded-full bg-zinc-950 border border-[#00E676]/40 text-[#00E676] text-[10px] font-extrabold whitespace-nowrap shadow-xs">
                       {feature.charcoalPill}
                     </span>
                   </div>
 
-                  {/* 10% Light Gray Body */}
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mt-2">
+                  {/* Body */}
+                  <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed mt-2">
                     {feature.description}
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-emerald-800/80 flex items-center justify-between text-xs">
-                  {/* 20% Light Blue Tech Label */}
-                  <span className="font-mono text-[11px] text-sky-300 font-medium">
+                <div className="mt-4 pt-3 border-t border-zinc-800 flex items-center justify-between text-xs">
+                  {/* Blue Tech Label */}
+                  <span className="font-mono text-[11px] text-[#3B82F6] font-medium">
                     {feature.techLabel}
                   </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-yellow-200" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[#FACC15]" />
                 </div>
               </div>
             );
@@ -300,15 +300,15 @@ export default function HowItWorksSection() {
       </div>
 
       {/* CryptoPay vs Traditional Processing Comparison */}
-      <div className="bg-[#032419] rounded-3xl p-6 sm:p-8 border border-emerald-700/60 shadow-xl mb-8">
+      <div className="bg-zinc-950 rounded-3xl p-6 sm:p-8 border border-zinc-800 shadow-xl mb-8">
         <div className="text-center max-w-2xl mx-auto mb-6">
-          <span className="text-xs font-bold uppercase tracking-wider text-yellow-200 block mb-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#FACC15] block mb-1">
             Economic Advantage
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#FFFFFF] tracking-tight">
             CryptoPay vs. Traditional Credit Cards
           </h2>
-          <p className="text-xs sm:text-sm text-slate-300 mt-1">
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1">
             Why modern businesses are upgrading to peer-to-peer Web3 payments.
           </p>
         </div>
@@ -316,23 +316,23 @@ export default function HowItWorksSection() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm">
             <thead>
-              <tr className="border-b border-emerald-800 text-sky-300 font-bold uppercase text-[11px]">
+              <tr className="border-b border-zinc-800 text-[#3B82F6] font-bold uppercase text-[11px]">
                 <th className="py-3 px-4">Feature</th>
-                <th className="py-3 px-4 text-yellow-200">CryptoPay (Polygon)</th>
-                <th className="py-3 px-4 text-slate-300">Traditional Processors</th>
+                <th className="py-3 px-4 text-[#00E676]">CryptoPay (Polygon)</th>
+                <th className="py-3 px-4 text-zinc-400">Traditional Processors</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-emerald-800/70">
+            <tbody className="divide-y divide-zinc-800">
               {COMPARISON_ITEMS.map((item, idx) => (
-                <tr key={idx} className="hover:bg-emerald-900/30 transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-white">
+                <tr key={idx} className="hover:bg-zinc-900/50 transition-colors">
+                  <td className="py-3.5 px-4 font-bold text-[#FFFFFF]">
                     {item.feature}
                   </td>
-                  <td className="py-3.5 px-4 font-semibold text-yellow-200 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-yellow-300 flex-shrink-0" />
+                  <td className="py-3.5 px-4 font-semibold text-[#00E676] flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-[#00E676] flex-shrink-0" />
                     <span>{item.cryptoPay}</span>
                   </td>
-                  <td className="py-3.5 px-4 text-slate-300 font-medium">
+                  <td className="py-3.5 px-4 text-zinc-400 font-medium">
                     {item.traditional}
                   </td>
                 </tr>
@@ -342,19 +342,17 @@ export default function HowItWorksSection() {
         </div>
       </div>
 
-      {/* Call to Action Container with High-Contrast Dark Charcoal & Light Yellow */}
-      <div className="bg-yellow-200 rounded-3xl p-6 sm:p-8 border border-yellow-300 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
+      {/* Call to Action Container */}
+      <div className="bg-zinc-950 rounded-3xl p-6 sm:p-8 border border-zinc-800 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="text-left">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-zinc-900 text-yellow-300 text-[10px] font-extrabold uppercase tracking-wider mb-2">
-            <Coins className="w-3 h-3 text-yellow-300" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-zinc-900 border border-[#FACC15]/40 text-[#FACC15] text-[10px] font-extrabold uppercase tracking-wider mb-2">
+            <Coins className="w-3 h-3 text-[#FACC15]" />
             <span>Ready in Seconds</span>
           </div>
-          {/* 20% Dark Charcoal Heading */}
-          <h3 className="text-xl sm:text-2xl font-black text-zinc-900 tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-black text-[#FFFFFF] tracking-tight">
             Start Accepting Web3 Payments Today
           </h3>
-          {/* 20% Dark Charcoal Description */}
-          <p className="text-xs sm:text-sm text-zinc-800 mt-1 font-medium max-w-xl">
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1 font-medium max-w-xl">
             Connect your Polygon wallet on the Dashboard tab, generate customized EIP-681 invoices, and receive stablecoin payments instantly.
           </p>
         </div>
@@ -369,10 +367,10 @@ export default function HowItWorksSection() {
               const dashBtn = document.querySelector('[data-nav-tab="dashboard"]') as HTMLButtonElement;
               if (dashBtn) dashBtn.click();
             }}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-zinc-900 hover:bg-black text-white font-extrabold text-sm shadow-xl active:scale-95 transition"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white font-extrabold text-sm shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95 transition cursor-pointer"
           >
             <span>Go to Dashboard</span>
-            <ArrowRight className="w-4 h-4 text-yellow-300" />
+            <ArrowRight className="w-4 h-4 text-white" />
           </a>
         </div>
       </div>

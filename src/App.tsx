@@ -1,6 +1,6 @@
 import '@rainbow-me/rainbowkit/styles.css';
 import { useEffect, useState } from 'react';
-import { lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { config } from '@/lib/wallet';
@@ -102,19 +102,22 @@ function AppContent() {
       )}
 
       <div
-        className={`min-h-screen relative flex flex-col transition-colors duration-200 ${
-          activeTab === 'activity'
-            ? 'bg-black text-white'
-            : 'bg-[#F8FAFC] text-[#0F172A]'
-        } selection:bg-blue-600 selection:text-white`}
+        className="min-h-screen relative flex flex-col bg-[#000000] text-[#FFFFFF] selection:bg-[#3B82F6] selection:text-white"
       >
+        {/* Subtle Ambient Background Mesh */}
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-b from-[#3B82F6]/10 via-[#00E676]/5 to-transparent blur-[120px] rounded-full" />
+          <div className="absolute top-1/3 -left-48 w-96 h-96 bg-[#3B82F6]/5 blur-[100px] rounded-full" />
+          <div className="absolute bottom-1/4 -right-48 w-96 h-96 bg-[#00E676]/5 blur-[100px] rounded-full" />
+        </div>
+
         {/* Crisp Header */}
         <Header
           activeTab={activeTab}
           onNavigateTab={handleTabChange}
         />
 
-        {/* Main Content Area with safe bottom spacing for the edge-to-edge bottom bar */}
+        {/* Main Content Area */}
         <main className="relative z-10 flex-1 pb-20 sm:pb-24">
           {/* Dashboard Tab */}
           {activeTab === 'dashboard' && (
@@ -141,7 +144,7 @@ function AppContent() {
           {activeTab === 'settings' && <ComingSoonPage />}
         </main>
 
-        {/* Persistent Edge-to-Edge Native Mobile Bottom Navigation Bar */}
+        {/* Persistent Native Mobile Bottom Navigation Bar */}
         <BottomNavBar
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -156,11 +159,12 @@ export default function App() {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
-          theme={lightTheme({
-            accentColor: '#2563EB', // Blue 600
-            accentColorForeground: '#ffffff',
-            borderRadius: 'medium',
+          theme={darkTheme({
+            accentColor: '#3B82F6', // Blue #3B82F6
+            accentColorForeground: '#FFFFFF',
+            borderRadius: 'large',
             fontStack: 'system',
+            overlayBlur: 'small',
           })}
           modalSize="compact"
         >
@@ -170,3 +174,4 @@ export default function App() {
     </WagmiProvider>
   );
 }
+

@@ -72,24 +72,18 @@ export function buildPaymentLink(
 }
 
 /**
- * Builds a standards-compatible EIP-681 payment URI for EVM/Polygon ERC-20 tokens.
- * Format: ethereum:<contract_address>@<chain_id>/transfer?address=<merchant_address>&uint256=<raw_amount>
+ * Builds a standards-compatible EIP-681 payment URI for EVM/Polygon/Ethereum ERC-20 tokens or native coin.
+ * Format for ERC20: ethereum:<contract_address>@<chain_id>/transfer?address=<merchant_address>&uint256=<raw_amount>
+ * Format for Native: ethereum:<merchant_address>@<chain_id>?value=<raw_amount>
  * This standard format is recognized by Bitcoin.com Wallet, MetaMask, Rainbow, Trust Wallet, and other Web3 scanners.
  */
 export function buildPaymentQRUri(
   merchantAddress: string,
   amount: string,
   tokenOrSymbol: TokenConfig | TokenSymbol | string,
+  customChainId?: number,
+  customDecimals?: number,
 ): string {
-  const token =
-    typeof tokenOrSymbol === 'object' && tokenOrSymbol !== null
-      ? (tokenOrSymbol as TokenConfig)
-      : getToken(tokenOrSymbol);
-
-  if (!token) {
-    return merchantAddress;
-  }
-
   let formattedMerchant = merchantAddress;
   try {
     formattedMerchant = getAddress(merchantAddress);
@@ -97,14 +91,71 @@ export function buildPaymentQRUri(
     formattedMerchant = merchantAddress;
   }
 
-  const tokenContract = token.address;
+  // If tokenOrSymbol is a contract address starting with 0x and customChainId is supplied
+  if (
+    typeof tokenOrSymbol === 'string' &&
+    tokenOrSymbol.startsWith('0x') &&
+    customChainId
+  ) {
+    const decimals = customDecimals ?? 18;
+    const isZero = tokenOrSymbol === '0x0000000000000000000000000000000000000000' || tokenOrSymbol === '0x000';
+    if (isZero) {
+      if (amount && parseFloat(amount) > 0) {
+        try {
+          const raw = parseUnits(amount, 18);
+          return `ethereum:${formattedMerchant}@${customChainId}?value=${raw.toString()}`;
+        } catch {
+          return `ethereum:${formattedMerchant}@${customChainId}`;
+        }
+      }
+      return `ethereum:${formattedMerchant}@${customChainId}`;
+    }
 
-  try {
-    const rawAmount = parseUnits(amount, token.decimals);
-    return `ethereum:${tokenContract}@${token.chainId}/transfer?address=${formattedMerchant}&uint256=${rawAmount.toString()}`;
-  } catch {
-    return `ethereum:${tokenContract}@${token.chainId}/transfer?address=${formattedMerchant}`;
+    if (amount && parseFloat(amount) > 0) {
+      try {
+        const rawAmount = parseUnits(amount, decimals);
+        return `ethereum:${tokenOrSymbol}@${customChainId}/transfer?address=${formattedMerchant}&uint256=${rawAmount.toString()}`;
+      } catch {
+        return `ethereum:${tokenOrSymbol}@${customChainId}/transfer?address=${formattedMerchant}`;
+      }
+    }
+    return `ethereum:${tokenOrSymbol}@${customChainId}/transfer?address=${formattedMerchant}`;
   }
+
+  const token =
+    typeof tokenOrSymbol === 'object' && tokenOrSymbol !== null
+      ? (tokenOrSymbol as TokenConfig)
+      : getToken(tokenOrSymbol);
+
+  if (!token) {
+    return formattedMerchant;
+  }
+
+  const tokenContract = token.address;
+  const chainId = customChainId || token.chainId;
+
+  if (token.isNative) {
+    if (amount && parseFloat(amount) > 0) {
+      try {
+        const raw = parseUnits(amount, token.decimals);
+        return `ethereum:${formattedMerchant}@${chainId}?value=${raw.toString()}`;
+      } catch {
+        return `ethereum:${formattedMerchant}@${chainId}`;
+      }
+    }
+    return `ethereum:${formattedMerchant}@${chainId}`;
+  }
+
+  if (amount && parseFloat(amount) > 0) {
+    try {
+      const rawAmount = parseUnits(amount, token.decimals);
+      return `ethereum:${tokenContract}@${chainId}/transfer?address=${formattedMerchant}&uint256=${rawAmount.toString()}`;
+    } catch {
+      return `ethereum:${tokenContract}@${chainId}/transfer?address=${formattedMerchant}`;
+    }
+  }
+
+  return `ethereum:${tokenContract}@${chainId}/transfer?address=${formattedMerchant}`;
 }
 
 export function getCurrentPaymentParams(): PaymentLinkParams | null {

@@ -8,9 +8,9 @@ import {
   type Hash,
   type Address,
 } from 'viem';
-import { polygon } from 'viem/chains';
+import { polygon, mainnet } from 'viem/chains';
 import jsPDF from 'jspdf';
-import { TOKENS, type TokenSymbol, ERC20_ABI } from './tokens';
+import { TOKENS, type TokenSymbol, ERC20_ABI, POLYGON_CHAIN_ID, ETHEREUM_CHAIN_ID } from './tokens';
 
 export interface VerifiedTransactionRecord {
   id: string;
@@ -43,6 +43,18 @@ export const polygonPublicClient = createPublicClient({
     http('https://polygon.drpc.org'),
     http('https://polygon.gateway.tenderly.co'),
     http('https://polygon-rpc.com'),
+  ]),
+});
+
+// Ethereum public client with redundant public RPC endpoints
+export const ethereumPublicClient = createPublicClient({
+  chain: mainnet,
+  transport: fallback([
+    http('https://eth.llamarpc.com'),
+    http('https://ethereum-rpc.publicnode.com'),
+    http('https://1rpc.io/eth'),
+    http('https://rpc.ankr.com/eth'),
+    http('https://cloudflare-eth.com'),
   ]),
 });
 
@@ -87,7 +99,7 @@ export function saveVerifiedTransaction(record: VerifiedTransactionRecord): void
 }
 
 /**
- * Verifies any Polygon transaction hash on-chain, extracts real parameters,
+ * Verifies any Polygon or Ethereum transaction hash on-chain, extracts real parameters,
  * and records it into the real transaction history.
  */
 export async function verifyOnChainPayment(
@@ -95,7 +107,8 @@ export async function verifyOnChainPayment(
   context?: {
     expectedMerchant?: string;
     expectedAmount?: string;
-    expectedToken?: TokenSymbol;
+    expectedToken?: TokenSymbol | string;
+    expectedChainId?: number;
     sessionId?: string;
   }
 ): Promise<{ success: boolean; record?: VerifiedTransactionRecord; error?: string }> {
@@ -111,28 +124,46 @@ export async function verifyOnChainPayment(
 
   const hash = trimmed as Hash;
 
+  // Determine client to query
+  const targetChainId = context?.expectedChainId || POLYGON_CHAIN_ID;
+  const primaryClient = targetChainId === ETHEREUM_CHAIN_ID ? ethereumPublicClient : polygonPublicClient;
+  const secondaryClient = targetChainId === ETHEREUM_CHAIN_ID ? polygonPublicClient : ethereumPublicClient;
+  const isTargetEthereum = targetChainId === ETHEREUM_CHAIN_ID;
+
   try {
-    // 1. Fetch transaction receipt on Polygon
-    const receipt = await polygonPublicClient.getTransactionReceipt({ hash });
+    // 1. Fetch transaction receipt
+    let receipt = await primaryClient.getTransactionReceipt({ hash }).catch(() => null);
+    let usedChainId = targetChainId;
+    let usedClient = primaryClient;
+
+    // If not found on primary client, attempt fallback on secondary client
+    if (!receipt) {
+      const fallbackReceipt = await secondaryClient.getTransactionReceipt({ hash }).catch(() => null);
+      if (fallbackReceipt) {
+        receipt = fallbackReceipt;
+        usedChainId = isTargetEthereum ? POLYGON_CHAIN_ID : ETHEREUM_CHAIN_ID;
+        usedClient = secondaryClient;
+      }
+    }
 
     if (!receipt) {
       return {
         success: false,
-        error: 'Transaction receipt not found on Polygon Mainnet. It might still be pending in the mempool or from another network.',
+        error: `Transaction receipt not found on ${targetChainId === ETHEREUM_CHAIN_ID ? 'Ethereum' : 'Polygon'} or peer networks. It might still be pending in the mempool.`,
       };
     }
 
     if (receipt.status === 'reverted') {
       return {
         success: false,
-        error: 'Transaction reverted (failed) on Polygon Mainnet.',
+        error: `Transaction reverted (failed on-chain) on ${usedChainId === ETHEREUM_CHAIN_ID ? 'Ethereum' : 'Polygon'}.`,
       };
     }
 
     // 2. Fetch transaction details and block for timestamp
     const [tx, block] = await Promise.all([
-      polygonPublicClient.getTransaction({ hash }).catch(() => null),
-      polygonPublicClient.getBlock({ blockNumber: receipt.blockNumber }).catch(() => null),
+      usedClient.getTransaction({ hash }).catch(() => null),
+      usedClient.getBlock({ blockNumber: receipt.blockNumber }).catch(() => null),
     ]);
 
     const blockTimestamp = block?.timestamp
@@ -151,8 +182,8 @@ export async function verifyOnChainPayment(
 
     const senderAddress = receipt.from;
     let recipientAddress = receipt.to || '';
-    let tokenSymbol: TokenSymbol | string = context?.expectedToken || 'usdt';
-    let tokenLabel = 'USDT';
+    let tokenSymbol: TokenSymbol | string = context?.expectedToken || (usedChainId === ETHEREUM_CHAIN_ID ? 'eth' : 'usdt');
+    let tokenLabel = usedChainId === ETHEREUM_CHAIN_ID ? 'ETH' : 'USDT';
     let amount = context?.expectedAmount || '0.00';
     let amountRaw = '0';
 
@@ -163,9 +194,9 @@ export async function verifyOnChainPayment(
       for (const log of receipt.logs) {
         const logAddress = log.address.toLowerCase();
 
-        // Check if log address matches USDT, USDC, or VERSE
+        // Check if log address matches known tokens
         const matchedToken = Object.values(TOKENS).find(
-          (t) => t.address.toLowerCase() === logAddress
+          (t) => t.address.toLowerCase() === logAddress && t.chainId === usedChainId
         );
 
         try {
@@ -186,7 +217,7 @@ export async function verifyOnChainPayment(
               tokenLabel = matchedToken.label;
               amount = formatUnits(args.value, matchedToken.decimals);
             } else {
-              // Unknown ERC-20 on Polygon
+              // Generic ERC-20
               tokenSymbol = 'token';
               tokenLabel = 'Token';
               amount = formatUnits(args.value, 18);
@@ -199,10 +230,15 @@ export async function verifyOnChainPayment(
       }
     }
 
-    // If native POL transfer was made instead of ERC-20
+    // If native transfer was made (POL or ETH)
     if (!foundErc20Transfer && tx && tx.value > 0n) {
-      tokenSymbol = 'pol';
-      tokenLabel = 'POL';
+      if (usedChainId === ETHEREUM_CHAIN_ID) {
+        tokenSymbol = 'eth';
+        tokenLabel = 'ETH';
+      } else {
+        tokenSymbol = 'pol';
+        tokenLabel = 'POL';
+      }
       amount = formatUnits(tx.value, 18);
       amountRaw = tx.value.toString();
       if (tx.to) recipientAddress = tx.to;
@@ -238,8 +274,8 @@ export async function verifyOnChainPayment(
       formattedDate: formattedDate,
       blockNumber: Number(receipt.blockNumber),
       gasUsed: gasUsed,
-      network: 'Polygon Mainnet',
-      chainId: 137,
+      network: usedChainId === ETHEREUM_CHAIN_ID ? 'Ethereum Mainnet' : 'Polygon Mainnet',
+      chainId: usedChainId,
       sessionId: context?.sessionId,
       verifiedAt: new Date().toISOString(),
     };
@@ -256,7 +292,7 @@ export async function verifyOnChainPayment(
     const msg = err instanceof Error ? err.message : 'Unknown on-chain verification error';
     return {
       success: false,
-      error: `Could not verify transaction on Polygon: ${msg}`,
+      error: `Could not verify transaction on-chain: ${msg}`,
     };
   }
 }

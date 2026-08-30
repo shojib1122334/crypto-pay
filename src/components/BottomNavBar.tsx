@@ -41,18 +41,11 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   activeTab,
   onTabChange,
 }) => {
-  const isActivity = activeTab === 'activity';
-  const isDark = isActivity;
-
   return (
     <nav
       id="cryptopay-bottom-nav"
       aria-label="Main Navigation"
-      className={`fixed bottom-0 left-0 right-0 w-full z-50 transition-colors duration-200 ${
-        isActivity
-          ? 'bg-black/95 backdrop-blur-md border-t border-zinc-800 shadow-[0_-4px_25px_rgba(0,0,0,0.9)]'
-          : 'bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]'
-      }`}
+      className="fixed bottom-0 left-0 right-0 w-full z-50 bg-black/95 backdrop-blur-md border-t border-zinc-800/90 shadow-[0_-4px_25px_rgba(0,0,0,0.9)]"
       style={{
         paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0px))',
       }}
@@ -67,14 +60,10 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               key={item.id}
               id={`nav-tab-${item.id}`}
               onClick={() => onTabChange(item.id)}
-              className={`relative flex flex-col items-center justify-center min-w-[72px] sm:min-w-[88px] py-1.5 px-3 rounded-xl transition-colors duration-150 group select-none ${
+              className={`relative flex flex-col items-center justify-center min-w-[72px] sm:min-w-[88px] py-1.5 px-3 rounded-xl transition-all duration-150 group select-none cursor-pointer ${
                 isActive
-                  ? isDark
-                    ? 'text-yellow-400'
-                    : 'text-blue-600'
-                  : isDark
-                  ? 'text-slate-400 hover:text-white'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'text-[#FFFFFF]'
+                  : 'text-zinc-500 hover:text-zinc-200'
               }`}
             >
               {/* Active Indicator Backdrop */}
@@ -82,11 +71,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 <motion.div
                   layoutId="active-bottom-bar-indicator"
                   transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                  className={`absolute inset-0 rounded-xl ${
-                    isActivity
-                      ? 'bg-yellow-500/10 border border-yellow-500/30'
-                      : 'bg-blue-50 border border-blue-200/60'
-                  }`}
+                  className="absolute inset-0 rounded-xl bg-blue-500/10 border border-[#3B82F6]/30 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
                 />
               )}
 
@@ -95,9 +80,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className={`absolute -top-1 w-1.5 h-1.5 rounded-full ${
-                    isDark ? 'bg-yellow-400' : 'bg-blue-600'
-                  }`}
+                  className="absolute -top-1 w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_6px_#3B82F6]"
                 />
               )}
 
@@ -105,26 +88,18 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 <Icon
                   className={`w-5 h-5 transition-transform duration-150 ${
                     isActive
-                      ? isDark
-                        ? 'text-yellow-400 scale-110'
-                        : 'text-blue-600 scale-110'
-                      : isDark
-                      ? 'text-slate-400 group-hover:scale-105'
-                      : 'text-slate-500 group-hover:scale-105'
+                      ? 'text-[#3B82F6] scale-110'
+                      : 'text-zinc-500 group-hover:scale-105 group-hover:text-zinc-200'
                   }`}
                   strokeWidth={isActive ? 2.3 : 1.8}
                 />
               </div>
 
               <span
-                className={`relative text-[11px] sm:text-xs font-semibold tracking-tight mt-1 transition-colors ${
+                className={`relative text-[11px] sm:text-xs tracking-tight mt-1 transition-colors ${
                   isActive
-                    ? isDark
-                      ? 'text-yellow-400 font-bold'
-                      : 'text-blue-600 font-bold'
-                    : isDark
-                    ? 'text-slate-400 group-hover:text-white'
-                    : 'text-slate-500 group-hover:text-slate-800'
+                    ? 'text-[#FFFFFF] font-bold'
+                    : 'text-zinc-500 font-medium group-hover:text-zinc-300'
                 }`}
               >
                 {item.label}
@@ -138,3 +113,4 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
 };
 
 export default BottomNavBar;
+

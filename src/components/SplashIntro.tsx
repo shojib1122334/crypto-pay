@@ -40,15 +40,15 @@ export const SplashIntro: React.FC<SplashIntroProps> = ({
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.02 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0B1220] text-white select-none overflow-hidden"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#000000] text-[#FFFFFF] select-none overflow-hidden"
           onClick={() => {
             setIsExiting(true);
             setTimeout(onComplete, 250);
           }}
         >
           {/* Subtle Ambient Background Glows */}
-          <div className="absolute w-96 h-96 rounded-full bg-blue-600/15 blur-3xl pointer-events-none -top-10 -left-10" />
-          <div className="absolute w-96 h-96 rounded-full bg-indigo-600/10 blur-3xl pointer-events-none -bottom-10 -right-10" />
+          <div className="absolute w-96 h-96 rounded-full bg-[#3B82F6]/15 blur-3xl pointer-events-none -top-10 -left-10" />
+          <div className="absolute w-96 h-96 rounded-full bg-[#00E676]/10 blur-3xl pointer-events-none -bottom-10 -right-10" />
 
           <div className="relative flex flex-col items-center px-6 text-center z-10">
             {/* Animated Logo Container */}
@@ -72,10 +72,10 @@ export const SplashIntro: React.FC<SplashIntroProps> = ({
                   repeat: Infinity,
                   ease: 'easeInOut',
                 }}
-                className="absolute -inset-2 rounded-3xl bg-blue-500/20 blur-md pointer-events-none"
+                className="absolute -inset-2 rounded-3xl bg-[#3B82F6]/20 blur-md pointer-events-none"
               />
 
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-slate-900 border border-blue-500/30 shadow-2xl shadow-blue-950/60 flex items-center justify-center p-0.5">
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shadow-[0_0_25px_rgba(59,130,246,0.3)] flex items-center justify-center p-0.5">
                 <img
                   src={imgSrc}
                   alt="CryptoPay"
@@ -94,25 +94,25 @@ export const SplashIntro: React.FC<SplashIntroProps> = ({
               className="flex flex-col items-center"
             >
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent font-display">
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[#FFFFFF] via-[#3B82F6] to-[#00E676] bg-clip-text text-transparent font-display">
                   CryptoPay
                 </h1>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-zinc-900 text-[#00E676] border border-[#00E676]/30 shadow-[0_0_8px_rgba(0,230,118,0.2)]">
                   Polygon
                 </span>
               </div>
-              <p className="text-xs text-slate-400 font-medium tracking-wide mt-1.5">
-                Non-Custodial EVM Settlement
+              <p className="text-xs text-zinc-400 font-medium tracking-wide mt-1.5">
+                Non-Custodial Real-Time EVM Settlement
               </p>
             </motion.div>
 
             {/* 2-Second Animated Progress Bar */}
-            <div className="w-40 sm:w-48 h-1 bg-slate-800 rounded-full mt-7 overflow-hidden relative border border-slate-700/50">
+            <div className="w-40 sm:w-48 h-1 bg-zinc-900 rounded-full mt-7 overflow-hidden relative border border-zinc-800">
               <motion.div
                 initial={{ width: '0%' }}
                 animate={{ width: '100%' }}
                 transition={{ duration: 1.8, ease: 'easeInOut' }}
-                className="h-full bg-gradient-to-r from-blue-500 to-indigo-400 rounded-full"
+                className="h-full bg-gradient-to-r from-[#3B82F6] to-[#00E676] rounded-full shadow-[0_0_8px_#3B82F6]"
               />
             </div>
           </div>
