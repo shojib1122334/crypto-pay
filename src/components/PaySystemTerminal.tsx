@@ -11,7 +11,6 @@ import {
   Check,
   ExternalLink,
   AlertCircle,
-  Coins,
   Send,
   QrCode,
   ShieldCheck,
@@ -45,7 +44,7 @@ import {
   type VerifiedTransactionRecord,
 } from '@/lib/transactionHistory';
 
-type PayTabMode = 'send' | 'receive' | 'balances';
+type PayTabMode = 'send' | 'receive';
 
 // Define the 4 primary tokens displayed in the 2x2 grid
 const PRIMARY_GRID_TOKENS = [
@@ -60,18 +59,15 @@ export default function PaySystemTerminal() {
   const { openConnectModal } = useConnectModal();
   const { switchChainAsync } = useSwitchChain();
 
-  // Active Terminal Tab: Send Crypto | Receive / QR | Token Balance
+  // Active Terminal Tab: Send Crypto | Receive / QR
   const [activeTab, setActiveTab] = useState<PayTabMode>('send');
 
   // Multi-chain and token states
   const [selectedChainId, setSelectedChainId] = useState<number>(POLYGON_CHAIN_ID);
   const [selectedTokenId, setSelectedTokenId] = useState<string>('usdt');
 
-  // Balances & Prices
+  // Balances
   const [balances, setBalances] = useState<TokenBalanceInfo[]>([]);
-  const [prices, setPrices] = useState<Record<string, number>>({});
-  const [isLoadingBalances, setIsLoadingBalances] = useState(false);
-  const [, setLastSyncTime] = useState<Date>(new Date());
 
   // Send Form State
   const [recipientAddress, setRecipientAddress] = useState('');
@@ -148,22 +144,17 @@ export default function PaySystemTerminal() {
   const { writeContractAsync } = useWriteContract();
   const { sendTransactionAsync } = useSendTransaction();
 
-  // Load balances and prices
+  // Load token balances
   const loadBalances = useCallback(async () => {
-    setIsLoadingBalances(true);
     try {
       const priceMap = await fetchCryptoPrices();
-      setPrices(priceMap);
 
       if (address && isAddress(address)) {
         const userBalances = await fetchAllUserBalances(address as Address, priceMap);
         setBalances(userBalances);
       }
-      setLastSyncTime(new Date());
     } catch (err) {
       console.warn('Failed to sync on-chain data:', err);
-    } finally {
-      setIsLoadingBalances(false);
     }
   }, [address]);
 
@@ -466,19 +457,6 @@ export default function PaySystemTerminal() {
         >
           <QrCode className="w-4 h-4" />
           <span>Receive / QR</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('balances')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-150 cursor-pointer ${
-            activeTab === 'balances'
-              ? 'bg-[#3B82F6] text-[#FFFFFF] shadow-[0_0_15px_rgba(59,130,246,0.35)]'
-              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/60'
-          }`}
-        >
-          <Coins className="w-4 h-4" />
-          <span>Token Balance</span>
         </button>
       </div>
 
@@ -1400,81 +1378,6 @@ export default function PaySystemTerminal() {
 
             </div>
 
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* SECTION 3: TOKEN BALANCE */}
-      {/* ========================================================================= */}
-      {activeTab === 'balances' && (
-        <div className="bg-zinc-950 rounded-3xl p-6 sm:p-8 border border-zinc-800/90 shadow-2xl">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-800">
-            <div>
-              <h2 className="text-xl font-bold text-[#FFFFFF]">Token Balances</h2>
-              <p className="text-xs text-zinc-400 mt-0.5">Live on-chain wallet holdings across Polygon & Ethereum</p>
-            </div>
-
-            <button
-              type="button"
-              onClick={loadBalances}
-              disabled={isLoadingBalances}
-              className="px-3.5 py-1.5 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-[#FFFFFF] flex items-center gap-1.5 transition cursor-pointer"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingBalances ? 'animate-spin text-[#00E676]' : 'text-[#3B82F6]'}`} />
-              <span>Refresh</span>
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {PRIMARY_GRID_TOKENS.map((tok) => {
-              const polyBal = balances.find((b) => b.symbol.toLowerCase() === tok.symbol.toLowerCase() && b.chainId === POLYGON_CHAIN_ID)?.balance || '0.00';
-              const ethBal = balances.find((b) => b.symbol.toLowerCase() === tok.symbol.toLowerCase() && b.chainId === ETHEREUM_CHAIN_ID)?.balance || '0.00';
-              const tokenPrice = prices[tok.symbol] || 1.0;
-
-              return (
-                <div
-                  key={tok.id}
-                  className="p-4 rounded-2xl border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-900 hover:border-zinc-700 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                >
-                  <div className="flex items-center gap-3.5">
-                    <TokenIcon token={tok.symbol} size={36} />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#FFFFFF] text-sm">{tok.symbol}</span>
-                        <span className="text-xs text-zinc-400">({tok.name})</span>
-                      </div>
-                      <div className="text-xs text-[#FACC15] font-mono mt-0.5">
-                        ${tokenPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })} USD
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 sm:gap-6 justify-between sm:justify-end">
-                    <div className="text-left sm:text-right">
-                      <span className="text-[11px] text-zinc-400 block uppercase font-medium">Polygon</span>
-                      <span className="font-mono text-xs font-bold text-[#00E676]">{polyBal} {tok.symbol}</span>
-                    </div>
-
-                    <div className="text-left sm:text-right">
-                      <span className="text-[11px] text-zinc-400 block uppercase font-medium">Ethereum</span>
-                      <span className="font-mono text-xs font-bold text-[#00E676]">{ethBal} {tok.symbol}</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedTokenId(tok.id);
-                        setActiveTab('send');
-                      }}
-                      className="px-3.5 py-1.5 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white text-xs font-bold shadow-[0_0_10px_rgba(59,130,246,0.3)] transition cursor-pointer"
-                    >
-                      Send
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       )}
