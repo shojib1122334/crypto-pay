@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.cryptopay.pos",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:7D:5C:3C:99:A8:47:DE:89:D2:C3:7E:24:D1:49:15:3A:43:0E:55:76:F9:FE:48:8D:23:44:B6:3B:5B"
+      ]
+    }
+  }
+]

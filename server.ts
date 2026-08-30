@@ -10,6 +10,24 @@ async function startServer() {
   app.use(cors());
   app.use(express.json());
 
+  // Custom MIME headers for PWA files
+  app.get('/manifest.webmanifest', (_req, res, next) => {
+    res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+    next();
+  });
+
+  app.get('/sw.js', (_req, res, next) => {
+    res.setHeader('Service-Worker-Allowed', '/');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    next();
+  });
+
+  app.get('/.well-known/assetlinks.json', (_req, res) => {
+    const assetlinksPath = path.join(process.cwd(), 'public', '.well-known', 'assetlinks.json');
+    res.setHeader('Content-Type', 'application/json');
+    res.sendFile(assetlinksPath);
+  });
+
   // API Health Check
   app.get('/api/health', (_req, res) => {
     res.json({

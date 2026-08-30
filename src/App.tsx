@@ -12,6 +12,9 @@ import SplashIntro from '@/components/SplashIntro';
 import BottomNavBar from '@/components/BottomNavBar';
 import ComingSoonPage from '@/components/ComingSoonPage';
 import TransactionHistoryView from '@/components/TransactionHistoryView';
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
+import { usePWA } from '@/hooks/usePWA';
+import { WifiOff } from 'lucide-react';
 import { getCurrentPaymentParams } from '@/lib/payments';
 import type { NavTab } from '@/types/navigation';
 
@@ -62,6 +65,7 @@ function AppContent() {
   const [params, setParams] = useState(() => getCurrentPaymentParams());
   const [activeTab, setActiveTab] = useState<NavTab>(() => getInitialTab());
   const [showSplash, setShowSplash] = useState(true);
+  const { isOnline } = usePWA();
 
   useEffect(() => {
     const onPop = () => {
@@ -99,6 +103,17 @@ function AppContent() {
           durationMs={2000}
           onComplete={() => setShowSplash(false)}
         />
+      )}
+
+      {/* PWA App Install Banner & Prompt */}
+      <PWAInstallPrompt />
+
+      {/* Non-intrusive Offline Banner */}
+      {!isOnline && (
+        <div className="bg-[#EF4444] text-white text-xs font-bold py-1.5 px-4 text-center sticky top-0 z-50 flex items-center justify-center gap-2 shadow-md">
+          <WifiOff className="w-3.5 h-3.5" />
+          <span>Offline Mode: Blockchain RPC queries paused. Reconnecting automatically...</span>
+        </div>
       )}
 
       <div

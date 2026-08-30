@@ -2,6 +2,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import { registerServiceWorker } from './lib/pwa.ts';
+
+// Register PWA service worker for offline caching and standalone execution
+registerServiceWorker();
 
 // Handle user cancellation, timeout, expired proposal, and connection reset events gracefully
 if (typeof window !== 'undefined') {

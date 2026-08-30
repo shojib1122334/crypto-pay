@@ -1,23 +1,147 @@
 import React from 'react';
+import { Smartphone, Download, CheckCircle2, ShieldCheck, Wifi, WifiOff, Globe, Layers } from 'lucide-react';
+import { usePWA } from '@/hooks/usePWA';
 
 export const ComingSoonPage: React.FC = () => {
+  const { isInstalled, isInstallable, isOnline, installApp } = usePWA();
+
   return (
     <div
-      id="coming-soon-view"
-      className="min-h-[70vh] flex flex-col items-center justify-center px-4"
+      id="settings-page"
+      className="max-w-4xl mx-auto px-4 py-8 space-y-6"
     >
-      <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-950 border border-zinc-800 text-xs font-semibold text-zinc-400 mb-6 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-[#3B82F6] animate-pulse" />
-          <span>Under Development</span>
+      {/* App & Terminal Settings Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-950 border border-zinc-800 rounded-3xl p-6 shadow-xl">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-[#3B82F6]/40 text-[#3B82F6] flex items-center justify-center font-black shadow-[0_0_20px_rgba(59,130,246,0.15)]">
+            <Smartphone className="w-7 h-7" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-black text-[#FFFFFF]">CryptoPay Terminal App</h2>
+              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-zinc-900 border border-[#00E676]/30 text-[#00E676]">
+                PWA / TWA v1.0.0
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-1">
+              Enterprise Web3 Point of Sale • Polygon Mainnet • Standalone Mobile Mode
+            </p>
+          </div>
         </div>
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-widest uppercase select-none text-[#FFFFFF] drop-shadow-[0_0_25px_rgba(255,255,255,0.1)]">
-          COMING SOON
-        </h1>
-        <p className="text-sm sm:text-base text-zinc-400 mt-4 max-w-md mx-auto">
-          Merchant settlements, webhooks, multi-currency auto-conversion, and API keys are coming in the next release.
+
+        {/* Install / Status Button */}
+        <div className="flex items-center gap-3">
+          {isInstalled ? (
+            <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-900 border border-[#00E676]/40 text-[#00E676] text-xs font-bold shadow-xs">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Installed (Standalone)</span>
+            </div>
+          ) : isInstallable ? (
+            <button
+              onClick={() => installApp()}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#3B82F6] hover:bg-blue-600 text-white text-xs font-bold shadow-[0_0_15px_rgba(59,130,246,0.3)] transition cursor-pointer"
+            >
+              <Download className="w-4 h-4" />
+              <span>Install PWA App</span>
+            </button>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs font-semibold">
+              <ShieldCheck className="w-4 h-4 text-[#3B82F6]" />
+              <span>PWA Ready</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Grid: App Capabilities & Diagnostic Status */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Network & Offline Status */}
+        <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-5 shadow-lg space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Globe className="w-4 h-4 text-[#3B82F6]" />
+              <span>Connectivity & Node Status</span>
+            </h3>
+            {isOnline ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#00E676] bg-zinc-900 border border-[#00E676]/30 px-2 py-0.5 rounded-full">
+                <Wifi className="w-3 h-3" /> Online
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FACC15] bg-zinc-900 border border-[#FACC15]/30 px-2 py-0.5 rounded-full">
+                <WifiOff className="w-3 h-3" /> Offline (Cached)
+              </span>
+            )}
+          </div>
+
+          <div className="text-xs space-y-2.5 text-zinc-400 bg-zinc-900/60 p-4 rounded-2xl border border-zinc-850">
+            <div className="flex justify-between items-center">
+              <span>Target Chain:</span>
+              <span className="text-white font-mono font-bold">Polygon Mainnet (137)</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Service Worker:</span>
+              <span className="text-[#00E676] font-semibold">Active & Caching</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Offline Fallback:</span>
+              <span className="text-white font-semibold">Enabled (/offline.html)</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Safe-Area Viewport:</span>
+              <span className="text-white font-semibold">Enabled (viewport-fit=cover)</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Android TWA / APK Readiness */}
+        <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-5 shadow-lg space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Layers className="w-4 h-4 text-[#00E676]" />
+              <span>Android TWA / APK Package</span>
+            </h3>
+            <span className="inline-flex items-center text-[10px] font-bold text-[#3B82F6] bg-zinc-900 border border-[#3B82F6]/30 px-2 py-0.5 rounded-full">
+              APK Ready
+            </span>
+          </div>
+
+          <div className="text-xs space-y-2.5 text-zinc-400 bg-zinc-900/60 p-4 rounded-2xl border border-zinc-850">
+            <div className="flex justify-between items-center">
+              <span>Package ID:</span>
+              <span className="text-white font-mono font-bold">app.cryptopay.pos</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Tooling:</span>
+              <span className="text-white font-semibold">Google Bubblewrap / TWA</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Asset Links:</span>
+              <span className="text-[#00E676] font-semibold">/.well-known/assetlinks.json</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Android Back-Button:</span>
+              <span className="text-white font-semibold">Hardware Intercepted</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Feature Roadmap & Under Development Notice */}
+      <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8 text-center space-y-4 shadow-xl">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-semibold text-zinc-400">
+          <span className="w-2 h-2 rounded-full bg-[#3B82F6] animate-pulse" />
+          <span>Advanced Merchant Features</span>
+        </div>
+
+        <h2 className="text-2xl sm:text-3xl font-black text-white">
+          MERCHANT SETTLEMENTS & API KEYS
+        </h2>
+
+        <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto leading-relaxed">
+          Merchant webhooks, auto-conversion to fiat stables, multi-account terminal management, and custom invoice prefixes are scheduled for the next major release.
         </p>
-        <div className="mt-8 flex items-center justify-center gap-3">
+
+        <div className="pt-2 flex items-center justify-center gap-3">
           <span className="w-3 h-3 rounded-full bg-[#FFFFFF] shadow-[0_0_8px_#FFFFFF] animate-pulse" />
           <span className="w-3 h-3 rounded-full bg-[#00E676] shadow-[0_0_8px_#00E676] animate-pulse delay-100" />
           <span className="w-3 h-3 rounded-full bg-[#3B82F6] shadow-[0_0_8px_#3B82F6] animate-pulse delay-200" />
@@ -30,5 +154,3 @@ export const ComingSoonPage: React.FC = () => {
 };
 
 export default ComingSoonPage;
-
-

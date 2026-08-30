@@ -1,0 +1,63 @@
+{
+  "packageId": "app.cryptopay.pos",
+  "host": "crypto-pay-eight.vercel.app",
+  "name": "CryptoPay — Web3 Point of Sale",
+  "launcherName": "CryptoPay",
+  "display": "standalone",
+  "themeColor": "#000000",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#000000",
+  "enableNotifications": false,
+  "startUrl": "/?source=twa",
+  "iconUrl": "https://crypto-pay-eight.vercel.app/icons/icon-512x512.png",
+  "maskableIconUrl": "https://crypto-pay-eight.vercel.app/icons/icon-maskable-512x512.png",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Merchant Dashboard",
+      "shortName": "Dashboard",
+      "url": "https://crypto-pay-eight.vercel.app/#dashboard",
+      "icon": "https://crypto-pay-eight.vercel.app/icons/icon-192x192.png"
+    },
+    {
+      "name": "Pay System Terminal",
+      "shortName": "Terminal",
+      "url": "https://crypto-pay-eight.vercel.app/#pay-system",
+      "icon": "https://crypto-pay-eight.vercel.app/icons/icon-192x192.png"
+    },
+    {
+      "name": "Activity Ledger",
+      "shortName": "Activity",
+      "url": "https://crypto-pay-eight.vercel.app/#activity",
+      "icon": "https://crypto-pay-eight.vercel.app/icons/icon-192x192.png"
+    }
+  ],
+  "splashScreenFadeOutDuration": 300,
+  "enableSiteSettingsShortcut": true,
+  "orientation": "portrait",
+  "fingerprints": [
+    {
+      "value": "14:6D:E9:7D:5C:3C:99:A8:47:DE:89:D2:C3:7E:24:D1:49:15:3A:43:0E:55:76:F9:FE:48:8D:23:44:B6:3B:5B"
+    }
+  ],
+  "additionalSearchParams": {},
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://crypto-pay-eight.vercel.app/manifest.webmanifest",
+  "fallbackType": "customtabs"
+}

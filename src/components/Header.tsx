@@ -1,6 +1,7 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Wallet } from 'lucide-react';
+import { Wallet, Download } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
+import { usePWA } from '@/hooks/usePWA';
 import type { NavTab } from '@/types/navigation';
 
 interface HeaderProps {
@@ -9,6 +10,8 @@ interface HeaderProps {
 }
 
 export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
+  const { isInstalled, isInstallable, installApp } = usePWA();
+
   const handleNav = (tab: NavTab) => {
     if (onNavigateTab) {
       onNavigateTab(tab);
@@ -86,8 +89,21 @@ export default function Header({ activeTab, onNavigateTab }: HeaderProps) {
           </button>
         </nav>
 
-        {/* Right Side: Connect Wallet Button */}
+        {/* Right Side: Install Button & Connect Wallet Button */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          {/* PWA Install Button (shown when installable & not in standalone mode) */}
+          {isInstallable && !isInstalled && (
+            <button
+              onClick={() => installApp()}
+              type="button"
+              className="hidden sm:inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-850 text-[#3B82F6] hover:text-white border border-[#3B82F6]/40 text-xs font-bold transition shadow-xs cursor-pointer"
+              title="Install CryptoPay Progressive Web App"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Install App</span>
+            </button>
+          )}
+
           <div className="header-connect-wrapper">
             <ConnectButton.Custom>
               {({

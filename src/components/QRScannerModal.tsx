@@ -14,6 +14,7 @@ import {
   Camera,
 } from 'lucide-react';
 import { parseCryptoQR, type ScannedQRData } from '@/lib/qrParser';
+import { useAndroidBackButtonModal } from '@/hooks/useAndroidBackButton';
 
 export type { ScannedQRData };
 
@@ -30,6 +31,9 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
   onScanSuccess,
   title = 'Scan Recipient QR Code',
 }) => {
+  // Support Android hardware back button to dismiss scanner modal
+  useAndroidBackButtonModal(isOpen, onClose, 'qr_scanner');
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
