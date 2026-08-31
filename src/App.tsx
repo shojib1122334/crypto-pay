@@ -13,6 +13,7 @@ import BottomNavBar from '@/components/BottomNavBar';
 import ComingSoonPage from '@/components/ComingSoonPage';
 import TransactionHistoryView from '@/components/TransactionHistoryView';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { usePWA } from '@/hooks/usePWA';
 import { WifiOff } from 'lucide-react';
 import { getCurrentPaymentParams } from '@/lib/payments';
@@ -140,7 +141,7 @@ function AppContent() {
               {isCustomerView ? (
                 <CustomerPaymentView params={params!} />
               ) : (
-                <MerchantDashboard />
+                <MerchantDashboard onNavigateTab={handleTabChange} />
               )}
             </>
           )}
@@ -148,7 +149,7 @@ function AppContent() {
           {/* Pay System Tab (Web3 Terminal: Send Crypto, Receive Crypto QR, Token Balance) */}
           {activeTab === 'pay-system' && (
             <div id="pay-system-page">
-              <PaySystemTerminal />
+              <PaySystemTerminal onNavigateTab={handleTabChange} />
             </div>
           )}
 
@@ -171,22 +172,24 @@ function AppContent() {
 
 export default function App() {
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider
-          theme={darkTheme({
-            accentColor: '#3B82F6', // Blue #3B82F6
-            accentColorForeground: '#FFFFFF',
-            borderRadius: 'large',
-            fontStack: 'system',
-            overlayBlur: 'small',
-          })}
-          modalSize="compact"
-        >
-          <AppContent />
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <ErrorBoundary fallbackTitle="CryptoPay Application Recovery">
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider
+            theme={darkTheme({
+              accentColor: '#3B82F6', // Blue #3B82F6
+              accentColorForeground: '#FFFFFF',
+              borderRadius: 'large',
+              fontStack: 'system',
+              overlayBlur: 'small',
+            })}
+            modalSize="compact"
+          >
+            <AppContent />
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </ErrorBoundary>
   );
 }
 

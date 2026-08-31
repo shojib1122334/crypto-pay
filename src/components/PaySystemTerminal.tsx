@@ -22,6 +22,7 @@ import {
   User,
   Clock,
   LayoutGrid,
+  Search,
 } from 'lucide-react';
 import {
   SUPPORTED_PAY_TOKENS,
@@ -43,8 +44,13 @@ import {
   generatePaymentReceiptPdf,
   type VerifiedTransactionRecord,
 } from '@/lib/transactionHistory';
+import type { NavTab } from '@/types/navigation';
 
 type PayTabMode = 'send' | 'receive';
+
+interface PaySystemTerminalProps {
+  onNavigateTab?: (tab: NavTab) => void;
+}
 
 // Define the 4 primary tokens displayed in the 2x2 grid
 const PRIMARY_GRID_TOKENS = [
@@ -54,7 +60,7 @@ const PRIMARY_GRID_TOKENS = [
   { id: 'verse', symbol: 'VERSE', name: 'Verse' },
 ];
 
-export default function PaySystemTerminal() {
+export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalProps) {
   const { address, isConnected, chain } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { switchChainAsync } = useSwitchChain();
@@ -89,6 +95,7 @@ export default function PaySystemTerminal() {
   const [manualTxHash, setManualTxHash] = useState<string>('');
   const [isVerifyingTx, setIsVerifyingTx] = useState<boolean>(false);
   const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [receiveValidationError, setReceiveValidationError] = useState<string | null>(null);
   const [receiveVerifiedRecord, setReceiveVerifiedRecord] = useState<VerifiedTransactionRecord | null>(null);
 
   // QR Scanner Modal State
@@ -344,6 +351,61 @@ export default function PaySystemTerminal() {
     );
   }, [receiveReceiverAddress, isReceiveAddressValid, receiveAmount, receiveNetworkConfig, receiveNetworkId]);
 
+  // Robust validation handler for generating Payment QR
+  const handleGenerateReceiveQR = () => {
+    // 1. Validate Receiver Address
+    if (!receiveReceiverAddress || !receiveReceiverAddress.trim()) {
+      setReceiveValidationError('Please enter a recipient wallet address (Step 1).');
+      setIsQrGenerated(false);
+      return;
+    }
+
+    if (!isAddress(receiveReceiverAddress.trim())) {
+      setReceiveValidationError('Invalid wallet address format. Must be a valid 42-character 0x EVM hex address.');
+      setIsQrGenerated(false);
+      return;
+    }
+
+    // 2. Validate Network
+    if (receiveNetworkId !== POLYGON_CHAIN_ID && receiveNetworkId !== ETHEREUM_CHAIN_ID) {
+      setReceiveValidationError('Please select a supported network (Polygon PoS or Ethereum).');
+      setIsQrGenerated(false);
+      return;
+    }
+
+    // 3. Validate Token Config
+    if (!receiveSelectedToken || !receiveNetworkConfig) {
+      setReceiveValidationError('The selected token is not supported on this network.');
+      setIsQrGenerated(false);
+      return;
+    }
+
+    // 4. Validate Amount (if provided)
+    if (receiveAmount && receiveAmount.trim() !== '') {
+      const num = Number(receiveAmount.trim());
+      if (isNaN(num) || num <= 0) {
+        setReceiveValidationError('Please enter a valid positive number for amount, or leave empty for open payment.');
+        setIsQrGenerated(false);
+        return;
+      }
+      try {
+        parseUnits(receiveAmount.trim(), receiveNetworkConfig.decimals || 18);
+      } catch {
+        setReceiveValidationError('Amount format exceeds maximum supported decimals for this token.');
+        setIsQrGenerated(false);
+        return;
+      }
+    }
+
+    // All clear - generate QR and reset validation error
+    setReceiveValidationError(null);
+    setIsQrGenerated(true);
+    setReceiveVerifiedRecord(null);
+
+    const el = document.getElementById('payment-qr-display-panel');
+    el?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   // Copy Receive Address Handler
   const handleCopyReceiveAddress = () => {
     if (!receiveReceiverAddress) return;
@@ -432,11 +494,11 @@ export default function PaySystemTerminal() {
     <div id="cryptopay-terminal-container" className="py-6 sm:py-10 px-3 sm:px-6 lg:px-8 max-w-5xl mx-auto font-sans">
       
       {/* Top Navigation Tabs */}
-      <div className="bg-zinc-950 rounded-2xl p-1.5 border border-zinc-800 shadow-lg flex items-center gap-1.5 mb-6">
+      <div className="bg-zinc-950 rounded-2xl p-1.5 border border-zinc-800 shadow-lg grid grid-cols-2 gap-1.5 mb-6">
         <button
           type="button"
           onClick={() => setActiveTab('send')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-150 cursor-pointer ${
+          className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all duration-150 cursor-pointer ${
             activeTab === 'send'
               ? 'bg-[#3B82F6] text-[#FFFFFF] shadow-[0_0_15px_rgba(59,130,246,0.35)]'
               : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/60'
@@ -449,7 +511,7 @@ export default function PaySystemTerminal() {
         <button
           type="button"
           onClick={() => setActiveTab('receive')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-150 cursor-pointer ${
+          className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all duration-150 cursor-pointer ${
             activeTab === 'receive'
               ? 'bg-[#3B82F6] text-[#FFFFFF] shadow-[0_0_15px_rgba(59,130,246,0.35)]'
               : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/60'
@@ -868,6 +930,7 @@ export default function PaySystemTerminal() {
                 onClick={() => {
                   setReceiveReceiverAddress(address);
                   setIsQrGenerated(false);
+                  setReceiveValidationError(null);
                 }}
                 className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
               >
@@ -904,6 +967,7 @@ export default function PaySystemTerminal() {
                     onChange={(e) => {
                       setReceiveReceiverAddress(e.target.value.trim());
                       setIsQrGenerated(false);
+                      setReceiveValidationError(null);
                       setReceiveVerifiedRecord(null);
                     }}
                     placeholder="0x... Enter EVM receiver address"
@@ -974,6 +1038,7 @@ export default function PaySystemTerminal() {
                     onClick={() => {
                       setReceiveNetworkId(POLYGON_CHAIN_ID);
                       setIsQrGenerated(false);
+                      setReceiveValidationError(null);
                     }}
                     className={`p-3 rounded-xl border flex items-center justify-center gap-2.5 text-sm font-semibold transition cursor-pointer ${
                       receiveNetworkId === POLYGON_CHAIN_ID
@@ -991,6 +1056,7 @@ export default function PaySystemTerminal() {
                     onClick={() => {
                       setReceiveNetworkId(ETHEREUM_CHAIN_ID);
                       setIsQrGenerated(false);
+                      setReceiveValidationError(null);
                     }}
                     className={`p-3 rounded-xl border flex items-center justify-center gap-2.5 text-sm font-semibold transition cursor-pointer ${
                       receiveNetworkId === ETHEREUM_CHAIN_ID
@@ -1025,6 +1091,7 @@ export default function PaySystemTerminal() {
                     onClick={() => {
                       setReceiveTokenId('usdt');
                       setIsQrGenerated(false);
+                      setReceiveValidationError(null);
                     }}
                     className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold transition cursor-pointer ${
                       receiveTokenId === 'usdt'
@@ -1042,6 +1109,7 @@ export default function PaySystemTerminal() {
                     onClick={() => {
                       setReceiveTokenId('usdc');
                       setIsQrGenerated(false);
+                      setReceiveValidationError(null);
                     }}
                     className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold transition cursor-pointer ${
                       receiveTokenId === 'usdc'
@@ -1059,6 +1127,7 @@ export default function PaySystemTerminal() {
                     onClick={() => {
                       setReceiveTokenId('verse');
                       setIsQrGenerated(false);
+                      setReceiveValidationError(null);
                     }}
                     className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold transition cursor-pointer ${
                       receiveTokenId === 'verse'
@@ -1103,6 +1172,7 @@ export default function PaySystemTerminal() {
                     onChange={(e) => {
                       setReceiveAmount(e.target.value);
                       setIsQrGenerated(false);
+                      setReceiveValidationError(null);
                     }}
                     placeholder="Leave empty for customer-specified amount"
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm font-mono text-[#FFFFFF] placeholder:text-zinc-500 focus:outline-none focus:border-[#3B82F6] pr-16 shadow-inner font-bold"
@@ -1119,23 +1189,23 @@ export default function PaySystemTerminal() {
                 </p>
               </div>
 
+              {/* Validation Error Banner (if any) */}
+              {receiveValidationError && (
+                <div className="p-3.5 rounded-2xl bg-red-950/40 border border-red-500/50 text-red-400 text-xs flex items-start gap-2.5 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
+                  <AlertCircle className="w-4 h-4 text-[#EF4444] flex-shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-white block">Action Required</span>
+                    <span>{receiveValidationError}</span>
+                  </div>
+                </div>
+              )}
+
               {/* Action Button: Generate Payment QR */}
               <div>
                 <button
                   type="button"
-                  disabled={!isReceiveAddressValid}
-                  onClick={() => {
-                    if (!isReceiveAddressValid) return;
-                    setIsQrGenerated(true);
-                    setReceiveVerifiedRecord(null);
-                    const el = document.getElementById('payment-qr-display-panel');
-                    el?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className={`w-full py-3.5 px-5 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md transition cursor-pointer ${
-                    isReceiveAddressValid
-                      ? 'bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white active:scale-[0.99] shadow-[0_0_20px_rgba(59,130,246,0.3)]'
-                      : 'bg-zinc-900 border border-zinc-800 text-zinc-600 cursor-not-allowed'
-                  }`}
+                  onClick={handleGenerateReceiveQR}
+                  className="w-full py-3.5 px-5 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md transition cursor-pointer bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white active:scale-[0.99] shadow-[0_0_20px_rgba(59,130,246,0.3)]"
                 >
                   <span>Generate Payment QR</span>
                   <LayoutGrid className="w-4 h-4 stroke-[2.5]" />
@@ -1146,7 +1216,7 @@ export default function PaySystemTerminal() {
                   <span>
                     {isReceiveAddressValid
                       ? 'Valid inputs ready. Click generate to produce live EIP-681 payment request.'
-                      : 'Enter a valid receiver address above to generate payment QR.'}
+                      : 'Enter a receiver address above to generate standard payment QR.'}
                   </span>
                 </div>
               </div>
@@ -1181,7 +1251,7 @@ export default function PaySystemTerminal() {
                     level="H"
                     includeMargin={true}
                     imageSettings={{
-                      src: 'https://verse.bitcoin.com/favicon.png',
+                      src: '/icons/icon-192x192.png',
                       x: undefined,
                       y: undefined,
                       height: 38,
