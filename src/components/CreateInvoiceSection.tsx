@@ -38,23 +38,13 @@ import {
   generatePaymentReceiptPdf,
   type VerifiedTransactionRecord,
 } from '@/lib/transactionHistory';
+import {
+  saveInvoiceRecord,
+  markInvoiceAsPaid,
+  generateInvoicePdf,
+  type CryptoPayInvoiceData,
+} from '@/lib/invoices';
 import type { NavTab } from '@/types/navigation';
-
-export interface CryptoPayInvoiceData {
-  id: string;
-  storeName: string;
-  productName: string;
-  productImage: string | null;
-  network: 'Polygon' | 'Ethereum';
-  networkChainId: number;
-  paymentMethod: 'USDT' | 'USDC' | 'VERSE';
-  amount: string;
-  status: 'Pending' | 'Paid';
-  receiverAddress: string;
-  tokenContractAddress: string;
-  tokenDecimals: number;
-  createdAt: number;
-}
 
 interface CreateInvoiceSectionProps {
   onNavigateTab?: (tab: NavTab) => void;
@@ -245,7 +235,21 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
         if (result.success && result.record) {
           setVerifiedRecord(result.record);
-          setCreatedInvoice((prev) => (prev ? { ...prev, status: 'Paid' } : null));
+          setCreatedInvoice((prev) => {
+            if (!prev) return null;
+            const updated: CryptoPayInvoiceData = {
+              ...prev,
+              status: 'Paid',
+              txHash: targetHash,
+              paidAt: result.record.timestamp,
+              verifiedBlock: result.record.blockNumber,
+            };
+            saveInvoiceRecord(updated);
+            return updated;
+          });
+          if (createdInvoice?.id) {
+            markInvoiceAsPaid(createdInvoice.id, targetHash, result.record.blockNumber);
+          }
           setVerifyTxHashInput(targetHash);
         } else {
           setVerificationError(
@@ -325,6 +329,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
       createdAt: Date.now(),
     };
 
+    saveInvoiceRecord(newInvoice);
     setCreatedInvoice(newInvoice);
   };
 
@@ -1141,34 +1146,45 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
               )}
             </div>
 
-            {/* Actions: Copy URI, Download QR */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Actions: Download Invoice PDF, Copy URI, Download QR */}
+            <div className="space-y-2.5">
               <button
                 type="button"
-                onClick={handleCopyUri}
-                className="py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition cursor-pointer"
+                onClick={() => generateInvoicePdf(createdInvoice)}
+                className="w-full py-2.5 px-4 rounded-xl bg-[#3B82F6] hover:bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
               >
-                {copiedUri ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-[#00E676]" />
-                    <span>URI Copied</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy Web3 URI</span>
-                  </>
-                )}
+                <FileText className="w-4 h-4 text-white" />
+                <span>Download Credit Invoice (PDF)</span>
               </button>
 
-              <button
-                type="button"
-                onClick={handleDownloadQR}
-                className="py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Save QR Image</span>
-              </button>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleCopyUri}
+                  className="py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition cursor-pointer"
+                >
+                  {copiedUri ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-[#00E676]" />
+                      <span>URI Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy Web3 URI</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadQR}
+                  className="py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Save QR Image</span>
+                </button>
+              </div>
             </div>
 
             {/* Close Modal Button */}
