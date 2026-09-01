@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Wallet, Download, LayoutDashboard, Layers, Activity, Settings, Menu, X } from 'lucide-react';
+import { Wallet, Download, LayoutDashboard, Layers, Activity, Settings, Menu, X, Sun, Moon } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 import { usePWA } from '@/hooks/usePWA';
+import { useTheme } from '@/context/useTheme';
 import type { NavTab } from '@/types/navigation';
 
 interface HeaderProps {
@@ -12,6 +13,7 @@ interface HeaderProps {
 
 export default function Header({ activeTab = 'dashboard', onNavigateTab }: HeaderProps) {
   const { isInstalled, isInstallable, installApp } = usePWA();
+  const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNav = (tab: NavTab) => {
@@ -49,8 +51,8 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
             </div>
           </div>
 
-          {/* Desktop Center Navigation - 5 Tabs */}
-          <nav className="hidden md:flex items-center gap-1.5 lg:gap-2">
+          {/* Desktop Center Navigation */}
+          <nav className="hidden md:flex items-center gap-1 lg:gap-1.5">
             <button
               onClick={() => handleNav('dashboard')}
               className={`text-xs lg:text-sm font-semibold transition-all cursor-pointer py-2 px-3 rounded-xl flex items-center gap-1.5 ${
@@ -98,6 +100,37 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
               <Settings className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
               <span>Settings</span>
             </button>
+
+            {/* Navigation Bar Settings Option: Light / Dark Theme Selector */}
+            <div className="ml-1 pl-2 border-l border-zinc-800 flex items-center gap-1 bg-zinc-950/80 p-1 rounded-xl border border-zinc-850">
+              <button
+                type="button"
+                onClick={() => setTheme('light')}
+                title="Select Light Mode (White background, high contrast text)"
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  theme === 'light'
+                    ? 'bg-white text-zinc-950 shadow-[0_0_10px_rgba(255,255,255,0.4)] ring-1 ring-zinc-300'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                }`}
+              >
+                <Sun className="w-3.5 h-3.5 text-amber-500" />
+                <span>Light</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTheme('dark')}
+                title="Select Dark Mode (Current dark Web3 appearance)"
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  theme === 'dark'
+                    ? 'bg-zinc-850 text-white shadow-[0_0_10px_rgba(59,130,246,0.25)] border border-zinc-700'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                }`}
+              >
+                <Moon className="w-3.5 h-3.5 text-[#3B82F6]" />
+                <span>Dark</span>
+              </button>
+            </div>
           </nav>
 
           {/* Right Side: Install + Connect Wallet */}
@@ -192,9 +225,9 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu with all 5 items */}
+        {/* Mobile Dropdown Menu with all items and Theme Choice */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-zinc-800 bg-zinc-950/95 backdrop-blur-lg px-4 py-3 space-y-1.5 animate-fadeIn">
+          <div className="md:hidden border-t border-zinc-800 bg-zinc-950/95 backdrop-blur-lg px-4 py-3 space-y-2 animate-fadeIn">
             <button
               onClick={() => handleNav('dashboard')}
               className={`w-full py-2.5 px-3.5 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${
@@ -242,6 +275,40 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
               <Settings className="w-4 h-4 text-zinc-400" />
               <span>4. Settings</span>
             </button>
+
+            {/* Mobile Settings Theme Choice Option */}
+            <div className="pt-2 mt-2 border-t border-zinc-850">
+              <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-2 px-1">
+                Theme / Appearance
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTheme('light')}
+                  className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    theme === 'light'
+                      ? 'bg-white text-zinc-950 shadow-md ring-2 ring-zinc-300'
+                      : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+                  }`}
+                >
+                  <Sun className="w-4 h-4 text-amber-500" />
+                  <span>Light</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme('dark')}
+                  className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    theme === 'dark'
+                      ? 'bg-zinc-800 text-white border border-zinc-600 shadow-md'
+                      : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+                  }`}
+                >
+                  <Moon className="w-4 h-4 text-[#3B82F6]" />
+                  <span>Dark</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </header>

@@ -44,13 +44,9 @@ import {
   generatePaymentReceiptPdf,
   type VerifiedTransactionRecord,
 } from '@/lib/transactionHistory';
-import type { NavTab } from '@/types/navigation';
 
 type PayTabMode = 'send' | 'receive';
 
-interface PaySystemTerminalProps {
-  onNavigateTab?: (tab: NavTab) => void;
-}
 
 // Define the 4 primary tokens displayed in the 2x2 grid
 const PRIMARY_GRID_TOKENS = [
@@ -60,7 +56,7 @@ const PRIMARY_GRID_TOKENS = [
   { id: 'verse', symbol: 'VERSE', name: 'Verse' },
 ];
 
-export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalProps) {
+export default function PaySystemTerminal() {
   const { address, isConnected, chain } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { switchChainAsync } = useSwitchChain();

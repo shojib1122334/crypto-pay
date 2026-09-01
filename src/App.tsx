@@ -1,6 +1,6 @@
 import '@rainbow-me/rainbowkit/styles.css';
 import { useEffect, useState } from 'react';
-import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { darkTheme, lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { config } from '@/lib/wallet';
@@ -14,10 +14,14 @@ import ComingSoonPage from '@/components/ComingSoonPage';
 import TransactionHistoryView from '@/components/TransactionHistoryView';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { useTheme } from '@/context/useTheme';
+
 import { usePWA } from '@/hooks/usePWA';
 import { WifiOff } from 'lucide-react';
 import { getCurrentPaymentParams } from '@/lib/payments';
 import type { NavTab } from '@/types/navigation';
+
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -170,26 +174,47 @@ function AppContent() {
   );
 }
 
-export default function App() {
+function AppWithTheme() {
+  const { theme } = useTheme();
+
   return (
-    <ErrorBoundary fallbackTitle="CryptoPay Application Recovery">
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider
-            theme={darkTheme({
-              accentColor: '#3B82F6', // Blue #3B82F6
+    <RainbowKitProvider
+      theme={
+        theme === 'light'
+          ? lightTheme({
+              accentColor: '#2563EB',
               accentColorForeground: '#FFFFFF',
               borderRadius: 'large',
               fontStack: 'system',
               overlayBlur: 'small',
-            })}
-            modalSize="compact"
-          >
-            <AppContent />
-          </RainbowKitProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
+            })
+          : darkTheme({
+              accentColor: '#3B82F6',
+              accentColorForeground: '#FFFFFF',
+              borderRadius: 'large',
+              fontStack: 'system',
+              overlayBlur: 'small',
+            })
+      }
+      modalSize="compact"
+    >
+      <AppContent />
+    </RainbowKitProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary fallbackTitle="CryptoPay Application Recovery">
+      <ThemeProvider>
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <AppWithTheme />
+          </QueryClientProvider>
+        </WagmiProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
+
 
