@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   Store,
@@ -23,6 +23,8 @@ import {
   ArrowRight,
   Send,
   Loader2,
+  FileText,
+  History,
 } from 'lucide-react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -31,6 +33,11 @@ import { POLYGON_CHAIN_ID, ETHEREUM_CHAIN_ID, TOKENS } from '@/lib/tokens';
 import { buildPaymentQRUri } from '@/lib/payments';
 import { useSavedReceivers } from '@/context/useSavedReceivers';
 import { TokenIcon } from '@/components/TokenIcon';
+import {
+  verifyOnChainPayment,
+  generatePaymentReceiptPdf,
+  type VerifiedTransactionRecord,
+} from '@/lib/transactionHistory';
 import type { NavTab } from '@/types/navigation';
 
 export interface CryptoPayInvoiceData {
@@ -55,7 +62,7 @@ interface CreateInvoiceSectionProps {
 
 const STORE_NAME_KEY = 'cryptopay_saved_store_name';
 
-export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = () => {
+export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNavigateTab }) => {
   const { address: connectedAddress, isConnected } = useAccount();
   const { activeReceiver } = useSavedReceivers();
 
@@ -99,7 +106,13 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = () => {
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [copiedUri, setCopiedUri] = useState(false);
 
-  // Direct On-Chain Web3 Execution (Optional Direct Claim/Payment from browser)
+  // Transaction Hash Verification State
+  const [verifyTxHashInput, setVerifyTxHashInput] = useState('');
+  const [isVerifyingTx, setIsVerifyingTx] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [verifiedRecord, setVerifiedRecord] = useState<VerifiedTransactionRecord | null>(null);
+
+  // Direct On-Chain Web3 Execution (Optional direct wallet write from browser)
   const {
     data: txHash,
     isPending: isTxPending,
@@ -207,12 +220,70 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = () => {
     };
   }, []);
 
-  // Update status when transaction confirms
+  // Verify Transaction Hash on-chain and record to Activity ledger
+  const handleVerifyTransactionHash = useCallback(
+    async (hashToVerify?: string) => {
+      const targetHash = (hashToVerify || verifyTxHashInput).trim();
+      if (!targetHash) {
+        setVerificationError('Please enter a valid 66-character transaction hash starting with 0x.');
+        return;
+      }
+
+      setIsVerifyingTx(true);
+      setVerificationError(null);
+
+      try {
+        const result = await verifyOnChainPayment(targetHash, {
+          expectedMerchant: createdInvoice?.receiverAddress,
+          expectedAmount: createdInvoice?.amount,
+          expectedToken: createdInvoice?.paymentMethod.toLowerCase(),
+          expectedChainId: createdInvoice?.networkChainId,
+          sessionId: createdInvoice?.id,
+        });
+
+        setIsVerifyingTx(false);
+
+        if (result.success && result.record) {
+          setVerifiedRecord(result.record);
+          setCreatedInvoice((prev) => (prev ? { ...prev, status: 'Paid' } : null));
+          setVerifyTxHashInput(targetHash);
+        } else {
+          setVerificationError(
+            result.error || 'Failed to verify transaction hash on-chain. Please verify the hash and network.'
+          );
+        }
+      } catch (err) {
+        setIsVerifyingTx(false);
+        const msg = err instanceof Error ? err.message : 'Verification failed';
+        setVerificationError(msg);
+      }
+    },
+    [verifyTxHashInput, createdInvoice]
+  );
+
+  // Update status when transaction confirms and auto-verify
   useEffect(() => {
-    if (isTxSuccess && createdInvoice) {
-      setCreatedInvoice((prev) => (prev ? { ...prev, status: 'Paid' } : null));
+    if (isTxSuccess && txHash && createdInvoice) {
+      setVerifyTxHashInput(txHash);
+      handleVerifyTransactionHash(txHash);
     }
-  }, [isTxSuccess, createdInvoice]);
+  }, [isTxSuccess, txHash, createdInvoice, handleVerifyTransactionHash]);
+
+  // Execute Direct On-Chain Payment
+  const handleDirectWeb3Pay = () => {
+    if (!createdInvoice) return;
+    try {
+      const parsedAmount = parseUnits(createdInvoice.amount, createdInvoice.tokenDecimals);
+      writeContract({
+        address: createdInvoice.tokenContractAddress as Address,
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [createdInvoice.receiverAddress as Address, parsedAmount],
+      });
+    } catch (err) {
+      console.error('Direct payment error:', err);
+    }
+  };
 
   // Handle Form Submission: Create Credit Invoice
   const handleCreateInvoice = (e: React.FormEvent) => {
@@ -316,22 +387,6 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = () => {
       }
     };
     img.src = `data:image/svg+xml;base64,${btoa(svgData)}`;
-  };
-
-  // Execute Direct On-Chain Payment
-  const handleDirectWeb3Pay = () => {
-    if (!createdInvoice) return;
-    try {
-      const parsedAmount = parseUnits(createdInvoice.amount, createdInvoice.tokenDecimals);
-      writeContract({
-        address: createdInvoice.tokenContractAddress as Address,
-        abi: erc20Abi,
-        functionName: 'transfer',
-        args: [createdInvoice.receiverAddress as Address, parsedAmount],
-      });
-    } catch (err) {
-      console.error('Direct payment error:', err);
-    }
   };
 
   return (
@@ -931,62 +986,160 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = () => {
               </div>
             </div>
 
-            {/* Direct On-Chain Web3 Pay Option (If customer has wallet connected in browser) */}
-            {isConnected && (
-              <div className="p-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-300 font-semibold">Direct Web3 Broadcast:</span>
-                  <span className="text-[11px] text-zinc-400">Pay via Connected Wallet</span>
+            {/* 🔍 VERIFY TRANSACTION HASH SECTION (Authentic On-Chain Settlement Verification & Activity Sync) */}
+            <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#00E676]" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    Verify Transaction Hash
+                  </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleDirectWeb3Pay}
-                  disabled={isTxPending || isTxConfirming || createdInvoice.status === 'Paid'}
-                  className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
-                >
-                  {isTxPending || isTxConfirming ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Broadcasting On-Chain...</span>
-                    </>
-                  ) : createdInvoice.status === 'Paid' ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 text-[#00E676]" />
-                      <span>Payment Confirmed On-Chain</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      <span>Send Real Payment ({createdInvoice.amount} {createdInvoice.paymentMethod})</span>
-                    </>
-                  )}
-                </button>
-
-                {txHash && (
-                  <div className="text-[11px] text-emerald-400 text-center pt-1">
-                    <a
-                      href={
-                        createdInvoice.network === 'Polygon'
-                          ? `https://polygonscan.com/tx/${txHash}`
-                          : `https://etherscan.io/tx/${txHash}`
-                      }
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="underline flex items-center justify-center gap-1"
-                    >
-                      <span>View Transaction on Explorer</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                )}
-
-                {txError && (
-                  <p className="text-[11px] text-red-400 text-center">
-                    {txError.message ? txError.message.slice(0, 100) : 'Transaction rejected or failed'}
-                  </p>
-                )}
+                <span className="text-[10px] text-zinc-400 font-medium">
+                  Synced with Activity
+                </span>
               </div>
-            )}
+
+              {/* If already verified */}
+              {createdInvoice.status === 'Paid' || verifiedRecord ? (
+                <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-[#00E676]/40 space-y-2.5">
+                  <div className="flex items-center gap-2 text-[#00E676] text-xs font-bold">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                    <span>Transaction Verified & Settled on {createdInvoice.network}!</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-300">
+                    This transaction is recorded on-chain and permanently visible under the <strong className="text-white">Activity</strong> section.
+                  </p>
+                  
+                  {verifiedRecord && (
+                    <div className="bg-black/40 rounded-lg p-2 font-mono text-[11px] text-zinc-400 flex items-center justify-between">
+                      <span>Tx: {verifiedRecord.txHash.slice(0, 8)}...{verifiedRecord.txHash.slice(-6)}</span>
+                      <a
+                        href={verifiedRecord.explorerUrl}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="text-blue-400 hover:underline flex items-center gap-1"
+                      >
+                        <span>Explorer</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 pt-1">
+                    {onNavigateTab && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsClaimModalOpen(false);
+                          onNavigateTab('activity');
+                        }}
+                        className="flex-1 py-2 px-3 rounded-lg bg-[#3B82F6] hover:bg-blue-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      >
+                        <History className="w-3.5 h-3.5" />
+                        <span>View in Activity</span>
+                      </button>
+                    )}
+                    {verifiedRecord && (
+                      <button
+                        type="button"
+                        onClick={() => generatePaymentReceiptPdf(verifiedRecord)}
+                        className="flex-1 py-2 px-3 rounded-lg bg-[#00E676] hover:bg-[#00c864] text-black text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>PDF Receipt</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleVerifyTransactionHash();
+                  }}
+                  className="space-y-2.5"
+                >
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Paste transaction hash (0x...)"
+                      value={verifyTxHashInput}
+                      onChange={(e) => {
+                        setVerifyTxHashInput(e.target.value);
+                        setVerificationError(null);
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-800 bg-zinc-950 text-xs font-mono text-white placeholder:text-zinc-500 placeholder:font-sans focus:outline-none focus:border-[#3B82F6] transition pr-20"
+                    />
+                    {verifyTxHashInput && (
+                      <button
+                        type="button"
+                        onClick={() => setVerifyTxHashInput('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400 hover:text-white px-1.5 py-0.5 rounded bg-zinc-800 cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Verify Transaction Hash Button */}
+                  <button
+                    type="submit"
+                    disabled={isVerifyingTx || !verifyTxHashInput.trim()}
+                    className="w-full py-3 px-4 rounded-xl bg-[#3B82F6] hover:bg-blue-600 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition cursor-pointer"
+                  >
+                    {isVerifyingTx ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                        <span>Verifying On Blockchain...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-4 h-4 text-white" />
+                        <span>Verify Transaction Hash</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Connected Wallet Direct Broadcast (Optional helper that populates txHash for verification) */}
+                  {isConnected && (
+                    <div className="pt-1 text-center">
+                      <button
+                        type="button"
+                        onClick={handleDirectWeb3Pay}
+                        disabled={isTxPending || isTxConfirming}
+                        className="text-[11px] text-zinc-400 hover:text-white underline inline-flex items-center gap-1 cursor-pointer"
+                      >
+                        {isTxPending || isTxConfirming ? (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span>Broadcasting from connected wallet...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-3 h-3" />
+                            <span>Broadcast directly via connected wallet</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {verificationError && (
+                    <div className="p-2.5 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                      <span>{verificationError}</span>
+                    </div>
+                  )}
+
+                  {txError && (
+                    <p className="text-[11px] text-red-400 text-center">
+                      {txError.message ? txError.message.slice(0, 90) : 'Transaction rejected or failed'}
+                    </p>
+                  )}
+                </form>
+              )}
+            </div>
 
             {/* Actions: Copy URI, Download QR */}
             <div className="grid grid-cols-2 gap-3">
