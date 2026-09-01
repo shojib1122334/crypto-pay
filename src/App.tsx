@@ -12,6 +12,7 @@ import SplashIntro from '@/components/SplashIntro';
 import BottomNavBar from '@/components/BottomNavBar';
 import ComingSoonPage from '@/components/ComingSoonPage';
 import TransactionHistoryView from '@/components/TransactionHistoryView';
+import { CreateInvoiceSection } from '@/components/CreateInvoiceSection';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemeProvider } from '@/context/ThemeContext';
@@ -50,6 +51,9 @@ function parseTabFromHash(hashStr: string): NavTab {
   const clean = hashStr.replace('#', '').toLowerCase();
   if (clean === 'pay-system' || clean === 'pay' || clean === 'how-it-works') {
     return 'pay-system';
+  }
+  if (clean === 'create-invoice' || clean === 'invoice' || clean === 'credit-invoice') {
+    return 'create-invoice';
   }
   if (clean === 'activity' || clean === 'transactions' || clean === 'history') {
     return 'activity';
@@ -155,6 +159,13 @@ function AppContent() {
           {activeTab === 'pay-system' && (
             <div id="pay-system-page">
               <PaySystemTerminal onNavigateTab={handleTabChange} />
+            </div>
+          )}
+
+          {/* Create Invoice Tab */}
+          {activeTab === 'create-invoice' && (
+            <div id="create-invoice-page">
+              <CreateInvoiceSection onNavigateTab={handleTabChange} />
             </div>
           )}
 

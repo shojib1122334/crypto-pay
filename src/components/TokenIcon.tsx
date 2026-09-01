@@ -33,7 +33,7 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
   const norm = (token || '').toUpperCase().trim();
   const dimension = typeof size === 'number' ? `${size}px` : size;
   const numSize = typeof size === 'number' ? size : parseInt(size as string, 10) || 24;
-  const [verseImgSrc, setVerseImgSrc] = useState(VERSE_ASSET_PRIMARY);
+  const [verseImgError, setVerseImgError] = useState(false);
 
   // 1. Official Tether USD (USDT) Logo
   if (norm === 'USDT' || norm === 'TETHER' || norm === 'USDT-ETH') {
@@ -87,25 +87,54 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
 
   // 3. Official Bitcoin.com VERSE Logo
   if (norm === 'VERSE' || norm === 'VERSE-ETH') {
+    if (!verseImgError) {
+      return (
+        <div
+          style={{ width: dimension, height: dimension }}
+          className={`inline-flex items-center justify-center flex-shrink-0 select-none overflow-hidden rounded-full ${className}`}
+          title="Bitcoin.com Verse (VERSE)"
+        >
+          <img
+            src={VERSE_ASSET_PRIMARY}
+            alt="Official Bitcoin.com VERSE logo"
+            width={numSize}
+            height={numSize}
+            className="w-full h-full object-cover rounded-full select-none"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (target.src !== VERSE_ASSET_FALLBACK) {
+                target.src = VERSE_ASSET_FALLBACK;
+              } else {
+                setVerseImgError(true);
+              }
+            }}
+          />
+        </div>
+      );
+    }
+
+    // High fidelity Vector fallback for VERSE
     return (
       <div
         style={{ width: dimension, height: dimension }}
-        className={`inline-flex items-center justify-center flex-shrink-0 select-none overflow-hidden rounded-full ${className}`}
+        className={`inline-flex items-center justify-center flex-shrink-0 select-none ${className}`}
         title="Bitcoin.com Verse (VERSE)"
       >
-        <img
-          src={verseImgSrc}
-          alt="Official Bitcoin.com VERSE logo"
-          width={numSize}
-          height={numSize}
-          className="w-full h-full object-cover rounded-full select-none"
-          referrerPolicy="no-referrer"
-          onError={() => {
-            if (verseImgSrc !== VERSE_ASSET_FALLBACK) {
-              setVerseImgSrc(VERSE_ASSET_FALLBACK);
-            }
-          }}
-        />
+        <svg viewBox="0 0 32 32" width="100%" height="100%" className="w-full h-full block">
+          <circle cx="16" cy="16" r="16" fill="#0D0D12" />
+          <path
+            d="M8.5 9.5L16 23.5L23.5 9.5H19L16 15.5L13 9.5H8.5Z"
+            fill="url(#verse-grad)"
+          />
+          <defs>
+            <linearGradient id="verse-grad" x1="8.5" y1="9.5" x2="23.5" y2="23.5" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#00E676" />
+              <stop offset="0.5" stopColor="#00B0FF" />
+              <stop offset="1" stopColor="#7C4DFF" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
     );
   }

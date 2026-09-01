@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Layers, Activity, Settings } from 'lucide-react';
+import { LayoutDashboard, Layers, FileText, Activity, Settings } from 'lucide-react';
 import { motion } from 'motion/react';
 import type { NavTab } from '@/types/navigation';
 
@@ -24,6 +24,11 @@ const NAV_ITEMS: NavItem[] = [
     id: 'pay-system',
     label: 'Pay system',
     icon: Layers,
+  },
+  {
+    id: 'create-invoice',
+    label: 'Credit Invoice',
+    icon: FileText,
   },
   {
     id: 'activity',

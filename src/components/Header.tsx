@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Wallet, Download, LayoutDashboard, Layers, Activity, Settings, Menu, X, Sun, Moon } from 'lucide-react';
+import { Wallet, Download, LayoutDashboard, Layers, FileText, Activity, Settings, Menu, X, Sun, Moon } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 import { usePWA } from '@/hooks/usePWA';
 import { useTheme } from '@/context/useTheme';
@@ -75,6 +75,18 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
             >
               <Layers className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
               <span>Pay system</span>
+            </button>
+
+            <button
+              onClick={() => handleNav('create-invoice')}
+              className={`text-xs lg:text-sm font-semibold transition-all cursor-pointer py-2 px-3 rounded-xl flex items-center gap-1.5 ${
+                activeTab === 'create-invoice'
+                  ? 'text-[#00E676] bg-emerald-950/60 border border-[#00E676]/50 shadow-[0_0_12px_rgba(0,230,118,0.25)] font-bold'
+                  : 'text-zinc-400 hover:text-[#FFFFFF] hover:bg-zinc-900/60'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+              <span>Create Invoice</span>
             </button>
 
             <button
@@ -253,6 +265,18 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
             </button>
 
             <button
+              onClick={() => handleNav('create-invoice')}
+              className={`w-full py-2.5 px-3.5 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${
+                activeTab === 'create-invoice'
+                  ? 'bg-emerald-950/60 text-[#00E676] border border-[#00E676]/50'
+                  : 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
+              }`}
+            >
+              <FileText className="w-4 h-4 text-[#00E676]" />
+              <span>3. Create Invoice</span>
+            </button>
+
+            <button
               onClick={() => handleNav('activity')}
               className={`w-full py-2.5 px-3.5 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${
                 activeTab === 'activity'
@@ -261,7 +285,7 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
               }`}
             >
               <Activity className="w-4 h-4 text-[#FACC15]" />
-              <span>3. Activity</span>
+              <span>4. Activity</span>
             </button>
 
             <button
@@ -273,7 +297,7 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
               }`}
             >
               <Settings className="w-4 h-4 text-zinc-400" />
-              <span>4. Settings</span>
+              <span>5. Settings</span>
             </button>
 
             {/* Mobile Settings Theme Choice Option */}
