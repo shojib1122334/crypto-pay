@@ -16,6 +16,7 @@ import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { useTheme } from '@/context/useTheme';
+import { SavedReceiversProvider } from '@/context/SavedReceiversContext';
 
 import { usePWA } from '@/hooks/usePWA';
 import { WifiOff } from 'lucide-react';
@@ -209,7 +210,9 @@ export default function App() {
       <ThemeProvider>
         <WagmiProvider config={config}>
           <QueryClientProvider client={queryClient}>
-            <AppWithTheme />
+            <SavedReceiversProvider>
+              <AppWithTheme />
+            </SavedReceiversProvider>
           </QueryClientProvider>
         </WagmiProvider>
       </ThemeProvider>

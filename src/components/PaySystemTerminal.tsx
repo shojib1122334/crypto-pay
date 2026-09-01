@@ -44,6 +44,8 @@ import {
   generatePaymentReceiptPdf,
   type VerifiedTransactionRecord,
 } from '@/lib/transactionHistory';
+import { useSavedReceivers } from '@/context/useSavedReceivers';
+import type { NavTab } from '@/types/navigation';
 
 type PayTabMode = 'send' | 'receive';
 
@@ -56,10 +58,15 @@ const PRIMARY_GRID_TOKENS = [
   { id: 'verse', symbol: 'VERSE', name: 'Verse' },
 ];
 
-export default function PaySystemTerminal() {
+interface PaySystemTerminalProps {
+  onNavigateTab?: (tab: NavTab) => void;
+}
+
+export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalProps = {}) {
   const { address, isConnected, chain } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { switchChainAsync } = useSwitchChain();
+  const { activeReceiver } = useSavedReceivers();
 
   // Active Terminal Tab: Send Crypto | Receive / QR
   const [activeTab, setActiveTab] = useState<PayTabMode>('send');
@@ -71,8 +78,8 @@ export default function PaySystemTerminal() {
   // Balances
   const [balances, setBalances] = useState<TokenBalanceInfo[]>([]);
 
-  // Send Form State
-  const [recipientAddress, setRecipientAddress] = useState('');
+  // Send Form State - Auto-populated from Active Receiver
+  const [recipientAddress, setRecipientAddress] = useState(activeReceiver?.address || '');
   const [sendAmount, setSendAmount] = useState('10.00');
   const [sendError, setSendError] = useState<string | null>(null);
   const [txStep, setTxStep] = useState<'idle' | 'preparing' | 'awaiting_signature' | 'broadcasting' | 'success' | 'error'>('idle');
@@ -80,8 +87,8 @@ export default function PaySystemTerminal() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [lastVerifiedRecord, setLastVerifiedRecord] = useState<VerifiedTransactionRecord | null>(null);
 
-  // Receive Form State - Starts completely empty
-  const [receiveReceiverAddress, setReceiveReceiverAddress] = useState<string>('');
+  // Receive Form State - Auto-populated from Active Receiver
+  const [receiveReceiverAddress, setReceiveReceiverAddress] = useState<string>(activeReceiver?.address || '');
   const [receiveNetworkId, setReceiveNetworkId] = useState<number>(POLYGON_CHAIN_ID);
   const [receiveTokenId, setReceiveTokenId] = useState<string>('usdt');
   const [receiveAmount, setReceiveAmount] = useState<string>('');
@@ -93,6 +100,19 @@ export default function PaySystemTerminal() {
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [receiveValidationError, setReceiveValidationError] = useState<string | null>(null);
   const [receiveVerifiedRecord, setReceiveVerifiedRecord] = useState<VerifiedTransactionRecord | null>(null);
+
+  // Automatically sync Active Receiver address to both Send and Receive forms
+  useEffect(() => {
+    if (activeReceiver?.address) {
+      setRecipientAddress(activeReceiver.address);
+      setReceiveReceiverAddress(activeReceiver.address);
+      setSendError(null);
+      setReceiveValidationError(null);
+    } else {
+      setRecipientAddress('');
+      setReceiveReceiverAddress('');
+    }
+  }, [activeReceiver?.address]);
 
   // QR Scanner Modal State
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -644,7 +664,64 @@ export default function PaySystemTerminal() {
 
           {/* C. Recipient Address Section */}
           <div className="mb-6">
-            <h3 className="text-base font-bold text-[#FFFFFF] mb-2">Recipient Address</h3>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-[#FFFFFF]">Receiver Address</h3>
+                {activeReceiver ? (
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#00E676]/20 text-[#00E676] border border-[#00E676]/40 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Auto-Populated
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950/50 text-amber-400 border border-amber-500/30">
+                    Manual / Unset
+                  </span>
+                )}
+              </div>
+
+              {onNavigateTab && (
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('settings')}
+                  className="text-xs text-[#3B82F6] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Settings → Saved Receivers</span>
+                  <ExternalLink className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Active Receiver Highlight Card */}
+            {activeReceiver && (
+              <div className="mb-2 p-3 rounded-xl bg-zinc-900 border border-[#00E676]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-white">Active Receiver:</span>
+                  <span className="text-[#00E676] font-semibold">{activeReceiver.telegramUsername}</span>
+                </div>
+                <span className="font-mono text-zinc-400 text-[11px] truncate">
+                  {activeReceiver.address}
+                </span>
+              </div>
+            )}
+
+            {!activeReceiver && (
+              <div className="mb-2 p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>No Active Receiver selected in Settings.</span>
+                </div>
+                {onNavigateTab && (
+                  <button
+                    type="button"
+                    onClick={() => onNavigateTab('settings')}
+                    className="font-bold underline text-amber-200 hover:text-white"
+                  >
+                    Select Receiver
+                  </button>
+                )}
+              </div>
+            )}
+
             <div className="relative">
               <input
                 type="text"
@@ -653,7 +730,7 @@ export default function PaySystemTerminal() {
                   setRecipientAddress(e.target.value.trim());
                   setSendError(null);
                 }}
-                placeholder="0x... Enter EVM address"
+                placeholder="0x... EVM receiver address"
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm font-mono text-[#FFFFFF] placeholder:text-zinc-500 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] pr-12 shadow-inner"
               />
               <button
@@ -682,7 +759,7 @@ export default function PaySystemTerminal() {
                   }}
                   className="text-xs text-zinc-400 hover:text-[#3B82F6] hover:underline font-medium cursor-pointer"
                 >
-                  Use My Address
+                  Use My Connected Address
                 </button>
               )}
             </div>
@@ -944,7 +1021,7 @@ export default function PaySystemTerminal() {
               
               {/* 01 Receiver Address */}
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-[#3B82F6] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-[0_0_8px_#3B82F6]">
                       01
@@ -952,9 +1029,35 @@ export default function PaySystemTerminal() {
                     <h3 className="text-sm sm:text-base font-bold text-[#FFFFFF]">
                       Receiver Address <span className="text-[#EF4444]">*</span>
                     </h3>
+                    {activeReceiver ? (
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#00E676]/20 text-[#00E676] border border-[#00E676]/40 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Auto-Populated
+                      </span>
+                    ) : null}
                   </div>
                   <span className="text-[11px] text-zinc-400 font-medium">Step 1 of 4</span>
                 </div>
+
+                {/* Active Receiver Display Card */}
+                {activeReceiver && (
+                  <div className="mb-2 p-2.5 rounded-xl bg-zinc-900 border border-[#00E676]/30 flex items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="font-bold text-white">Active Receiver:</span>
+                      <span className="text-[#00E676] font-semibold">{activeReceiver.telegramUsername}</span>
+                    </div>
+                    {onNavigateTab && (
+                      <button
+                        type="button"
+                        onClick={() => onNavigateTab('settings')}
+                        className="text-[11px] text-[#3B82F6] hover:underline font-medium flex items-center gap-1 flex-shrink-0 cursor-pointer"
+                      >
+                        <span>Change in Settings</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 <div className="relative">
                   <input
@@ -1007,7 +1110,7 @@ export default function PaySystemTerminal() {
                   ) : (
                     <div className="flex items-center gap-1.5 text-zinc-400 font-normal">
                       <HelpCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span>Enter the merchant wallet that will receive funds.</span>
+                      <span>Enter the merchant wallet that will receive funds or select an Active Receiver in Settings.</span>
                     </div>
                   )}
                 </div>

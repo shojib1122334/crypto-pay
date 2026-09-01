@@ -2,6 +2,7 @@ import React from 'react';
 import { Download, CheckCircle2, ShieldCheck, Wifi, WifiOff, Globe, Layers, Sun, Moon, Sparkles } from 'lucide-react';
 import { usePWA } from '@/hooks/usePWA';
 import { useTheme } from '@/context/useTheme';
+import { SavedReceiversSection } from '@/components/SavedReceiversSection';
 
 export const ComingSoonPage: React.FC = () => {
   const { isInstalled, isInstallable, isOnline, installApp } = usePWA();
@@ -12,6 +13,9 @@ export const ComingSoonPage: React.FC = () => {
       id="settings-page"
       className="max-w-4xl mx-auto px-4 py-8 space-y-6 font-sans"
     >
+      {/* 1. Main Saved Receivers Management Section */}
+      <SavedReceiversSection />
+
       {/* App & Terminal Settings Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-950 border border-zinc-800 rounded-3xl p-6 shadow-xl">
         <div className="flex items-center gap-4">
