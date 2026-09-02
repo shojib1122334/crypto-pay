@@ -7,11 +7,14 @@ import { registerServiceWorker } from './lib/pwa.ts';
 // Register PWA service worker for offline caching and standalone execution
 registerServiceWorker();
 
-// Handle user cancellation, timeout, expired proposal, and connection reset events gracefully
+// Handle user cancellation, timeout, expired proposal, COOP notices, fetch getters, and connection reset events gracefully
 if (typeof window !== 'undefined') {
   const isIgnorableWalletNotice = (msg: string): boolean => {
     const lower = msg.toLowerCase();
     return (
+      lower.includes('cannot set property fetch') ||
+      lower.includes('has only a getter') ||
+      lower.includes('cross-origin-opener-policy') ||
       lower.includes('connection request reset') ||
       lower.includes('proposal expired') ||
       lower.includes('session proposal expired') ||

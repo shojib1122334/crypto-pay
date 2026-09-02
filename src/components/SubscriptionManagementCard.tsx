@@ -25,7 +25,6 @@ export const SubscriptionManagementCard: React.FC = () => {
     isActive,
     hasFreeRun,
     daysRemaining,
-    versePrice,
     isUpgradeModalOpen,
     openUpgradeModal,
     closeUpgradeModal,
@@ -207,7 +206,7 @@ export const SubscriptionManagementCard: React.FC = () => {
                 <span>{subscription.token} (${subscription.usdAmount})</span>
               </>
             ) : (
-              'USDT / USDC / VERSE'
+              'USDT / USDC'
             )}
           </span>
         </div>
@@ -266,7 +265,6 @@ export const SubscriptionManagementCard: React.FC = () => {
       <SubscriptionUpgradeModal
         isOpen={isUpgradeModalOpen}
         onClose={closeUpgradeModal}
-        versePrice={versePrice}
         onSuccess={() => {
           refresh();
         }}

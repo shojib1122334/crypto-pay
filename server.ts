@@ -10,6 +10,13 @@ async function startServer() {
   app.use(cors());
   app.use(express.json());
 
+  // Set standard security & opener headers for web3 wallets & iframe compatibility
+  app.use((_req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+  });
+
   // Custom MIME headers for PWA files
   app.get('/manifest.webmanifest', (_req, res, next) => {
     res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');

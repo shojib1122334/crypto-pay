@@ -18,7 +18,10 @@ import {
   CreditCard,
   User,
   ShieldCheck,
+  Wallet,
 } from 'lucide-react';
+import { useAccount } from 'wagmi';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { TokenIcon } from '@/components/TokenIcon';
 import { TOKENS, POLYGON_CHAIN_ID } from '@/lib/tokens';
 import { buildPaymentQRUri } from '@/lib/payments';
@@ -42,6 +45,7 @@ interface RecurringSubscriptionInvoiceSectionProps {
 export const RecurringSubscriptionInvoiceSection: React.FC<
   RecurringSubscriptionInvoiceSectionProps
 > = ({ effectiveReceiverAddress, storeName }) => {
+  const { isConnected, address: connectedAddress } = useAccount();
   const {
     subscription,
     isActive,
@@ -98,6 +102,11 @@ export const RecurringSubscriptionInvoiceSection: React.FC<
   const handleCreateRecurringInvoice = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
+
+    if (!isConnected || !connectedAddress) {
+      setFormError('Please connect your Web3 wallet first to receive payments on this Recurring Invoice.');
+      return;
+    }
 
     if (!subscriberName.trim()) {
       setFormError('Please enter the Subscriber / Customer Name.');
@@ -510,6 +519,22 @@ export const RecurringSubscriptionInvoiceSection: React.FC<
                   {paymentToken}
                 </div>
               </div>
+              {paymentToken === 'VERSE' && (
+                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+                  <span>
+                    ≈ ${(parseFloat(amount || '0') * (versePrice || 0.00035)).toFixed(2)} USD (at 1 VERSE = ${versePrice.toFixed(6)})
+                  </span>
+                  <a
+                    href="https://www.coingecko.com/en/coins/verse"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-700 hover:underline flex items-center gap-0.5 font-semibold"
+                  >
+                    <span>CoinGecko</span>
+                    <ExternalLink className="w-2.5 h-2.5" />
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
@@ -567,14 +592,29 @@ export const RecurringSubscriptionInvoiceSection: React.FC<
             </div>
           )}
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full py-4 px-6 rounded-2xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>Generate Recurring Subscription Invoice</span>
-          </button>
+          {/* Submit Button (Wallet Aware) */}
+          {!isConnected ? (
+            <ConnectButton.Custom>
+              {({ openConnectModal }) => (
+                <button
+                  type="button"
+                  onClick={openConnectModal}
+                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+                >
+                  <Wallet className="w-5 h-5 text-amber-300" />
+                  <span>🔗 Connect Wallet to Create Recurring Invoice</span>
+                </button>
+              )}
+            </ConnectButton.Custom>
+          ) : (
+            <button
+              type="submit"
+              className="w-full py-4 px-6 rounded-2xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Generate Recurring Subscription Invoice</span>
+            </button>
+          )}
         </form>
 
         {/* Active Created Subscription Invoice Card */}

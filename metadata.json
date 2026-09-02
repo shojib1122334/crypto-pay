@@ -1,6 +1,6 @@
 {
   "name": "CryptoPay",
-  "description": "Institutional non-custodial crypto payments accepting USDT, USDC, and VERSE on Polygon with direct wallet settlement.",
+  "description": "Institutional non-custodial crypto payments accepting USDT and USDC on Polygon with direct wallet settlement.",
   "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

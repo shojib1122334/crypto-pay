@@ -1,16 +1,25 @@
-import { createPublicClient, http, formatUnits, parseUnits, isAddress, type Address } from 'viem';
+import { createPublicClient, http, fallback, formatUnits, parseUnits, isAddress, type Address } from 'viem';
 import { polygon, mainnet } from 'viem/chains';
 import { ERC20_ABI, POLYGON_CHAIN_ID, ETHEREUM_CHAIN_ID } from './tokens';
 
-// Dedicated resilient public clients
+// Dedicated resilient public clients with multiple fallback RPC providers
 export const polygonPublicClient = createPublicClient({
   chain: polygon,
-  transport: http('https://polygon-bor-rpc.publicnode.com'),
+  transport: fallback([
+    http('https://polygon-rpc.com'),
+    http('https://rpc.ankr.com/polygon'),
+    http('https://polygon-bor-rpc.publicnode.com'),
+    http('https://1rpc.io/matic'),
+  ]),
 });
 
 export const ethereumPublicClient = createPublicClient({
   chain: mainnet,
-  transport: http('https://ethereum-rpc.publicnode.com'),
+  transport: fallback([
+    http('https://ethereum-rpc.publicnode.com'),
+    http('https://rpc.ankr.com/eth'),
+    http('https://eth.llamarpc.com'),
+  ]),
 });
 
 export interface TokenBalanceInfo {
@@ -37,33 +46,196 @@ export interface GasFeeInfo {
   isLowGas: boolean;
 }
 
-// Token price approximate fetcher / estimator for UI display
+// Token price approximate fetcher / estimator for UI display with multi-source fallback
 export async function fetchCryptoPrices(): Promise<Record<string, number>> {
+  let versePrice = 0.00035;
+  let polPrice = 0.45;
+  let ethPrice = 3200;
+  let usdtPrice = 1.0;
+  let usdcPrice = 1.0;
+
+  // 1. Try GeckoTerminal (CoinGecko's official DEX API - guaranteed CORS & live rate)
+  try {
+    const gtRes = await fetch(
+      'https://api.geckoterminal.com/api/v2/simple/networks/polygon_pos/token_price/0xc708d6f2153933daa50b2d0758955be0a93a8fec',
+      { headers: { Accept: 'application/json' } }
+    );
+    if (gtRes.ok) {
+      const gtData = await gtRes.json();
+      const raw = gtData?.data?.attributes?.token_prices?.['0xc708d6f2153933daa50b2d0758955be0a93a8fec'];
+      if (raw) {
+        const p = parseFloat(raw);
+        if (!isNaN(p) && p > 0) {
+          versePrice = p;
+        }
+      }
+    }
+  } catch {
+    // Continue to next provider
+  }
+
+  // 2. Try DefiLlama (Aggregated real-time feed from CoinGecko + DEXes)
+  try {
+    const llamaRes = await fetch(
+      'https://coins.llama.fi/prices/current/polygon:0xc708d6f2153933daa50b2d0758955be0a93a8fec,polygon:0x0000000000000000000000000000000000000000,ethereum:0x0000000000000000000000000000000000000000'
+    );
+    if (llamaRes.ok) {
+      const llamaData = await llamaRes.json();
+      const coins = llamaData?.coins || {};
+      if (coins['polygon:0xc708d6f2153933daa50b2d0758955be0a93a8fec']?.price) {
+        versePrice = coins['polygon:0xc708d6f2153933daa50b2d0758955be0a93a8fec'].price;
+      }
+      if (coins['polygon:0x0000000000000000000000000000000000000000']?.price) {
+        polPrice = coins['polygon:0x0000000000000000000000000000000000000000'].price;
+      }
+      if (coins['ethereum:0x0000000000000000000000000000000000000000']?.price) {
+        ethPrice = coins['ethereum:0x0000000000000000000000000000000000000000'].price;
+      }
+    }
+  } catch {
+    // Continue to next provider
+  }
+
+  // 3. Try DexScreener Polygon pair
+  if (versePrice === 0.00035) {
+    try {
+      const dexRes = await fetch(
+        'https://api.dexscreener.com/latest/dex/tokens/0xc708D6F2153933DAA50B2D0758955Be0A93A8FEc'
+      );
+      if (dexRes.ok) {
+        const dexData = await dexRes.json();
+        const pair = dexData.pairs?.[0];
+        if (pair?.priceUsd) {
+          const parsed = parseFloat(pair.priceUsd);
+          if (!isNaN(parsed) && parsed > 0) {
+            versePrice = parsed;
+          }
+        }
+      }
+    } catch {
+      // Keep existing
+    }
+  }
+
+  // 4. Try CoinGecko Direct
   try {
     const res = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=matic-network,ethereum,tether,usd-coin,verse&vs_currencies=usd',
+      'https://api.coingecko.com/api/v3/simple/price?ids=matic-network,ethereum,tether,usd-coin,verse&vs_currencies=usd'
     );
-    if (!res.ok) throw new Error('Failed to fetch prices');
-    const data = await res.json();
-    return {
-      POL: data['matic-network']?.usd || 0.45,
-      MATIC: data['matic-network']?.usd || 0.45,
-      ETH: data['ethereum']?.usd || 3200,
-      USDT: data['tether']?.usd || 1.0,
-      USDC: data['usd-coin']?.usd || 1.0,
-      VERSE: data['verse']?.usd || 0.00035,
-    };
+    if (res.ok) {
+      const data = await res.json();
+      if (data['verse']?.usd && data['verse'].usd > 0) versePrice = data['verse'].usd;
+      if (data['matic-network']?.usd && data['matic-network'].usd > 0) polPrice = data['matic-network'].usd;
+      if (data['ethereum']?.usd && data['ethereum'].usd > 0) ethPrice = data['ethereum'].usd;
+      if (data['tether']?.usd && data['tether'].usd > 0) usdtPrice = data['tether'].usd;
+      if (data['usd-coin']?.usd && data['usd-coin'].usd > 0) usdcPrice = data['usd-coin'].usd;
+    }
   } catch {
-    // Fallback benchmark prices
-    return {
-      POL: 0.45,
-      MATIC: 0.45,
-      ETH: 3200,
-      USDT: 1.0,
-      USDC: 1.0,
-      VERSE: 0.00035,
-    };
+    // Keep resolved values
   }
+
+  return {
+    POL: polPrice,
+    MATIC: polPrice,
+    ETH: ethPrice,
+    USDT: usdtPrice,
+    USDC: usdcPrice,
+    VERSE: versePrice,
+  };
+}
+
+export async function fetchVersePriceFromCoinGecko(): Promise<{ price: number; source: string; timestamp: number }> {
+  // Source 1: CoinGecko GeckoTerminal (official CoinGecko on-chain API)
+  try {
+    const gtRes = await fetch(
+      'https://api.geckoterminal.com/api/v2/simple/networks/polygon_pos/token_price/0xc708d6f2153933daa50b2d0758955be0a93a8fec',
+      { headers: { Accept: 'application/json' } }
+    );
+    if (gtRes.ok) {
+      const gtData = await gtRes.json();
+      const raw = gtData?.data?.attributes?.token_prices?.['0xc708d6f2153933daa50b2d0758955be0a93a8fec'];
+      if (raw) {
+        const p = parseFloat(raw);
+        if (!isNaN(p) && p > 0) {
+          return {
+            price: p,
+            source: 'CoinGecko (GeckoTerminal)',
+            timestamp: Date.now(),
+          };
+        }
+      }
+    }
+  } catch {
+    // Continue
+  }
+
+  // Source 2: DefiLlama
+  try {
+    const llamaRes = await fetch(
+      'https://coins.llama.fi/prices/current/polygon:0xc708d6f2153933daa50b2d0758955be0a93a8fec'
+    );
+    if (llamaRes.ok) {
+      const llamaData = await llamaRes.json();
+      const p = llamaData?.coins?.['polygon:0xc708d6f2153933daa50b2d0758955be0a93a8fec']?.price;
+      if (p && typeof p === 'number' && p > 0) {
+        return {
+          price: p,
+          source: 'DefiLlama Aggregator',
+          timestamp: Date.now(),
+        };
+      }
+    }
+  } catch {
+    // Continue
+  }
+
+  // Source 3: DexScreener
+  try {
+    const dexRes = await fetch(
+      'https://api.dexscreener.com/latest/dex/tokens/0xc708D6F2153933DAA50B2D0758955Be0A93A8FEc'
+    );
+    if (dexRes.ok) {
+      const dexData = await dexRes.json();
+      const pair = dexData.pairs?.[0];
+      if (pair?.priceUsd) {
+        const p = parseFloat(pair.priceUsd);
+        if (!isNaN(p) && p > 0) {
+          return {
+            price: p,
+            source: 'DexScreener Polygon',
+            timestamp: Date.now(),
+          };
+        }
+      }
+    }
+  } catch {
+    // Continue
+  }
+
+  // Source 4: CoinGecko Direct
+  try {
+    const res = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=verse&vs_currencies=usd'
+    );
+    if (res.ok) {
+      const data = await res.json();
+      if (data.verse?.usd && data.verse.usd > 0) {
+        return {
+          price: data.verse.usd,
+          source: 'CoinGecko Direct',
+          timestamp: Date.now(),
+        };
+      }
+    }
+  } catch {
+    // Fallback
+  }
+
+  return {
+    price: 0.00035,
+    source: 'Benchmark Base',
+    timestamp: Date.now(),
+  };
 }
 
 /**

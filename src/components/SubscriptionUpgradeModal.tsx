@@ -26,7 +26,6 @@ import {
   type SubscriptionToken,
   type SubscriptionRecord,
   verifySubscriptionPaymentOnChain,
-  calculateVerseAmount,
 } from '@/lib/subscription';
 import { buildPaymentQRUri } from '@/lib/payments';
 
@@ -35,7 +34,6 @@ interface SubscriptionUpgradeModalProps {
   onClose: () => void;
   initialPlanId?: SubscriptionPlanId;
   onSuccess?: (sub: SubscriptionRecord) => void;
-  versePrice?: number;
 }
 
 export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> = ({
@@ -43,12 +41,11 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
   onClose,
   initialPlanId = '1_month',
   onSuccess,
-  versePrice = 0.00035,
 }) => {
   // Selected Plan: '1_month' ($2) | '3_months' ($5)
   const [selectedPlanId, setSelectedPlanId] = useState<SubscriptionPlanId>(initialPlanId);
 
-  // Selected Payment Token: USDT | USDC | VERSE
+  // Selected Payment Token: USDT | USDC only
   const [selectedToken, setSelectedToken] = useState<SubscriptionToken>('USDT');
 
   // Copy States
@@ -80,10 +77,7 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
   }, [initialPlanId]);
 
   const currentPlan = SUBSCRIPTION_PLANS[selectedPlanId];
-  const calculatedVerse = calculateVerseAmount(currentPlan.usdPrice, versePrice);
-
-  const exactTokenAmountToPay =
-    selectedToken === 'VERSE' ? calculatedVerse : currentPlan.usdPrice.toFixed(2);
+  const exactTokenAmountToPay = currentPlan.usdPrice.toFixed(2);
 
   // On-Chain Polygon Verification
   const handleVerify = useCallback(
@@ -101,8 +95,7 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
         const result = await verifySubscriptionPaymentOnChain(
           hash,
           selectedPlanId,
-          selectedToken,
-          versePrice
+          selectedToken
         );
 
         setIsVerifying(false);
@@ -125,7 +118,7 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
         );
       }
     },
-    [txHashInput, selectedPlanId, selectedToken, versePrice, onSuccess]
+    [txHashInput, selectedPlanId, selectedToken, onSuccess]
   );
 
   // Auto-fill and auto-verify when direct wallet write succeeds
@@ -154,9 +147,7 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
   const handleDirectWeb3Pay = () => {
     try {
       setVerificationError(null);
-      let tokenConfig = TOKENS.usdt;
-      if (selectedToken === 'USDC') tokenConfig = TOKENS.usdc;
-      if (selectedToken === 'VERSE') tokenConfig = TOKENS.verse;
+      const tokenConfig = selectedToken === 'USDC' ? TOKENS.usdc : TOKENS.usdt;
 
       const parsedUnits = parseUnits(exactTokenAmountToPay, tokenConfig.decimals);
 
@@ -175,9 +166,7 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
 
   // Generate QR URI for the subscription payment
   const subscriptionQRUri = React.useMemo(() => {
-    let tokenConfig = TOKENS.usdt;
-    if (selectedToken === 'USDC') tokenConfig = TOKENS.usdc;
-    if (selectedToken === 'VERSE') tokenConfig = TOKENS.verse;
+    const tokenConfig = selectedToken === 'USDC' ? TOKENS.usdc : TOKENS.usdt;
 
     return buildPaymentQRUri(
       SUBSCRIPTION_RECEIVER_WALLET,
@@ -371,7 +360,6 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
                     <div className="flex items-center gap-1">
                       <TokenIcon token="USDT" size={16} />
                       <TokenIcon token="USDC" size={16} />
-                      <TokenIcon token="VERSE" size={16} />
                     </div>
                   </div>
 
@@ -419,7 +407,6 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
                     <div className="flex items-center gap-1">
                       <TokenIcon token="USDT" size={16} />
                       <TokenIcon token="USDC" size={16} />
-                      <TokenIcon token="VERSE" size={16} />
                     </div>
                   </div>
 
@@ -454,20 +441,20 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
                 </span>
               </div>
 
-              {/* Select Payment Token: USDT / USDC / VERSE */}
+              {/* Select Payment Token: USDT / USDC */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700">
-                  Select Payment Token
+                  Select Payment Token (Polygon)
                 </label>
-                <div className="grid grid-cols-3 gap-2.5">
-                  {(['USDT', 'USDC', 'VERSE'] as const).map((tok) => {
+                <div className="grid grid-cols-2 gap-3">
+                  {(['USDT', 'USDC'] as const).map((tok) => {
                     const isTokSelected = selectedToken === tok;
                     return (
                       <button
                         key={tok}
                         type="button"
                         onClick={() => setSelectedToken(tok)}
-                        className={`py-3 px-3 rounded-xl text-xs sm:text-sm font-bold flex flex-col sm:flex-row items-center justify-center gap-2 border-2 transition cursor-pointer ${
+                        className={`py-3 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2.5 border-2 transition cursor-pointer ${
                           isTokSelected
                             ? 'bg-blue-50 border-blue-600 text-blue-900 shadow-xs'
                             : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -492,14 +479,19 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
                 </div>
 
                 <div className="flex justify-between items-center border-b border-slate-200 pb-2.5">
-                  <span className="text-slate-500 font-medium">Selected Plan Amount:</span>
-                  <span className="font-black text-slate-900 text-base">
-                    ${currentPlan.usdPrice.toFixed(2)} USD
-                  </span>
+                  <span className="text-slate-500 font-medium">Selected Plan Price:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-slate-900 text-base">
+                      ${currentPlan.usdPrice.toFixed(2)} USD
+                    </span>
+                    <span className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
+                      Stablecoin Dollar Pegged
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex justify-between items-center border-b border-slate-200 pb-2.5">
-                  <span className="text-slate-500 font-medium">Amount to Send:</span>
+                  <span className="text-slate-500 font-medium">Total Amount to Send:</span>
                   <div className="flex items-center gap-2">
                     <span className="font-black text-emerald-700 text-base sm:text-lg flex items-center gap-1.5">
                       <TokenIcon token={selectedToken} size={18} />
@@ -518,15 +510,10 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
 
                 {/* Payment Amount Rule notice */}
                 <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-200 text-[11px] text-blue-900 leading-relaxed">
-                  <strong>Payment Amount Rule:</strong>
-                  <ul className="list-disc list-inside mt-1 space-y-0.5 text-slate-700">
-                    <li>
-                      <strong>USDT / USDC:</strong> Pay the exact selected USD amount (<strong>${currentPlan.usdPrice}</strong>).
-                    </li>
-                    <li>
-                      <strong>VERSE:</strong> Pay the USD-equivalent amount of VERSE based on current market price (1 VERSE ≈ ${versePrice.toFixed(6)} → <strong>{calculatedVerse} VERSE</strong>).
-                    </li>
-                  </ul>
+                  <strong>💵 Stablecoin Pricing:</strong>
+                  <p className="mt-0.5 text-slate-700">
+                    Pay exactly <strong>${currentPlan.usdPrice.toFixed(2)} {selectedToken}</strong> on the Polygon network to activate your subscription.
+                  </p>
                 </div>
 
                 {/* Receiving Wallet */}
@@ -666,8 +653,7 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
                     <li>Network is Polygon</li>
                     <li>Transaction is successful and confirmed</li>
                     <li>Selected token matches ({selectedToken})</li>
-                    <li>Payment amount matches the selected plan (${currentPlan.usdPrice})</li>
-                    <li>For VERSE, the payment value matches the required USD amount</li>
+                    <li>Payment amount matches the selected plan (${currentPlan.usdPrice} {selectedToken})</li>
                     <li>Payment was sent to the correct Receiving Wallet</li>
                     <li>Transaction has not been used previously</li>
                   </ul>

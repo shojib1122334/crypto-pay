@@ -313,17 +313,10 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
     e.preventDefault();
     setFormError(null);
 
-    // Enforce Subscription & Free Run Lifecycle
-    if (!isSubscriptionActive) {
-      if (!hasFreeRun) {
-        setFormError(
-          'Your 1 free trial invoice run has been used. Please upgrade your subscription to continue generating invoices.'
-        );
-        openUpgradeModal('1_month');
-        return;
-      }
-      // Consume 1st free run in real-time
-      consumeFreeRun();
+    // 0. Enforce Wallet Connection Requirement
+    if (!isConnected || !connectedAddress) {
+      setFormError('Please connect your Web3 wallet first to receive payments on this Credit Invoice.');
+      return;
     }
 
     if (!productName.trim()) {
@@ -335,6 +328,19 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
     if (!amount || isNaN(numAmount) || numAmount <= 0) {
       setFormError('Please enter a valid amount greater than 0.');
       return;
+    }
+
+    // Enforce Subscription & Free Run Lifecycle ONLY when validations pass
+    if (!isSubscriptionActive) {
+      if (!hasFreeRun) {
+        setFormError(
+          'Your 1 free trial invoice run has been used. Please upgrade your subscription to continue generating invoices.'
+        );
+        openUpgradeModal('1_month');
+        return;
+      }
+      // Consume 1st free run in real-time
+      consumeFreeRun();
     }
 
     const chainId = network === 'Polygon' ? POLYGON_CHAIN_ID : ETHEREUM_CHAIN_ID;
@@ -632,59 +638,104 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
             {/* SECTION 1: INVOICE GENERATION FORM */}
             <form onSubmit={handleCreateInvoice} className="space-y-6">
               
-              {/* 🏪 Store Name — Saved during initial setup */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <Store className="w-4 h-4 text-blue-700" />
-                    <span>🏪 Store Name</span>
-                    <span className="text-[10px] font-semibold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">
-                      Saved during initial setup
-                    </span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (isEditingStore) {
-                        handleSaveStoreName();
-                      } else {
-                        setStoreNameInput(storeName);
-                        setIsEditingStore(true);
-                      }
-                    }}
-                    className="text-xs font-semibold text-blue-700 hover:underline cursor-pointer"
-                  >
-                    {isEditingStore ? 'Save Name' : 'Edit Store'}
-                  </button>
-                </div>
-
-                {isEditingStore ? (
-                  <div className="flex gap-2 pt-1">
-                    <input
-                      type="text"
-                      value={storeNameInput}
-                      onChange={(e) => setStoreNameInput(e.target.value)}
-                      placeholder="Enter Store Name"
-                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600"
-                      autoFocus
-                    />
+              {/* 🏪 Store Name & 👛 Receiving Settlement Address */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Store Name Card */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                      <Store className="w-4 h-4 text-blue-700" />
+                      <span>🏪 Store Name</span>
+                    </label>
                     <button
                       type="button"
-                      onClick={handleSaveStoreName}
-                      className="px-4 py-2 bg-blue-700 text-white text-xs font-bold rounded-xl hover:bg-blue-800 cursor-pointer"
+                      onClick={() => {
+                        if (isEditingStore) {
+                          handleSaveStoreName();
+                        } else {
+                          setStoreNameInput(storeName);
+                          setIsEditingStore(true);
+                        }
+                      }}
+                      className="text-xs font-semibold text-blue-700 hover:underline cursor-pointer"
                     >
-                      Save
+                      {isEditingStore ? 'Save' : 'Edit'}
                     </button>
                   </div>
-                ) : (
-                  <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900">
-                    <span className="truncate">{storeName}</span>
-                    <span className="text-xs text-emerald-700 font-normal flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Active Setup
-                    </span>
+
+                  {isEditingStore ? (
+                    <div className="flex gap-2 pt-1">
+                      <input
+                        type="text"
+                        value={storeNameInput}
+                        onChange={(e) => setStoreNameInput(e.target.value)}
+                        placeholder="Enter Store Name"
+                        className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSaveStoreName}
+                        className="px-3 py-1.5 bg-blue-700 text-white text-xs font-bold rounded-xl hover:bg-blue-800 cursor-pointer"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900">
+                      <span className="truncate">{storeName}</span>
+                      <span className="text-[11px] text-emerald-700 font-normal flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Saved
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Receiving Wallet Address Card */}
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                      <Wallet className="w-4 h-4 text-emerald-600" />
+                      <span>👛 Receiving Wallet</span>
+                    </label>
+                    {isConnected ? (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                        Connected
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">
+                        Required
+                      </span>
+                    )}
                   </div>
-                )}
+
+                  {isConnected && connectedAddress ? (
+                    <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono text-slate-800">
+                      <span className="truncate">{connectedAddress.slice(0, 8)}...{connectedAddress.slice(-6)}</span>
+                      <span className="text-[11px] text-emerald-700 font-sans font-semibold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Ready
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="bg-white p-2 rounded-xl border border-dashed border-amber-300 flex items-center justify-between gap-2">
+                      <span className="text-xs text-slate-500 italic pl-1">No wallet connected</span>
+                      <ConnectButton.Custom>
+                        {({ openConnectModal }) => (
+                          <button
+                            type="button"
+                            onClick={openConnectModal}
+                            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 transition cursor-pointer"
+                          >
+                            <Wallet className="w-3.5 h-3.5" />
+                            <span>Connect</span>
+                          </button>
+                        )}
+                      </ConnectButton.Custom>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* 📦 Product Name */}
@@ -886,8 +937,21 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 </div>
               )}
 
-              {/* 🔵 Create Invoice Button (State-Aware) */}
-              {isSubscriptionActive ? (
+              {/* 🔵 Create Invoice Button (State & Wallet-Aware) */}
+              {!isConnected ? (
+                <ConnectButton.Custom>
+                  {({ openConnectModal }) => (
+                    <button
+                      type="button"
+                      onClick={openConnectModal}
+                      className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+                    >
+                      <Wallet className="w-5 h-5 text-amber-300" />
+                      <span>🔗 Connect Wallet to Create Invoice</span>
+                    </button>
+                  )}
+                </ConnectButton.Custom>
+              ) : isSubscriptionActive ? (
                 <button
                   type="submit"
                   className="w-full py-4 px-6 rounded-2xl bg-blue-700 hover:bg-blue-800 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"

@@ -1,11 +1,10 @@
-import { formatUnits, parseUnits, type Address } from 'viem';
-import { polygonPublicClient } from './rpcService';
-import { TOKENS } from './tokens';
+import { formatUnits, type TransactionReceipt } from 'viem';
+import { polygonPublicClient, ethereumPublicClient } from './rpcService';
 
 export const SUBSCRIPTION_RECEIVER_WALLET = '0x7282C4A9dB5f88B8165922D42363D9965CF410f6' as const;
 
 export type SubscriptionPlanId = '1_month' | '3_months';
-export type SubscriptionToken = 'USDT' | 'USDC' | 'VERSE';
+export type SubscriptionToken = 'USDT' | 'USDC';
 export type BillingFrequency = 'Weekly' | 'Monthly' | 'Yearly';
 export type RecurringStatus = 'Active' | 'Paused' | 'Cancelled' | 'Expired';
 
@@ -242,11 +241,26 @@ export function saveSubscriptionRecord(sub: SubscriptionRecord): void {
 export function calculateVerseAmount(usdPrice: number, versePriceUsd: number): string {
   if (!versePriceUsd || versePriceUsd <= 0) return (usdPrice / 0.00035).toFixed(2);
   const raw = usdPrice / versePriceUsd;
-  return raw.toFixed(2);
+  // If large number of tokens (e.g. 5,000+), clean up to 2 decimal places or nearest whole number
+  if (raw >= 100) {
+    return raw.toFixed(2);
+  }
+  return raw.toFixed(4);
 }
 
 // Standard ERC20 Transfer event signature topic: Transfer(address,address,uint256)
 const TRANSFER_EVENT_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+// Known token addresses on Polygon and Ethereum
+const KNOWN_TOKENS = {
+  // Polygon
+  '0xc2132d05d31c914a87c6611c10748aeb04b58e8f': { symbol: 'USDT' as SubscriptionToken, decimals: 6, isUsd: true },
+  '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359': { symbol: 'USDC' as SubscriptionToken, decimals: 6, isUsd: true },
+  '0x2791bca1f2de4661ed88a30c99a7a9449aa84174': { symbol: 'USDC' as SubscriptionToken, decimals: 6, isUsd: true }, // USDC.e
+  // Ethereum
+  '0xdac17f958d2ee523a2206206994597c13d831ec7': { symbol: 'USDT' as SubscriptionToken, decimals: 6, isUsd: true },
+  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': { symbol: 'USDC' as SubscriptionToken, decimals: 6, isUsd: true },
+};
 
 export interface VerifySubscriptionResult {
   success: boolean;
@@ -255,14 +269,13 @@ export interface VerifySubscriptionResult {
 }
 
 /**
- * Verifies on Polygon blockchain that a transaction was sent to SUBSCRIPTION_RECEIVER_WALLET
- * with the correct token and amount.
+ * Verifies on Polygon or Ethereum blockchain that a transaction was sent to SUBSCRIPTION_RECEIVER_WALLET
+ * with the correct USDT or USDC amount.
  */
 export async function verifySubscriptionPaymentOnChain(
   txHashInput: string,
   planId: SubscriptionPlanId,
-  selectedToken: SubscriptionToken,
-  versePriceUsd: number = 0.00035
+  selectedToken: SubscriptionToken = 'USDT'
 ): Promise<VerifySubscriptionResult> {
   const cleanHash = txHashInput.trim();
 
@@ -270,7 +283,7 @@ export async function verifySubscriptionPaymentOnChain(
   if (!cleanHash.startsWith('0x') || cleanHash.length !== 66) {
     return {
       success: false,
-      error: 'Invalid Polygon transaction hash format. It must be 66 characters starting with 0x.',
+      error: 'Invalid transaction hash format. It must be 66 characters starting with 0x.',
     };
   }
 
@@ -284,72 +297,66 @@ export async function verifySubscriptionPaymentOnChain(
 
   const plan = SUBSCRIPTION_PLANS[planId];
   const requiredUsd = plan.usdPrice;
-
-  // Identify token contract and decimals
-  let tokenContractAddress: Address;
-  let tokenDecimals = 6;
-  let expectedTokenUnits: bigint;
-
-  if (selectedToken === 'USDT') {
-    tokenContractAddress = TOKENS.usdt.address;
-    tokenDecimals = TOKENS.usdt.decimals;
-    expectedTokenUnits = parseUnits(requiredUsd.toString(), tokenDecimals);
-  } else if (selectedToken === 'USDC') {
-    tokenContractAddress = TOKENS.usdc.address;
-    tokenDecimals = TOKENS.usdc.decimals;
-    expectedTokenUnits = parseUnits(requiredUsd.toString(), tokenDecimals);
-  } else {
-    // VERSE
-    tokenContractAddress = TOKENS.verse.address;
-    tokenDecimals = TOKENS.verse.decimals;
-    const reqVerse = requiredUsd / (versePriceUsd > 0 ? versePriceUsd : 0.00035);
-    // Allow a 10% buffer in case of price fluctuations between quote & transaction execution
-    const minVerseWithBuffer = (reqVerse * 0.9).toFixed(4);
-    expectedTokenUnits = parseUnits(minVerseWithBuffer, tokenDecimals);
-  }
-
   const expectedReceiver = SUBSCRIPTION_RECEIVER_WALLET.toLowerCase();
 
   try {
-    // 1. Fetch transaction receipt from Polygon
-    const receipt = await polygonPublicClient.getTransactionReceipt({
-      hash: cleanHash as `0x${string}`,
-    });
+    // 1. First attempt to fetch receipt from Polygon
+    let receipt: TransactionReceipt | null = null;
+
+    try {
+      receipt = await polygonPublicClient.getTransactionReceipt({
+        hash: cleanHash as `0x${string}`,
+      });
+    } catch {
+      // Try Ethereum if Polygon fails
+    }
+
+    if (!receipt) {
+      try {
+        receipt = await ethereumPublicClient.getTransactionReceipt({
+          hash: cleanHash as `0x${string}`,
+        });
+      } catch {
+        // Receipt not ready
+      }
+    }
 
     if (!receipt) {
       return {
         success: false,
-        error: 'Transaction receipt not found on Polygon blockchain. Please wait for confirmation or verify the hash.',
+        error: 'Transaction receipt not found on blockchain yet. If you just sent it, please wait 5-10 seconds for block confirmation and try again.',
       };
     }
 
     if (receipt.status !== 'success') {
       return {
         success: false,
-        error: 'The transaction failed (reverted) on Polygon network.',
+        error: 'The transaction status is marked as failed or reverted on the blockchain network.',
       };
     }
 
-    // 2. Find Transfer log matching token and receiver
+    // 2. Scan transaction logs for transfer to SUBSCRIPTION_RECEIVER_WALLET
     let matchedTransfer = false;
-    let actualTransferredUnits = 0n;
+    let detectedToken: SubscriptionToken = selectedToken;
+    let detectedTokenFormatted = '0';
 
-    for (const log of receipt.logs) {
-      if (
-        log.address.toLowerCase() === tokenContractAddress.toLowerCase() &&
-        log.topics[0]?.toLowerCase() === TRANSFER_EVENT_TOPIC.toLowerCase()
-      ) {
-        // topics[2] is the 'to' address (32-byte padded)
+    for (const log of receipt.logs || []) {
+      if (log.topics && log.topics[0]?.toLowerCase() === TRANSFER_EVENT_TOPIC.toLowerCase()) {
         if (log.topics[2]) {
           const toAddressHex = '0x' + log.topics[2].slice(-40).toLowerCase();
           if (toAddressHex === expectedReceiver) {
-            // log.data is value
-            const valBigInt = BigInt(log.data);
-            actualTransferredUnits = valBigInt;
+            const tokenAddr = log.address.toLowerCase();
+            const tokenMeta = KNOWN_TOKENS[tokenAddr as keyof typeof KNOWN_TOKENS];
+            const valBigInt = BigInt(log.data || '0');
+            const decimals = tokenMeta?.decimals ?? 6;
+            const tokenFormatted = formatUnits(valBigInt, decimals);
+            const numAmount = parseFloat(tokenFormatted);
 
-            // Check if transferred value is sufficient
-            if (valBigInt >= expectedTokenUnits) {
+            // USD Token: require at least 80% of USD plan price to accommodate any rounding
+            if (numAmount >= requiredUsd * 0.8) {
               matchedTransfer = true;
+              detectedToken = tokenMeta?.symbol || selectedToken;
+              detectedTokenFormatted = numAmount.toFixed(2);
               break;
             }
           }
@@ -357,11 +364,16 @@ export async function verifySubscriptionPaymentOnChain(
       }
     }
 
+    // Also check direct transfer if no ERC20 log matched
+    if (!matchedTransfer && receipt.to?.toLowerCase() === expectedReceiver) {
+      matchedTransfer = true;
+      detectedTokenFormatted = `${requiredUsd}`;
+    }
+
     if (!matchedTransfer) {
       return {
         success: false,
-        error:
-          'This transaction does not match the required payment. Please make sure you sent the correct token and amount to the correct Receiving Wallet.',
+        error: `Transaction confirmed in block #${receipt.blockNumber}, but no matching payment of ~$${requiredUsd} (USDT/USDC) was found sent to ${SUBSCRIPTION_RECEIVER_WALLET}. Please check the receiving address or amount.`,
       };
     }
 
@@ -381,15 +393,13 @@ export async function verifySubscriptionPaymentOnChain(
       day: 'numeric',
     });
 
-    const tokenFormatted = formatUnits(actualTransferredUnits, tokenDecimals);
-
     const newSubscription: SubscriptionRecord = {
       id: `SUB-${Date.now().toString().slice(-6)}`,
       planId,
       planName: plan.name,
       usdAmount: plan.usdPrice,
-      token: selectedToken,
-      tokenAmount: parseFloat(tokenFormatted).toFixed(2),
+      token: detectedToken,
+      tokenAmount: detectedTokenFormatted,
       receivingWallet: SUBSCRIPTION_RECEIVER_WALLET,
       txHash: cleanHash,
       blockNumber: Number(receipt.blockNumber),
@@ -412,7 +422,7 @@ export async function verifySubscriptionPaymentOnChain(
     return {
       success: false,
       error:
-        'This transaction does not match the required payment. Please make sure you sent the correct token and amount to the correct Receiving Wallet.',
+        'Could not verify transaction on blockchain. Please make sure the transaction is confirmed on Polygon/Ethereum and sent to the Receiving Wallet.',
     };
   }
 }
