@@ -25,6 +25,7 @@ import {
   Loader2,
   FileText,
   History,
+  Lock,
 } from 'lucide-react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -44,6 +45,8 @@ import {
   generateInvoicePdf,
   type CryptoPayInvoiceData,
 } from '@/lib/invoices';
+import { useSubscription } from '@/hooks/useSubscription';
+import { RecurringSubscriptionInvoiceSection } from '@/components/RecurringSubscriptionInvoiceSection';
 import type { NavTab } from '@/types/navigation';
 
 interface CreateInvoiceSectionProps {
@@ -55,6 +58,10 @@ const STORE_NAME_KEY = 'cryptopay_saved_store_name';
 export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNavigateTab }) => {
   const { address: connectedAddress, isConnected } = useAccount();
   const { activeReceiver } = useSavedReceivers();
+  const { isActive: isSubscriptionActive } = useSubscription();
+
+  // Invoice Mode: 'one-time' | 'subscription'
+  const [invoiceMode, setInvoiceMode] = useState<'one-time' | 'subscription'>('one-time');
 
   // 1. Store Name (Saved during initial setup / editable)
   const [storeName, setStoreName] = useState<string>(() => {
@@ -137,7 +144,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
     setIsEditingStore(false);
   };
 
-  // Determine Effective Settlement Address (Prioritize the real connected wallet)
+  // Determine Effective Settlement Address
   const effectiveReceiverAddress =
     connectedAddress ||
     activeReceiver?.address ||
@@ -395,7 +402,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
       {/* Hidden File Inputs */}
       <input
         type="file"
@@ -418,22 +425,22 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
       />
 
       {/* Main Container */}
-      <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-8">
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-7">
         
         {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
-              <div className="w-9 h-9 rounded-xl bg-[#3B82F6]/20 border border-[#3B82F6]/40 flex items-center justify-center text-[#3B82F6]">
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
                 <Store className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   Credit Invoice
                 </h1>
               </div>
             </div>
-            <p className="text-xs sm:text-sm text-zinc-400">
+            <p className="text-xs sm:text-sm text-slate-600">
               Generate authentic Web3 credit payment invoices settled directly to your connected wallet.
             </p>
           </div>
@@ -441,10 +448,10 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
           {/* Connected Wallet / Settlement Receiver Indicator */}
           <div className="flex items-center gap-2.5">
             {isConnected && connectedAddress ? (
-              <div className="flex items-center gap-2 bg-emerald-950/40 border border-[#00E676]/30 px-3.5 py-2 rounded-2xl text-xs">
-                <div className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
-                <span className="text-zinc-400">Connected Wallet:</span>
-                <span className="font-mono font-semibold text-[#00E676]">
+              <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-300 px-3.5 py-2 rounded-2xl text-xs">
+                <div className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                <span className="text-slate-600">Connected Wallet:</span>
+                <span className="font-mono font-bold text-emerald-800">
                   {connectedAddress.slice(0, 6)}...{connectedAddress.slice(-4)}
                 </span>
               </div>
@@ -455,7 +462,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     <button
                       type="button"
                       onClick={openConnectModal}
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 text-xs font-semibold transition cursor-pointer"
+                      className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold transition cursor-pointer"
                     >
                       <Wallet className="w-3.5 h-3.5" />
                       <span>Connect Wallet</span>
@@ -469,9 +476,9 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
         {/* Real Wallet Notice Banner */}
         {!isConnected && (
-          <div className="p-4 rounded-2xl bg-amber-950/30 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-200">
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900">
             <div className="flex items-center gap-2.5">
-              <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
               <span>
                 <strong>Notice:</strong> Connect your wallet to automatically generate authentic settlement QR codes routing directly to your address.
               </span>
@@ -490,381 +497,438 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
           </div>
         )}
 
-        {/* SECTION 1: INVOICE GENERATION FORM */}
-        <form onSubmit={handleCreateInvoice} className="space-y-6">
-          
-          {/* 🏪 Store Name — Saved during initial setup */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900/80 border border-zinc-800 space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-                <Store className="w-4 h-4 text-[#3B82F6]" />
-                <span>🏪 Store Name</span>
-                <span className="text-[10px] font-semibold text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full">
-                  Saved during initial setup
-                </span>
-              </label>
-              <button
-                type="button"
-                onClick={() => {
-                  if (isEditingStore) {
-                    handleSaveStoreName();
-                  } else {
-                    setStoreNameInput(storeName);
-                    setIsEditingStore(true);
-                  }
-                }}
-                className="text-xs font-semibold text-[#3B82F6] hover:underline cursor-pointer"
-              >
-                {isEditingStore ? 'Save Name' : 'Edit Store'}
-              </button>
-            </div>
+        {/* 🌟 Invoice Mode Switcher: One-Time Invoice vs. Recurring Subscription Invoice */}
+        <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setInvoiceMode('one-time')}
+            className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer ${
+              invoiceMode === 'one-time'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <FileText className="w-4 h-4 text-blue-700" />
+            <span>One-Time Credit Invoice</span>
+          </button>
 
-            {isEditingStore ? (
-              <div className="flex gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => setInvoiceMode('subscription')}
+            className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer relative ${
+              invoiceMode === 'subscription'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            {isSubscriptionActive ? (
+              <Sparkles className="w-4 h-4 text-amber-500" />
+            ) : (
+              <Lock className="w-4 h-4 text-blue-700" />
+            )}
+            <span>Subscription Payment Tools</span>
+            {isSubscriptionActive ? (
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300">
+                Unlocked
+              </span>
+            ) : (
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                Upgrade Required
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* SUBSECTION A: RECURRING SUBSCRIPTION TOOLS                                 */}
+        {/* ========================================================================= */}
+        {invoiceMode === 'subscription' ? (
+          <RecurringSubscriptionInvoiceSection
+            effectiveReceiverAddress={effectiveReceiverAddress}
+            storeName={storeName}
+          />
+        ) : (
+          /* ========================================================================= */
+          /* SUBSECTION B: STANDARD ONE-TIME CREDIT INVOICE                            */
+          /* ========================================================================= */
+          <>
+            {/* SECTION 1: INVOICE GENERATION FORM */}
+            <form onSubmit={handleCreateInvoice} className="space-y-6">
+              
+              {/* 🏪 Store Name — Saved during initial setup */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <Store className="w-4 h-4 text-blue-700" />
+                    <span>🏪 Store Name</span>
+                    <span className="text-[10px] font-semibold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">
+                      Saved during initial setup
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isEditingStore) {
+                        handleSaveStoreName();
+                      } else {
+                        setStoreNameInput(storeName);
+                        setIsEditingStore(true);
+                      }
+                    }}
+                    className="text-xs font-semibold text-blue-700 hover:underline cursor-pointer"
+                  >
+                    {isEditingStore ? 'Save Name' : 'Edit Store'}
+                  </button>
+                </div>
+
+                {isEditingStore ? (
+                  <div className="flex gap-2 pt-1">
+                    <input
+                      type="text"
+                      value={storeNameInput}
+                      onChange={(e) => setStoreNameInput(e.target.value)}
+                      placeholder="Enter Store Name"
+                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveStoreName}
+                      className="px-4 py-2 bg-blue-700 text-white text-xs font-bold rounded-xl hover:bg-blue-800 cursor-pointer"
+                    >
+                      Save
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900">
+                    <span className="truncate">{storeName}</span>
+                    <span className="text-xs text-emerald-700 font-normal flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Active Setup
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* 📦 Product Name */}
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                  <Package className="w-4 h-4 text-emerald-600" />
+                  <span>📦 Product Name</span>
+                  <span className="text-xs text-red-500">*</span>
+                </label>
                 <input
                   type="text"
-                  value={storeNameInput}
-                  onChange={(e) => setStoreNameInput(e.target.value)}
-                  placeholder="Enter Store Name"
-                  className="flex-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-[#3B82F6]"
-                  autoFocus
+                  value={productName}
+                  onChange={(e) => {
+                    setProductName(e.target.value);
+                    setFormError(null);
+                  }}
+                  placeholder="e.g. VIP Subscription, Hardware Wallet, Coffee"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 />
-                <button
-                  type="button"
-                  onClick={handleSaveStoreName}
-                  className="px-4 py-2 bg-[#3B82F6] text-white text-xs font-bold rounded-xl hover:bg-blue-600 cursor-pointer"
-                >
-                  Save
-                </button>
               </div>
-            ) : (
-              <div className="flex items-center justify-between bg-zinc-950 px-4 py-3 rounded-xl border border-zinc-800 text-sm font-semibold text-white">
-                <span className="truncate">{storeName}</span>
-                <span className="text-xs text-[#00E676] font-normal flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Active Setup
-                </span>
-              </div>
-            )}
-          </div>
 
-          {/* 📦 Product Name */}
-          <div className="space-y-2">
-            <label className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-              <Package className="w-4 h-4 text-[#00E676]" />
-              <span>📦 Product Name</span>
-              <span className="text-xs text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={productName}
-              onChange={(e) => {
-                setProductName(e.target.value);
-                setFormError(null);
-              }}
-              placeholder="e.g. VIP Subscription, Hardware Wallet, Coffee"
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]"
-            />
-          </div>
+              {/* 📷 Product Image: Take Photo | Upload Image */}
+              <div className="space-y-3">
+                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-purple-600" />
+                  <span>📷 Product Image</span>
+                </label>
 
-          {/* 📷 Product Image: Take Photo | Upload Image */}
-          <div className="space-y-3">
-            <label className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-              <Camera className="w-4 h-4 text-purple-400" />
-              <span>📷 Product Image</span>
-            </label>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Take Photo Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
-                    photoInputRef.current?.click();
-                  } else {
-                    startLiveCamera();
-                  }
-                }}
-                className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-purple-500/40 text-sm font-semibold text-white transition active:scale-[0.98] cursor-pointer"
-              >
-                <Camera className="w-4 h-4 text-purple-400" />
-                <span>Take Photo</span>
-              </button>
-
-              {/* Upload Image Button */}
-              <button
-                type="button"
-                onClick={() => uploadInputRef.current?.click()}
-                className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-[#3B82F6]/40 text-sm font-semibold text-white transition active:scale-[0.98] cursor-pointer"
-              >
-                <Upload className="w-4 h-4 text-[#3B82F6]" />
-                <span>Upload Image</span>
-              </button>
-            </div>
-
-            {/* Product Image Preview */}
-            {productImage && (
-              <div className="relative inline-block mt-2">
-                <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-2 border-[#3B82F6]/50 bg-zinc-900 shadow-lg">
-                  <img
-                    src={productImage}
-                    alt="Product preview"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Take Photo Button */}
                   <button
                     type="button"
-                    onClick={() => setProductImage(null)}
-                    className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/80 text-red-400 hover:text-red-300 hover:bg-black transition cursor-pointer"
-                    title="Remove Image"
+                    onClick={() => {
+                      if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+                        photoInputRef.current?.click();
+                      } else {
+                        startLiveCamera();
+                      }
+                    }}
+                    className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-300 text-sm font-semibold text-slate-800 transition active:scale-[0.98] cursor-pointer"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Camera className="w-4 h-4 text-purple-600" />
+                    <span>Take Photo</span>
+                  </button>
+
+                  {/* Upload Image Button */}
+                  <button
+                    type="button"
+                    onClick={() => uploadInputRef.current?.click()}
+                    className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-300 text-sm font-semibold text-slate-800 transition active:scale-[0.98] cursor-pointer"
+                  >
+                    <Upload className="w-4 h-4 text-blue-700" />
+                    <span>Upload Image</span>
                   </button>
                 </div>
+
+                {/* Product Image Preview */}
+                {productImage && (
+                  <div className="relative inline-block mt-2">
+                    <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-2 border-blue-600 bg-slate-50 shadow-sm">
+                      <img
+                        src={productImage}
+                        alt="Product preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setProductImage(null)}
+                        className="absolute top-1.5 right-1.5 p-1 rounded-full bg-slate-900/80 text-white hover:bg-slate-900 transition cursor-pointer"
+                        title="Remove Image"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* 🌐 Network: Polygon | Ethereum (Official Network Logos) */}
-          <div className="space-y-2">
-            <label className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-              <Globe className="w-4 h-4 text-[#3B82F6]" />
-              <span>🌐 Network</span>
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              {/* Polygon */}
-              <button
-                type="button"
-                onClick={() => setNetwork('Polygon')}
-                className={`py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 transition cursor-pointer ${
-                  network === 'Polygon'
-                    ? 'bg-[#8247E5]/20 text-[#8247E5] border-2 border-[#8247E5] shadow-[0_0_14px_rgba(130,71,229,0.35)]'
-                    : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800/80 hover:text-white'
-                }`}
-              >
-                <TokenIcon token="POL" size={22} />
-                <span>Polygon</span>
-                <span className="text-[10px] bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 font-mono">137</span>
-              </button>
-
-              {/* Ethereum */}
-              <button
-                type="button"
-                onClick={() => setNetwork('Ethereum')}
-                className={`py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 transition cursor-pointer ${
-                  network === 'Ethereum'
-                    ? 'bg-[#627EEA]/20 text-[#627EEA] border-2 border-[#627EEA] shadow-[0_0_14px_rgba(98,126,234,0.35)]'
-                    : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800/80 hover:text-white'
-                }`}
-              >
-                <TokenIcon token="ETH" size={22} />
-                <span>Ethereum</span>
-                <span className="text-[10px] bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 font-mono">1</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 💰 Payment Method: USDT | USDC | VERSE (Official Token Logos) */}
-          <div className="space-y-2">
-            <label className="text-xs sm:text-sm font-bold text-white flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Coins className="w-4 h-4 text-[#FACC15]" />
-                <span>💰 Payment Method</span>
-              </span>
-              <span className="text-[11px] text-zinc-400">Official Web3 Tokens</span>
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {(['USDT', 'USDC', 'VERSE'] as const).map((method) => {
-                const isSelected = paymentMethod === method;
-                return (
+              {/* 🌐 Network: Polygon | Ethereum (Official Network Logos) */}
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-blue-700" />
+                  <span>🌐 Network</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Polygon */}
                   <button
-                    key={method}
                     type="button"
-                    onClick={() => setPaymentMethod(method)}
-                    className={`py-3.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex flex-col sm:flex-row items-center justify-center gap-2.5 transition cursor-pointer ${
-                      isSelected
-                        ? 'bg-[#00E676]/20 text-[#00E676] border-2 border-[#00E676] shadow-[0_0_14px_rgba(0,230,118,0.3)]'
-                        : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800/80 hover:text-white'
+                    onClick={() => setNetwork('Polygon')}
+                    className={`py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
+                      network === 'Polygon'
+                        ? 'bg-purple-50 text-purple-900 border-purple-600 shadow-xs'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
-                    <TokenIcon token={method} size={24} />
-                    <span>{method}</span>
+                    <TokenIcon token="POL" size={22} />
+                    <span>Polygon</span>
+                    <span className="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-700 font-mono">137</span>
                   </button>
-                );
-              })}
-            </div>
-          </div>
 
-          {/* 💵 Amount */}
-          <div className="space-y-2">
-            <label className="text-xs sm:text-sm font-bold text-white flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-[#00E676]" />
-                <span>💵 Amount</span>
-                <span className="text-xs text-red-400">*</span>
-              </span>
-              <span className="text-xs text-zinc-400 font-semibold">{paymentMethod}</span>
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                step="any"
-                min="0.01"
-                value={amount}
-                onChange={(e) => {
-                  setAmount(e.target.value);
-                  setFormError(null);
-                }}
-                placeholder="e.g., 25.00"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3.5 text-base sm:text-lg font-bold text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] pr-20"
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-800 text-xs font-bold text-white">
-                <TokenIcon token={paymentMethod} size={16} />
-                <span>{paymentMethod}</span>
-              </div>
-            </div>
-
-            {/* Quick Amount Suggestion Chips */}
-            <div className="flex items-center gap-2 pt-1">
-              <span className="text-[11px] text-zinc-400">Quick:</span>
-              {['10.00', '25.00', '50.00', '100.00'].map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => setAmount(preset)}
-                  className="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 font-medium transition cursor-pointer"
-                >
-                  ${preset}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Form Error Notice */}
-          {formError && (
-            <div className="p-3.5 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs flex items-center gap-2 animate-in fade-in">
-              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-              <span>{formError}</span>
-            </div>
-          )}
-
-          {/* 🔵 Create Invoice Button */}
-          <button
-            type="submit"
-            className="w-full py-4 px-6 rounded-2xl bg-[#3B82F6] hover:bg-blue-600 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition cursor-pointer"
-          >
-            <Sparkles className="w-5 h-5" />
-            <span>🔵 Create Credit Invoice</span>
-          </button>
-        </form>
-
-        {/* SECTION 2: GENERATED CRYPTOPAY INVOICE CARD WITH "CLAIM" BUTTON */}
-        {createdInvoice && (
-          <div className="pt-8 border-t border-zinc-800 animate-in fade-in slide-in-from-bottom-4 duration-300">
-            <div className="max-w-md mx-auto bg-zinc-900 border-2 border-[#3B82F6]/60 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-6 relative overflow-hidden">
-              
-              {/* Background ambient badge */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#3B82F6]/10 blur-3xl pointer-events-none rounded-full" />
-
-              {/* Title / Header */}
-              <div className="text-center space-y-1">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#3B82F6]/20 border border-[#3B82F6]/40 text-[#3B82F6] text-xs font-bold mb-1">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Verified Web3 Credit Invoice</span>
+                  {/* Ethereum */}
+                  <button
+                    type="button"
+                    onClick={() => setNetwork('Ethereum')}
+                    className={`py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
+                      network === 'Ethereum'
+                        ? 'bg-blue-50 text-blue-900 border-blue-600 shadow-xs'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <TokenIcon token="ETH" size={22} />
+                    <span>Ethereum</span>
+                    <span className="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-700 font-mono">1</span>
+                  </button>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                  CryptoPay Invoice
-                </h2>
-                <p className="text-xs text-zinc-400 font-mono">
-                  Invoice #{createdInvoice.id}
-                </p>
               </div>
 
-              {/* Optional Product Image Preview */}
-              {createdInvoice.productImage && (
-                <div className="w-full h-40 rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950">
-                  <img
-                    src={createdInvoice.productImage}
-                    alt={createdInvoice.productName}
-                    className="w-full h-full object-cover"
+              {/* 💰 Payment Method: USDT | USDC | VERSE (Official Token Logos) */}
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Coins className="w-4 h-4 text-amber-500" />
+                    <span>💰 Payment Method</span>
+                  </span>
+                  <span className="text-[11px] text-slate-500">Official Web3 Tokens</span>
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {(['USDT', 'USDC', 'VERSE'] as const).map((method) => {
+                    const isSelected = paymentMethod === method;
+                    return (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => setPaymentMethod(method)}
+                        className={`py-3.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex flex-col sm:flex-row items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
+                          isSelected
+                            ? 'bg-blue-50 text-blue-900 border-blue-600 shadow-xs'
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                        }`}
+                      >
+                        <TokenIcon token={method} size={24} />
+                        <span>{method}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 💵 Amount */}
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-emerald-600" />
+                    <span>💵 Amount</span>
+                    <span className="text-xs text-red-500">*</span>
+                  </span>
+                  <span className="text-xs text-slate-600 font-semibold">{paymentMethod}</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="any"
+                    min="0.01"
+                    value={amount}
+                    onChange={(e) => {
+                      setAmount(e.target.value);
+                      setFormError(null);
+                    }}
+                    placeholder="e.g., 25.00"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3.5 text-base sm:text-lg font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 pr-24"
                   />
-                </div>
-              )}
-
-              {/* Invoice Key Details */}
-              <div className="bg-zinc-950 rounded-2xl p-4 sm:p-5 border border-zinc-800 space-y-3.5 text-sm">
-                
-                {/* Store: Store name */}
-                <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2.5">
-                  <span className="text-zinc-400 font-medium">Store:</span>
-                  <span className="text-white font-bold text-right truncate max-w-[200px]">
-                    {createdInvoice.storeName}
-                  </span>
-                </div>
-
-                {/* Item: Item name */}
-                <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2.5">
-                  <span className="text-zinc-400 font-medium">Item:</span>
-                  <span className="text-white font-bold text-right truncate max-w-[200px]">
-                    {createdInvoice.productName}
-                  </span>
-                </div>
-
-                {/* Amount: Amount value + Official Token Logo */}
-                <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2.5">
-                  <span className="text-zinc-400 font-medium">Amount:</span>
-                  <div className="flex items-center gap-1.5 text-right font-extrabold text-[#00E676] text-base">
-                    <TokenIcon token={createdInvoice.paymentMethod} size={18} />
-                    <span>{createdInvoice.amount}</span>
-                    <span>{createdInvoice.paymentMethod}</span>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-200 text-xs font-bold text-slate-900">
+                    <TokenIcon token={paymentMethod} size={16} />
+                    <span>{paymentMethod}</span>
                   </div>
                 </div>
 
-                {/* Network: Polygon / Ethereum with Official Network Logo */}
-                <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2.5">
-                  <span className="text-zinc-400 font-medium">Network:</span>
-                  <span className="text-white font-semibold flex items-center gap-1.5">
-                    <TokenIcon
-                      token={createdInvoice.network === 'Polygon' ? 'POL' : 'ETH'}
-                      size={16}
-                    />
-                    <span>{createdInvoice.network}</span>
-                  </span>
-                </div>
-
-                {/* Settlement Wallet */}
-                <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2.5">
-                  <span className="text-zinc-400 font-medium">Receiver:</span>
-                  <span className="font-mono text-xs text-zinc-300 font-semibold truncate max-w-[170px]" title={createdInvoice.receiverAddress}>
-                    {createdInvoice.receiverAddress.slice(0, 6)}...{createdInvoice.receiverAddress.slice(-4)}
-                  </span>
-                </div>
-
-                {/* Status: Pending */}
-                <div className="flex items-center justify-between">
-                  <span className="text-zinc-400 font-medium">Status:</span>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold uppercase flex items-center gap-1.5 ${
-                    createdInvoice.status === 'Paid'
-                      ? 'bg-[#00E676]/20 text-[#00E676] border border-[#00E676]/40'
-                      : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                  }`}>
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>{createdInvoice.status}</span>
-                  </span>
+                {/* Quick Amount Suggestion Chips */}
+                <div className="flex items-center gap-2 pt-1">
+                  <span className="text-[11px] text-slate-500">Quick:</span>
+                  {['10.00', '25.00', '50.00', '100.00'].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setAmount(preset)}
+                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-slate-700 font-medium transition cursor-pointer"
+                    >
+                      ${preset}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* 🔥 CLAIM BUTTON — Generates and Reveals Authentic QR Code */}
+              {/* Form Error Notice */}
+              {formError && (
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+                  <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                  <span>{formError}</span>
+                </div>
+              )}
+
+              {/* 🔵 Create Invoice Button */}
               <button
-                type="button"
-                onClick={() => setIsClaimModalOpen(true)}
-                className="w-full py-4 px-6 rounded-2xl bg-[#00E676] hover:bg-[#00c864] active:scale-[0.99] text-zinc-950 font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 transition cursor-pointer"
+                type="submit"
+                className="w-full py-4 px-6 rounded-2xl bg-blue-700 hover:bg-blue-800 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
               >
-                <QrCode className="w-5 h-5 text-zinc-950" />
-                <span>Claim</span>
-                <ArrowRight className="w-4 h-4 text-zinc-950" />
+                <Sparkles className="w-5 h-5" />
+                <span>🔵 Create Credit Invoice</span>
               </button>
-            </div>
-          </div>
+            </form>
+
+            {/* SECTION 2: GENERATED CRYPTOPAY INVOICE CARD WITH "CLAIM" BUTTON */}
+            {createdInvoice && (
+              <div className="pt-8 border-t border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="max-w-md mx-auto bg-white border-2 border-blue-600 rounded-3xl p-6 sm:p-7 shadow-lg space-y-6 relative overflow-hidden">
+                  
+                  {/* Background ambient badge */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 blur-2xl pointer-events-none rounded-full" />
+
+                  {/* Title / Header */}
+                  <div className="text-center space-y-1">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold mb-1">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Verified Web3 Credit Invoice</span>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                      CryptoPay Invoice
+                    </h2>
+                    <p className="text-xs text-slate-500 font-mono">
+                      Invoice #{createdInvoice.id}
+                    </p>
+                  </div>
+
+                  {/* Optional Product Image Preview */}
+                  {createdInvoice.productImage && (
+                    <div className="w-full h-40 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
+                      <img
+                        src={createdInvoice.productImage}
+                        alt={createdInvoice.productName}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+
+                  {/* Invoice Key Details */}
+                  <div className="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 space-y-3.5 text-sm">
+                    
+                    {/* Store: Store name */}
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                      <span className="text-slate-500 font-medium">Store:</span>
+                      <span className="text-slate-900 font-bold text-right truncate max-w-[200px]">
+                        {createdInvoice.storeName}
+                      </span>
+                    </div>
+
+                    {/* Item: Item name */}
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                      <span className="text-slate-500 font-medium">Item:</span>
+                      <span className="text-slate-900 font-bold text-right truncate max-w-[200px]">
+                        {createdInvoice.productName}
+                      </span>
+                    </div>
+
+                    {/* Amount: Amount value + Official Token Logo */}
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                      <span className="text-slate-500 font-medium">Amount:</span>
+                      <div className="flex items-center gap-1.5 text-right font-black text-emerald-700 text-base">
+                        <TokenIcon token={createdInvoice.paymentMethod} size={18} />
+                        <span>{createdInvoice.amount}</span>
+                        <span>{createdInvoice.paymentMethod}</span>
+                      </div>
+                    </div>
+
+                    {/* Network: Polygon / Ethereum with Official Network Logo */}
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                      <span className="text-slate-500 font-medium">Network:</span>
+                      <span className="text-slate-900 font-semibold flex items-center gap-1.5">
+                        <TokenIcon
+                          token={createdInvoice.network === 'Polygon' ? 'POL' : 'ETH'}
+                          size={16}
+                        />
+                        <span>{createdInvoice.network}</span>
+                      </span>
+                    </div>
+
+                    {/* Settlement Wallet */}
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                      <span className="text-slate-500 font-medium">Receiver:</span>
+                      <span className="font-mono text-xs text-slate-800 font-semibold truncate max-w-[170px]" title={createdInvoice.receiverAddress}>
+                        {createdInvoice.receiverAddress.slice(0, 6)}...{createdInvoice.receiverAddress.slice(-4)}
+                      </span>
+                    </div>
+
+                    {/* Status: Pending */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">Status:</span>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold uppercase flex items-center gap-1.5 ${
+                        createdInvoice.status === 'Paid'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                          : 'bg-amber-50 text-amber-700 border border-amber-300'
+                      }`}>
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{createdInvoice.status}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 🔥 CLAIM BUTTON — Generates and Reveals Authentic QR Code */}
+                  <button
+                    type="button"
+                    onClick={() => setIsClaimModalOpen(true)}
+                    className="w-full py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+                  >
+                    <QrCode className="w-5 h-5 text-white" />
+                    <span>Claim</span>
+                    <ArrowRight className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
       </div>
@@ -875,23 +939,23 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
       {/* genuinely on-chain.                                                      */}
       {/* ========================================================================= */}
       {isClaimModalOpen && createdInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-zinc-950 border-2 border-zinc-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-[#00E676]/20 border border-[#00E676]/40 flex items-center justify-center text-[#00E676]">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-300 flex items-center justify-center text-emerald-700">
                   <QrCode className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h3 className="text-lg font-bold text-white">Scan to Claim & Pay</h3>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-[#00E676] border border-emerald-500/30">
+                    <h3 className="text-lg font-bold text-slate-900">Scan to Claim & Pay</h3>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300">
                       Live Web3
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-xs text-slate-500">
                     {createdInvoice.storeName} • {createdInvoice.productName}
                   </p>
                 </div>
@@ -899,24 +963,24 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
               <button
                 type="button"
                 onClick={() => setIsClaimModalOpen(false)}
-                className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition cursor-pointer"
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             {/* Authentic Web3 Notice */}
-            <div className="p-3.5 rounded-2xl bg-blue-950/40 border border-[#3B82F6]/30 text-xs text-blue-200 text-center space-y-1">
+            <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-900 text-center space-y-1">
               <p className="font-semibold">
                 The customer scans the QR code to make the payment using the specified network ({createdInvoice.network}) and token ({createdInvoice.paymentMethod}).
               </p>
-              <p className="text-[11px] text-blue-300/80">
+              <p className="text-[11px] text-blue-700">
                 Payment routes directly to the merchant connected address with zero intermediary custody.
               </p>
             </div>
 
             {/* QR Code Container with High Quality Error Correction */}
-            <div className="flex flex-col items-center justify-center p-6 bg-white rounded-2xl shadow-inner mx-auto w-fit">
+            <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner mx-auto w-fit">
               <QRCodeSVG
                 id="cryptopay-invoice-qr"
                 value={paymentQRUri}
@@ -927,12 +991,12 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
             </div>
 
             {/* Payment Summary Box */}
-            <div className="bg-zinc-900 rounded-2xl p-4 border border-zinc-800 space-y-2.5 text-xs">
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2.5 text-xs">
               
               {/* Total Due */}
               <div className="flex justify-between items-center">
-                <span className="text-zinc-400 font-medium">Total Due:</span>
-                <div className="flex items-center gap-1.5 text-sm font-extrabold text-[#00E676]">
+                <span className="text-slate-500 font-medium">Total Due:</span>
+                <div className="flex items-center gap-1.5 text-sm font-black text-emerald-700">
                   <TokenIcon token={createdInvoice.paymentMethod} size={18} />
                   <span>{createdInvoice.amount} {createdInvoice.paymentMethod}</span>
                 </div>
@@ -940,8 +1004,8 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
               {/* Network */}
               <div className="flex justify-between items-center">
-                <span className="text-zinc-400 font-medium">Network:</span>
-                <div className="flex items-center gap-1.5 font-semibold text-white">
+                <span className="text-slate-500 font-medium">Network:</span>
+                <div className="flex items-center gap-1.5 font-semibold text-slate-900">
                   <TokenIcon
                     token={createdInvoice.network === 'Polygon' ? 'POL' : 'ETH'}
                     size={16}
@@ -952,19 +1016,19 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
               {/* Settlement Receiver */}
               <div className="flex justify-between items-center">
-                <span className="text-zinc-400 font-medium">Receiver Wallet:</span>
-                <div className="flex items-center gap-1.5 font-mono text-zinc-300">
+                <span className="text-slate-500 font-medium">Receiver Wallet:</span>
+                <div className="flex items-center gap-1.5 font-mono text-slate-800">
                   <span title={createdInvoice.receiverAddress}>
                     {createdInvoice.receiverAddress.slice(0, 6)}...{createdInvoice.receiverAddress.slice(-4)}
                   </span>
                   <button
                     type="button"
                     onClick={handleCopyAddress}
-                    className="p-1 text-zinc-400 hover:text-white transition cursor-pointer"
+                    className="p-1 text-slate-500 hover:text-slate-900 transition cursor-pointer"
                     title="Copy Address"
                   >
                     {copiedAddress ? (
-                      <Check className="w-3.5 h-3.5 text-[#00E676]" />
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
                     ) : (
                       <Copy className="w-3.5 h-3.5" />
                     )}
@@ -973,8 +1037,8 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
               </div>
 
               {/* Smart Contract Info */}
-              <div className="flex justify-between items-center pt-1 border-t border-zinc-800 text-[11px]">
-                <span className="text-zinc-500 font-medium">Contract:</span>
+              <div className="flex justify-between items-center pt-1 border-t border-slate-200 text-[11px]">
+                <span className="text-slate-500 font-medium">Contract:</span>
                 <a
                   href={
                     createdInvoice.network === 'Polygon'
@@ -983,7 +1047,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   }
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="font-mono text-blue-400 hover:underline flex items-center gap-1"
+                  className="font-mono text-blue-700 hover:underline flex items-center gap-1"
                 >
                   <span>{createdInvoice.tokenContractAddress.slice(0, 6)}...{createdInvoice.tokenContractAddress.slice(-4)}</span>
                   <ExternalLink className="w-3 h-3" />
@@ -991,39 +1055,39 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
               </div>
             </div>
 
-            {/* 🔍 VERIFY TRANSACTION HASH SECTION (Authentic On-Chain Settlement Verification & Activity Sync) */}
-            <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-3">
+            {/* 🔍 VERIFY TRANSACTION HASH SECTION */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-[#00E676]" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                     Verify Transaction Hash
                   </span>
                 </div>
-                <span className="text-[10px] text-zinc-400 font-medium">
+                <span className="text-[10px] text-slate-500 font-medium">
                   Synced with Activity
                 </span>
               </div>
 
               {/* If already verified */}
               {createdInvoice.status === 'Paid' || verifiedRecord ? (
-                <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-[#00E676]/40 space-y-2.5">
-                  <div className="flex items-center gap-2 text-[#00E676] text-xs font-bold">
-                    <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 space-y-2.5">
+                  <div className="flex items-center gap-2 text-emerald-800 text-xs font-bold">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-600" />
                     <span>Transaction Verified & Settled on {createdInvoice.network}!</span>
                   </div>
-                  <p className="text-[11px] text-zinc-300">
-                    This transaction is recorded on-chain and permanently visible under the <strong className="text-white">Activity</strong> section.
+                  <p className="text-[11px] text-slate-700">
+                    This transaction is recorded on-chain and permanently visible under the <strong className="text-slate-900">Activity</strong> section.
                   </p>
                   
                   {verifiedRecord && (
-                    <div className="bg-black/40 rounded-lg p-2 font-mono text-[11px] text-zinc-400 flex items-center justify-between">
+                    <div className="bg-white rounded-lg p-2 font-mono text-[11px] text-slate-600 border border-slate-200 flex items-center justify-between">
                       <span>Tx: {verifiedRecord.txHash.slice(0, 8)}...{verifiedRecord.txHash.slice(-6)}</span>
                       <a
                         href={verifiedRecord.explorerUrl}
                         target="_blank"
                         rel="noreferrer noopener"
-                        className="text-blue-400 hover:underline flex items-center gap-1"
+                        className="text-blue-700 hover:underline flex items-center gap-1"
                       >
                         <span>Explorer</span>
                         <ExternalLink className="w-3 h-3" />
@@ -1039,7 +1103,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                           setIsClaimModalOpen(false);
                           onNavigateTab('activity');
                         }}
-                        className="flex-1 py-2 px-3 rounded-lg bg-[#3B82F6] hover:bg-blue-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                        className="flex-1 py-2 px-3 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
                       >
                         <History className="w-3.5 h-3.5" />
                         <span>View in Activity</span>
@@ -1049,7 +1113,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                       <button
                         type="button"
                         onClick={() => generatePaymentReceiptPdf(verifiedRecord)}
-                        className="flex-1 py-2 px-3 rounded-lg bg-[#00E676] hover:bg-[#00c864] text-black text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                        className="flex-1 py-2 px-3 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
                       >
                         <FileText className="w-3.5 h-3.5" />
                         <span>PDF Receipt</span>
@@ -1074,13 +1138,13 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                         setVerifyTxHashInput(e.target.value);
                         setVerificationError(null);
                       }}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-800 bg-zinc-950 text-xs font-mono text-white placeholder:text-zinc-500 placeholder:font-sans focus:outline-none focus:border-[#3B82F6] transition pr-20"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-mono text-slate-900 placeholder:text-slate-400 placeholder:font-sans focus:outline-none focus:border-blue-600 transition pr-20"
                     />
                     {verifyTxHashInput && (
                       <button
                         type="button"
                         onClick={() => setVerifyTxHashInput('')}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400 hover:text-white px-1.5 py-0.5 rounded bg-zinc-800 cursor-pointer"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 hover:text-slate-900 px-1.5 py-0.5 rounded bg-slate-200 cursor-pointer"
                       >
                         Clear
                       </button>
@@ -1091,7 +1155,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   <button
                     type="submit"
                     disabled={isVerifyingTx || !verifyTxHashInput.trim()}
-                    className="w-full py-3 px-4 rounded-xl bg-[#3B82F6] hover:bg-blue-600 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition cursor-pointer"
+                    className="w-full py-3 px-4 rounded-xl bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
                   >
                     {isVerifyingTx ? (
                       <>
@@ -1106,14 +1170,14 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     )}
                   </button>
 
-                  {/* Connected Wallet Direct Broadcast (Optional helper that populates txHash for verification) */}
+                  {/* Connected Wallet Direct Broadcast */}
                   {isConnected && (
                     <div className="pt-1 text-center">
                       <button
                         type="button"
                         onClick={handleDirectWeb3Pay}
                         disabled={isTxPending || isTxConfirming}
-                        className="text-[11px] text-zinc-400 hover:text-white underline inline-flex items-center gap-1 cursor-pointer"
+                        className="text-[11px] text-slate-500 hover:text-slate-800 underline inline-flex items-center gap-1 cursor-pointer"
                       >
                         {isTxPending || isTxConfirming ? (
                           <>
@@ -1131,14 +1195,14 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   )}
 
                   {verificationError && (
-                    <div className="p-2.5 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                    <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
                       <span>{verificationError}</span>
                     </div>
                   )}
 
                   {txError && (
-                    <p className="text-[11px] text-red-400 text-center">
+                    <p className="text-[11px] text-rose-600 text-center">
                       {txError.message ? txError.message.slice(0, 90) : 'Transaction rejected or failed'}
                     </p>
                   )}
@@ -1151,7 +1215,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
               <button
                 type="button"
                 onClick={() => generateInvoicePdf(createdInvoice)}
-                className="w-full py-2.5 px-4 rounded-xl bg-[#3B82F6] hover:bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
               >
                 <FileText className="w-4 h-4 text-white" />
                 <span>Download Credit Invoice (PDF)</span>
@@ -1161,11 +1225,11 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 <button
                   type="button"
                   onClick={handleCopyUri}
-                  className="py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-800 flex items-center justify-center gap-1.5 transition cursor-pointer"
                 >
                   {copiedUri ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-[#00E676]" />
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
                       <span>URI Copied</span>
                     </>
                   ) : (
@@ -1179,7 +1243,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 <button
                   type="button"
                   onClick={handleDownloadQR}
-                  className="py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-800 flex items-center justify-center gap-1.5 transition cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Save QR Image</span>
@@ -1191,7 +1255,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
             <button
               type="button"
               onClick={() => setIsClaimModalOpen(false)}
-              className="w-full py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-white transition cursor-pointer"
+              className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-800 transition cursor-pointer"
             >
               Done / Close
             </button>
@@ -1203,24 +1267,24 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
       {/* 4. LIVE CAMERA MODAL (For desktop / web camera capture)                   */}
       {/* ========================================================================= */}
       {isLiveCameraOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md animate-in fade-in">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Camera className="w-4 h-4 text-purple-400" />
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Camera className="w-4 h-4 text-purple-600" />
                 <span>Take Product Photo</span>
               </h3>
               <button
                 type="button"
                 onClick={stopLiveCamera}
-                className="p-1.5 rounded-lg bg-zinc-900 text-zinc-400 hover:text-white"
+                className="p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:text-slate-900"
               >
                 ✕
               </button>
             </div>
 
             {cameraError ? (
-              <div className="p-4 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs space-y-3">
+              <div className="p-4 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs space-y-3">
                 <p>{cameraError}</p>
                 <button
                   type="button"
@@ -1228,13 +1292,13 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     stopLiveCamera();
                     uploadInputRef.current?.click();
                   }}
-                  className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold"
+                  className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold"
                 >
                   Upload File Instead
                 </button>
               </div>
             ) : (
-              <div className="relative rounded-2xl overflow-hidden bg-black aspect-video flex items-center justify-center border border-zinc-800">
+              <div className="relative rounded-2xl overflow-hidden bg-black aspect-video flex items-center justify-center border border-slate-200">
                 <video
                   ref={videoRef}
                   autoPlay
@@ -1250,14 +1314,14 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 <button
                   type="button"
                   onClick={stopLiveCamera}
-                  className="flex-1 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300"
+                  className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={capturePhoto}
-                  className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white flex items-center justify-center gap-2 shadow-lg shadow-purple-500/30"
+                  className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-xs font-bold text-white flex items-center justify-center gap-2 shadow-sm"
                 >
                   <Camera className="w-4 h-4" />
                   <span>Snap Photo</span>

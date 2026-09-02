@@ -2,6 +2,7 @@ import React from 'react';
 import { Download, CheckCircle2, ShieldCheck, Wifi, WifiOff, Globe, Layers } from 'lucide-react';
 import { usePWA } from '@/hooks/usePWA';
 import { SavedReceiversSection } from '@/components/SavedReceiversSection';
+import { SubscriptionManagementCard } from '@/components/SubscriptionManagementCard';
 
 export const ComingSoonPage: React.FC = () => {
   const { isInstalled, isInstallable, isOnline, installApp } = usePWA();
@@ -11,7 +12,10 @@ export const ComingSoonPage: React.FC = () => {
       id="settings-page"
       className="max-w-4xl mx-auto px-4 py-8 space-y-6 font-sans"
     >
-      {/* 1. Main Saved Receivers Management Section */}
+      {/* 1. Subscription Management Section (Settings -> Subscription) */}
+      <SubscriptionManagementCard />
+
+      {/* 2. Main Saved Receivers Management Section */}
       <SavedReceiversSection />
 
       {/* App & Terminal Settings Header */}

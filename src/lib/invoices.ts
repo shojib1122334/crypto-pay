@@ -293,3 +293,170 @@ export function generateInvoicePdf(invoice: CryptoPayInvoiceData): void {
   const filename = `CryptoPay-Invoice-${invoice.id}-${invoice.paymentMethod}.pdf`;
   doc.save(filename);
 }
+
+/**
+ * Generates an official PDF for a Recurring Subscription Invoice
+ */
+export function generateSubscriptionInvoicePdf(subInvoice: {
+  id: string;
+  storeName: string;
+  subscriberName: string;
+  subscriberEmail?: string;
+  serviceName: string;
+  billingFrequency: 'Weekly' | 'Monthly' | 'Yearly';
+  amount: string;
+  paymentToken: 'USDT' | 'USDC' | 'VERSE';
+  receiverAddress: string;
+  status: 'Active' | 'Paused' | 'Cancelled' | 'Expired';
+  startDate: string;
+  nextPaymentDate: string;
+  totalPaidCount?: number;
+}): void {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const primaryNavy = [15, 23, 42]; // #0F172A
+  const slateDark = [30, 41, 59]; // #1E293B
+  const blueAccent = [29, 78, 216]; // #1D4ED8
+  const emeraldAccent = [5, 150, 105]; // #059669
+  const borderGray = [226, 232, 240]; // #E2E8F0
+
+  // 1. Header Banner
+  doc.setFillColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
+  doc.rect(0, 0, pageWidth, 42, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(255, 255, 255);
+  doc.text('CRYPTOPAY SUBSCRIPTION INVOICE', 20, 22);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(148, 163, 184);
+  doc.text('Recurring Web3 Billing Schedule • Polygon Mainnet', 20, 30);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(52, 211, 153);
+  doc.text(`PLAN STATUS: ${subInvoice.status.toUpperCase()}`, pageWidth - 20, 22, { align: 'right' });
+
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(203, 213, 225);
+  doc.text(`ID: #${subInvoice.id}`, pageWidth - 20, 30, { align: 'right' });
+
+  // 2. Summary Cards
+  let y = 54;
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
+  doc.roundedRect(20, y, 80, 32, 3, 3, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  doc.text('RECURRING AMOUNT', 26, y + 10);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(emeraldAccent[0], emeraldAccent[1], emeraldAccent[2]);
+  doc.text(`${subInvoice.amount} ${subInvoice.paymentToken} / ${subInvoice.billingFrequency}`, 26, y + 22);
+
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(110, y, pageWidth - 130, 32, 3, 3, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  doc.text('NEXT PAYMENT DATE', 116, y + 10);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(blueAccent[0], blueAccent[1], blueAccent[2]);
+  doc.text(subInvoice.nextPaymentDate, 116, y + 22);
+
+  // 3. Line Item Details
+  y += 42;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
+  doc.text('Subscription Billing Specifications', 20, y);
+
+  const renderRow = (label: string, value: string, isMono = false) => {
+    y += 10;
+    doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
+    doc.line(20, y - 4, pageWidth - 20, y - 4);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(label, 20, y + 2);
+
+    doc.setFont(isMono ? 'courier' : 'helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(slateDark[0], slateDark[1], slateDark[2]);
+
+    if (value.length > 44) {
+      const part1 = value.slice(0, 40) + '...';
+      doc.text(part1, pageWidth - 20, y + 2, { align: 'right' });
+    } else {
+      doc.text(value, pageWidth - 20, y + 2, { align: 'right' });
+    }
+  };
+
+  renderRow('Merchant / Store Name', subInvoice.storeName);
+  renderRow('Subscriber / Customer', subInvoice.subscriberName);
+  if (subInvoice.subscriberEmail) {
+    renderRow('Subscriber Contact', subInvoice.subscriberEmail);
+  }
+  renderRow('Service Plan', subInvoice.serviceName);
+  renderRow('Billing Frequency', `${subInvoice.billingFrequency} Recurring Cycle`);
+  renderRow('Payment Token', `${subInvoice.paymentToken} (Polygon Mainnet)`);
+  renderRow('Merchant Receiver Wallet', subInvoice.receiverAddress, true);
+  renderRow('Subscription Start Date', subInvoice.startDate);
+  renderRow('Next Scheduled Payment', subInvoice.nextPaymentDate);
+
+  // 4. Security & Protocol
+  y += 20;
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
+  doc.roundedRect(20, y, pageWidth - 40, 36, 3, 3, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
+  doc.text('Decentralized Subscription Verification Guarantee', 26, y + 9);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text(
+    'This subscription invoice is registered on CryptoPay Web3 infrastructure.',
+    26,
+    y + 16
+  );
+  doc.text(
+    `Settlement: Direct peer-to-peer token transfers to the merchant receiver wallet.`,
+    26,
+    y + 23
+  );
+  doc.text(
+    `Security Protocol: Non-custodial, verified on Polygon blockchain (Chain ID 137).`,
+    26,
+    y + 30
+  );
+
+  // Footer
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(148, 163, 184);
+  doc.text('CryptoPay POS • Decentralized Subscription Invoicing', pageWidth / 2, 282, {
+    align: 'center',
+  });
+
+  doc.save(`CryptoPay-Subscription-${subInvoice.id}.pdf`);
+}
+
