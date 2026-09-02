@@ -50,7 +50,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
     <nav
       id="cryptopay-bottom-nav"
       aria-label="Main Navigation"
-      className="fixed bottom-0 left-0 right-0 w-full z-50 bg-black/95 backdrop-blur-md border-t border-zinc-800/90 shadow-[0_-4px_25px_rgba(0,0,0,0.9)]"
+      className="fixed bottom-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-md"
       style={{
         paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0px))',
       }}
@@ -67,8 +67,8 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               onClick={() => onTabChange(item.id)}
               className={`relative flex flex-col items-center justify-center min-w-[72px] sm:min-w-[88px] py-1.5 px-3 rounded-xl transition-all duration-150 group select-none cursor-pointer ${
                 isActive
-                  ? 'text-[#FFFFFF]'
-                  : 'text-zinc-500 hover:text-zinc-200'
+                  ? 'text-slate-900'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               {/* Active Indicator Backdrop */}
@@ -76,7 +76,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 <motion.div
                   layoutId="active-bottom-bar-indicator"
                   transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                  className="absolute inset-0 rounded-xl bg-blue-500/10 border border-[#3B82F6]/30 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
+                  className="absolute inset-0 rounded-xl bg-blue-50 border border-blue-200 shadow-xs"
                 />
               )}
 
@@ -85,7 +85,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1 w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_6px_#3B82F6]"
+                  className="absolute -top-1 w-1.5 h-1.5 rounded-full bg-[#1D4ED8]"
                 />
               )}
 
@@ -93,8 +93,8 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 <Icon
                   className={`w-5 h-5 transition-transform duration-150 ${
                     isActive
-                      ? 'text-[#3B82F6] scale-110'
-                      : 'text-zinc-500 group-hover:scale-105 group-hover:text-zinc-200'
+                      ? 'text-blue-700 scale-110'
+                      : 'text-slate-500 group-hover:scale-105 group-hover:text-slate-800'
                   }`}
                   strokeWidth={isActive ? 2.3 : 1.8}
                 />
@@ -103,8 +103,8 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               <span
                 className={`relative text-[11px] sm:text-xs tracking-tight mt-1 transition-colors ${
                   isActive
-                    ? 'text-[#FFFFFF] font-bold'
-                    : 'text-zinc-500 font-medium group-hover:text-zinc-300'
+                    ? 'text-slate-900 font-bold'
+                    : 'text-slate-600 font-medium group-hover:text-slate-900'
                 }`}
               >
                 {item.label}

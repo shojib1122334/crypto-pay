@@ -1,6 +1,6 @@
 import '@rainbow-me/rainbowkit/styles.css';
 import { useEffect, useState } from 'react';
-import { darkTheme, lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { config } from '@/lib/wallet';
@@ -15,7 +15,6 @@ import { CreateInvoiceSection } from '@/components/CreateInvoiceSection';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemeProvider } from '@/context/ThemeContext';
-import { useTheme } from '@/context/useTheme';
 import { SavedReceiversProvider } from '@/context/SavedReceiversContext';
 
 import { usePWA } from '@/hooks/usePWA';
@@ -118,13 +117,13 @@ function AppContent() {
       )}
 
       <div
-        className="min-h-screen relative flex flex-col bg-[#000000] text-[#FFFFFF] selection:bg-[#3B82F6] selection:text-white"
+        className="min-h-screen relative flex flex-col bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white"
       >
         {/* Subtle Ambient Background Mesh */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-b from-[#3B82F6]/10 via-[#00E676]/5 to-transparent blur-[120px] rounded-full" />
-          <div className="absolute top-1/3 -left-48 w-96 h-96 bg-[#3B82F6]/5 blur-[100px] rounded-full" />
-          <div className="absolute bottom-1/4 -right-48 w-96 h-96 bg-[#00E676]/5 blur-[100px] rounded-full" />
+          <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-b from-blue-200/40 via-emerald-100/30 to-transparent blur-[120px] rounded-full" />
+          <div className="absolute top-1/3 -left-48 w-96 h-96 bg-blue-100/40 blur-[100px] rounded-full" />
+          <div className="absolute bottom-1/4 -right-48 w-96 h-96 bg-emerald-100/40 blur-[100px] rounded-full" />
         </div>
 
         {/* Crisp Header */}
@@ -178,27 +177,15 @@ function AppContent() {
 }
 
 function AppWithTheme() {
-  const { theme } = useTheme();
-
   return (
     <RainbowKitProvider
-      theme={
-        theme === 'light'
-          ? lightTheme({
-              accentColor: '#2563EB',
-              accentColorForeground: '#FFFFFF',
-              borderRadius: 'large',
-              fontStack: 'system',
-              overlayBlur: 'small',
-            })
-          : darkTheme({
-              accentColor: '#3B82F6',
-              accentColorForeground: '#FFFFFF',
-              borderRadius: 'large',
-              fontStack: 'system',
-              overlayBlur: 'small',
-            })
-      }
+      theme={lightTheme({
+        accentColor: '#1D4ED8',
+        accentColorForeground: '#FFFFFF',
+        borderRadius: 'large',
+        fontStack: 'system',
+        overlayBlur: 'small',
+      })}
       modalSize="compact"
     >
       <AppContent />
