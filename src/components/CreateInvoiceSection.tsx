@@ -47,6 +47,7 @@ import {
 } from '@/lib/invoices';
 import { useSubscription } from '@/hooks/useSubscription';
 import { RecurringSubscriptionInvoiceSection } from '@/components/RecurringSubscriptionInvoiceSection';
+import { SubscriptionUpgradeModal } from '@/components/SubscriptionUpgradeModal';
 import type { NavTab } from '@/types/navigation';
 
 interface CreateInvoiceSectionProps {
@@ -58,7 +59,18 @@ const STORE_NAME_KEY = 'cryptopay_saved_store_name';
 export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNavigateTab }) => {
   const { address: connectedAddress, isConnected } = useAccount();
   const { activeReceiver } = useSavedReceivers();
-  const { isActive: isSubscriptionActive } = useSubscription();
+  const {
+    subscription,
+    isActive: isSubscriptionActive,
+    hasFreeRun,
+    daysRemaining,
+    versePrice,
+    isUpgradeModalOpen,
+    openUpgradeModal,
+    closeUpgradeModal,
+    consumeFreeRun,
+    refresh: refreshSubscription,
+  } = useSubscription();
 
   // Invoice Mode: 'one-time' | 'subscription'
   const [invoiceMode, setInvoiceMode] = useState<'one-time' | 'subscription'>('one-time');
@@ -300,6 +312,19 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
   const handleCreateInvoice = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
+
+    // Enforce Subscription & Free Run Lifecycle
+    if (!isSubscriptionActive) {
+      if (!hasFreeRun) {
+        setFormError(
+          'Your 1 free trial invoice run has been used. Please upgrade your subscription to continue generating invoices.'
+        );
+        openUpgradeModal('1_month');
+        return;
+      }
+      // Consume 1st free run in real-time
+      consumeFreeRun();
+    }
 
     if (!productName.trim()) {
       setFormError('Please enter the Product Name.');
@@ -552,6 +577,58 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
           /* SUBSECTION B: STANDARD ONE-TIME CREDIT INVOICE                            */
           /* ========================================================================= */
           <>
+            {/* Real-Time Subscription & Trial Status Banner */}
+            {isSubscriptionActive ? (
+              <div className="p-4 rounded-2xl bg-emerald-50/90 border border-emerald-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-emerald-900 animate-in fade-in">
+                <div className="flex items-center gap-2.5">
+                  <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <div>
+                    <strong className="text-emerald-950 font-bold">✨ Active Subscription ({subscription?.planName || '1 Month'}):</strong>
+                    <span className="ml-1 text-emerald-800">
+                      Unlimited Invoices Active • Valid until <strong>{subscription?.expiryDate || 'End of Month'}</strong> ({daysRemaining} days left). No extra fees or limits until the end of your term.
+                    </span>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] uppercase tracking-wider whitespace-nowrap border border-emerald-300">
+                  Unlimited Access
+                </span>
+              </div>
+            ) : hasFreeRun ? (
+              <div className="p-4 rounded-2xl bg-blue-50/90 border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-blue-900 animate-in fade-in">
+                <div className="flex items-center gap-2.5">
+                  <Sparkles className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                  <div>
+                    <strong className="text-blue-950 font-bold">🎁 1st Run Free Trial Active:</strong>
+                    <span className="ml-1 text-blue-800">
+                      You can create your first Credit Invoice <strong>completely free</strong>. Subsequent invoice runs will require a subscription upgrade.
+                    </span>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-extrabold text-[11px] uppercase tracking-wider whitespace-nowrap border border-blue-200">
+                  1 Free Run Available
+                </span>
+              </div>
+            ) : (
+              <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900 animate-in fade-in">
+                <div className="flex items-center gap-2.5">
+                  <Lock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <div>
+                    <strong className="text-amber-950 font-bold">🔒 Free 1st Run Completed (1/1):</strong>
+                    <span className="ml-1 text-amber-800">
+                      Your free trial run has been used. Upgrade your subscription to continue generating invoices ($2 for 1 Month or $5 for 3 Months).
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openUpgradeModal('1_month')}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold whitespace-nowrap transition cursor-pointer shadow-xs"
+                >
+                  Upgrade to Run ($2)
+                </button>
+              </div>
+            )}
+
             {/* SECTION 1: INVOICE GENERATION FORM */}
             <form onSubmit={handleCreateInvoice} className="space-y-6">
               
@@ -809,14 +886,33 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 </div>
               )}
 
-              {/* 🔵 Create Invoice Button */}
-              <button
-                type="submit"
-                className="w-full py-4 px-6 rounded-2xl bg-blue-700 hover:bg-blue-800 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
-              >
-                <Sparkles className="w-5 h-5" />
-                <span>🔵 Create Credit Invoice</span>
-              </button>
+              {/* 🔵 Create Invoice Button (State-Aware) */}
+              {isSubscriptionActive ? (
+                <button
+                  type="submit"
+                  className="w-full py-4 px-6 rounded-2xl bg-blue-700 hover:bg-blue-800 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+                >
+                  <Sparkles className="w-5 h-5 text-amber-300" />
+                  <span>🔵 Create Credit Invoice (Unlimited Pro)</span>
+                </button>
+              ) : hasFreeRun ? (
+                <button
+                  type="submit"
+                  className="w-full py-4 px-6 rounded-2xl bg-blue-700 hover:bg-blue-800 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+                >
+                  <Sparkles className="w-5 h-5 text-amber-300" />
+                  <span>🔵 Create Credit Invoice (Free 1st Run)</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => openUpgradeModal('1_month')}
+                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+                >
+                  <Lock className="w-5 h-5" />
+                  <span>🔒 Free Run Used (1/1) — Upgrade to Run ($2 / 1 Month)</span>
+                </button>
+              )}
             </form>
 
             {/* SECTION 2: GENERATED CRYPTOPAY INVOICE CARD WITH "CLAIM" BUTTON */}
@@ -1331,6 +1427,16 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
           </div>
         </div>
       )}
+
+      {/* Subscription Upgrade Modal */}
+      <SubscriptionUpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={closeUpgradeModal}
+        versePrice={versePrice}
+        onSuccess={() => {
+          refreshSubscription();
+        }}
+      />
     </div>
   );
 };

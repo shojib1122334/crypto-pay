@@ -3,6 +3,10 @@ import {
   getActiveSubscription,
   getSubscriptionHistory,
   isSubscriptionActive,
+  getFreeRunsUsed,
+  hasFreeRunAvailable,
+  consumeFreeRun,
+  canUserExecuteRun,
   type SubscriptionRecord,
   type SubscriptionPlanId,
   type SubscriptionToken,
@@ -19,17 +23,23 @@ export function useSubscription() {
     getSubscriptionHistory()
   );
   const [isActive, setIsActive] = useState<boolean>(() => isSubscriptionActive());
+  const [freeRunsUsed, setFreeRunsUsed] = useState<number>(() => getFreeRunsUsed());
+  const [hasFreeRun, setHasFreeRun] = useState<boolean>(() => hasFreeRunAvailable());
   const [versePrice, setVersePrice] = useState<number>(0.00035);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<SubscriptionPlanId>('1_month');
   const [selectedToken, setSelectedToken] = useState<SubscriptionToken>('USDT');
 
-  // Refresh prices and subscription state
+  // Refresh prices, free trial, and subscription state in real-time
   const refresh = useCallback(() => {
     const sub = getActiveSubscription();
     setSubscription(sub);
-    setIsActive(isSubscriptionActive());
+    const active = isSubscriptionActive();
+    setIsActive(active);
     setHistory(getSubscriptionHistory());
+    const used = getFreeRunsUsed();
+    setFreeRunsUsed(used);
+    setHasFreeRun(used < 1);
   }, []);
 
   useEffect(() => {
@@ -49,10 +59,12 @@ export function useSubscription() {
     };
 
     window.addEventListener('cryptopay_subscription_updated', handleUpdate);
+    window.addEventListener('cryptopay_free_trial_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
 
     return () => {
       window.removeEventListener('cryptopay_subscription_updated', handleUpdate);
+      window.removeEventListener('cryptopay_free_trial_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
     };
   }, [refresh]);
@@ -66,6 +78,23 @@ export function useSubscription() {
     setIsUpgradeModalOpen(false);
   };
 
+  // Consume free run wrapper
+  const handleConsumeFreeRun = useCallback(() => {
+    consumeFreeRun();
+    refresh();
+  }, [refresh]);
+
+  // Overall check if user is permitted to run
+  const runCheck = canUserExecuteRun();
+  const canRun = runCheck.canRun;
+
+  // Calculate days remaining on active subscription
+  let daysRemaining = 0;
+  if (isActive && subscription?.expiryTimestamp) {
+    const diff = subscription.expiryTimestamp - Date.now();
+    daysRemaining = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }
+
   // Helper for current selected plan details
   const currentPlan = SUBSCRIPTION_PLANS[selectedPlanId];
   const calculatedVerseAmount = calculateVerseAmount(currentPlan.usdPrice, versePrice);
@@ -74,12 +103,17 @@ export function useSubscription() {
     subscription,
     history,
     isActive,
+    freeRunsUsed,
+    hasFreeRun,
+    canRun,
+    daysRemaining,
     versePrice,
     isUpgradeModalOpen,
     selectedPlanId,
     selectedToken,
     currentPlan,
     calculatedVerseAmount,
+    consumeFreeRun: handleConsumeFreeRun,
     setSelectedPlanId,
     setSelectedToken,
     openUpgradeModal,

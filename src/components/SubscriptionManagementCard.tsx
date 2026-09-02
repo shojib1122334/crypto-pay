@@ -23,6 +23,8 @@ export const SubscriptionManagementCard: React.FC = () => {
     subscription,
     history,
     isActive,
+    hasFreeRun,
+    daysRemaining,
     versePrice,
     isUpgradeModalOpen,
     openUpgradeModal,
@@ -133,13 +135,29 @@ export const SubscriptionManagementCard: React.FC = () => {
         <div className="flex justify-between items-center border-b border-slate-200 pb-2.5">
           <span className="text-slate-500 font-medium">Current Plan:</span>
           <span className="font-black text-slate-900 text-sm sm:text-base">
-            {subscription ? subscription.planName : 'No Active Plan'}
+            {subscription ? subscription.planName : isActive ? 'Active Pro Plan' : 'Free Trial'}
+          </span>
+        </div>
+
+        {/* Free Run / Trial Access */}
+        <div className="flex justify-between items-center border-b border-slate-200 pb-2.5">
+          <span className="text-slate-500 font-medium">Free 1st Run Trial:</span>
+          <span className="font-bold text-xs flex items-center gap-1.5">
+            {hasFreeRun ? (
+              <span className="text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                🎁 1 Free Run Available
+              </span>
+            ) : (
+              <span className="text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
+                ✓ Free Run Used (1/1)
+              </span>
+            )}
           </span>
         </div>
 
         {/* Status */}
         <div className="flex justify-between items-center border-b border-slate-200 pb-2.5">
-          <span className="text-slate-500 font-medium">Status:</span>
+          <span className="text-slate-500 font-medium">Subscription Status:</span>
           <span className={`px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase flex items-center gap-1.5 ${
             isActive
               ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
@@ -150,7 +168,7 @@ export const SubscriptionManagementCard: React.FC = () => {
             {isActive ? (
               <>
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Active</span>
+                <span>Active ({daysRemaining} days remaining)</span>
               </>
             ) : isExpired ? (
               <>
@@ -158,7 +176,7 @@ export const SubscriptionManagementCard: React.FC = () => {
                 <span>Expired</span>
               </>
             ) : (
-              <span>Locked</span>
+              <span>Locked (Upgrade Required)</span>
             )}
           </span>
         </div>

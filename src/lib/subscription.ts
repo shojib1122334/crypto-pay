@@ -79,6 +79,40 @@ const SUBSCRIPTION_STORAGE_KEY = 'cryptopay_active_subscription';
 const SUBSCRIPTION_HISTORY_KEY = 'cryptopay_subscription_history';
 const USED_TX_HASHES_KEY = 'cryptopay_used_sub_tx_hashes';
 const RECURRING_INVOICES_KEY = 'cryptopay_recurring_invoices';
+const FREE_TRIAL_RUNS_KEY = 'cryptopay_free_trial_runs_used';
+
+// Helper: Get number of free runs used
+export function getFreeRunsUsed(): number {
+  if (typeof window === 'undefined') return 0;
+  try {
+    const val = localStorage.getItem(FREE_TRIAL_RUNS_KEY);
+    if (!val) return 0;
+    const num = parseInt(val, 10);
+    return isNaN(num) ? 0 : num;
+  } catch {
+    return 0;
+  }
+}
+
+// Helper: Check if free first-time run is available
+export function hasFreeRunAvailable(): boolean {
+  return getFreeRunsUsed() < 1;
+}
+
+// Helper: Consume the 1 free run
+export function consumeFreeRun(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const current = getFreeRunsUsed();
+    const updated = current + 1;
+    localStorage.setItem(FREE_TRIAL_RUNS_KEY, updated.toString());
+    window.dispatchEvent(
+      new CustomEvent('cryptopay_free_trial_updated', { detail: { runsUsed: updated } })
+    );
+  } catch (err) {
+    console.warn('Failed to consume free run:', err);
+  }
+}
 
 // Helper: Get active subscription
 export function getActiveSubscription(): SubscriptionRecord | null {
@@ -105,6 +139,39 @@ export function getActiveSubscription(): SubscriptionRecord | null {
 export function isSubscriptionActive(): boolean {
   const sub = getActiveSubscription();
   return Boolean(sub && sub.status === 'Active' && Date.now() < sub.expiryTimestamp);
+}
+
+// Comprehensive check: Can the user run/generate an invoice?
+export function canUserExecuteRun(): {
+  canRun: boolean;
+  isFreeTrialRun: boolean;
+  isSubscriptionActive: boolean;
+  reason?: string;
+} {
+  const isSubActive = isSubscriptionActive();
+  if (isSubActive) {
+    return {
+      canRun: true,
+      isFreeTrialRun: false,
+      isSubscriptionActive: true,
+    };
+  }
+
+  const freeRunAvailable = hasFreeRunAvailable();
+  if (freeRunAvailable) {
+    return {
+      canRun: true,
+      isFreeTrialRun: true,
+      isSubscriptionActive: false,
+    };
+  }
+
+  return {
+    canRun: false,
+    isFreeTrialRun: false,
+    isSubscriptionActive: false,
+    reason: 'Free 1st run used. Please upgrade your subscription to continue running invoices.',
+  };
 }
 
 // Get subscription history
