@@ -8,7 +8,6 @@ import Header from '@/components/Header';
 import MerchantDashboard from '@/components/MerchantDashboard';
 import PaySystemTerminal from '@/components/PaySystemTerminal';
 import CustomerPaymentView from '@/components/CustomerPaymentView';
-import SplashIntro from '@/components/SplashIntro';
 import BottomNavBar from '@/components/BottomNavBar';
 import ComingSoonPage from '@/components/ComingSoonPage';
 import TransactionHistoryView from '@/components/TransactionHistoryView';
@@ -74,7 +73,6 @@ function getInitialTab(): NavTab {
 function AppContent() {
   const [params, setParams] = useState(() => getCurrentPaymentParams());
   const [activeTab, setActiveTab] = useState<NavTab>(() => getInitialTab());
-  const [showSplash, setShowSplash] = useState(true);
   const { isOnline } = usePWA();
 
   useEffect(() => {
@@ -108,13 +106,6 @@ function AppContent() {
 
   return (
     <>
-      {showSplash && (
-        <SplashIntro
-          durationMs={2000}
-          onComplete={() => setShowSplash(false)}
-        />
-      )}
-
       {/* PWA App Install Banner & Prompt */}
       <PWAInstallPrompt />
 
