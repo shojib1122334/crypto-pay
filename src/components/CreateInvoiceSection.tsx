@@ -25,7 +25,6 @@ import {
   Loader2,
   FileText,
   History,
-  Lock,
 } from 'lucide-react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -790,30 +789,13 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     </button>
                   )}
                 </ConnectButton.Custom>
-              ) : isSubscriptionActive ? (
-                <button
-                  type="submit"
-                  className="w-full py-4 px-6 rounded-2xl bg-blue-700 hover:bg-blue-800 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
-                >
-                  <Sparkles className="w-5 h-5 text-amber-300" />
-                  <span>🔵 Create Credit Invoice (Unlimited Pro)</span>
-                </button>
-              ) : hasFreeRun ? (
-                <button
-                  type="submit"
-                  className="w-full py-4 px-6 rounded-2xl bg-blue-700 hover:bg-blue-800 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
-                >
-                  <Sparkles className="w-5 h-5 text-amber-300" />
-                  <span>🔵 Create Credit Invoice (Free 1st Run)</span>
-                </button>
               ) : (
                 <button
-                  type="button"
-                  onClick={() => openUpgradeModal('1_month')}
-                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+                  type="submit"
+                  className="w-full py-4 px-6 rounded-2xl bg-blue-700 hover:bg-blue-800 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
                 >
-                  <Lock className="w-5 h-5" />
-                  <span>🔒 Free Run Used (1/1) — Upgrade to Run ($2 / 1 Month)</span>
+                  <Sparkles className="w-5 h-5 text-amber-300" />
+                  <span>🔵 Create Credit Invoice</span>
                 </button>
               )}
             </form>
