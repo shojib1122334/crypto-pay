@@ -1,54 +1,102 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useAccount } from 'wagmi';
 import { fetchCryptoPrices } from '@/lib/rpcService';
 import {
-  getActiveSubscription,
-  getSubscriptionHistory,
-  isSubscriptionActive,
-  getFreeRunsUsed,
-  hasFreeRunAvailable,
-  consumeFreeRun,
-  canUserExecuteRun,
-  isAdminUnlocked,
   type SubscriptionRecord,
   type SubscriptionPlanId,
   type SubscriptionToken,
   SUBSCRIPTION_PLANS,
+  isAdminUnlocked,
 } from '@/lib/subscription';
+import {
+  fetchWalletSubscriptionFromDb,
+  consumeWalletFreeTrialInDb,
+  saveWalletSubscriptionToDb,
+  normalizeWalletAddress,
+  type WalletSubscriptionData,
+} from '@/lib/subscriptionDatabase';
 
 export function useSubscription() {
-  const [subscription, setSubscription] = useState<SubscriptionRecord | null>(() =>
-    getActiveSubscription()
-  );
-  const [history, setHistory] = useState<SubscriptionRecord[]>(() =>
-    getSubscriptionHistory()
-  );
-  const [isActive, setIsActive] = useState<boolean>(() => isSubscriptionActive());
+  const { address, isConnected } = useAccount();
+  const normalizedWallet = normalizeWalletAddress(address);
+
+  const [walletRecord, setWalletRecord] = useState<WalletSubscriptionData | null>(null);
+  const [isDbLoading, setIsDbLoading] = useState<boolean>(Boolean(normalizedWallet));
+  const [subscription, setSubscription] = useState<SubscriptionRecord | null>(null);
+  const [history, setHistory] = useState<SubscriptionRecord[]>([]);
+  const [isActive, setIsActive] = useState<boolean>(() => isAdminUnlocked());
   const [isAdmin, setIsAdmin] = useState<boolean>(() => isAdminUnlocked());
+  const [freeTrialUsed, setFreeTrialUsed] = useState<boolean>(false);
+  const [hasFreeRun, setHasFreeRun] = useState<boolean>(false);
+  const [isConsumingTrial, setIsConsumingTrial] = useState(false);
+
   const [versePrice, setVersePrice] = useState<number>(0.00035);
-  const [freeRunsUsed, setFreeRunsUsed] = useState<number>(() => getFreeRunsUsed());
-  const [hasFreeRun, setHasFreeRun] = useState<boolean>(() => hasFreeRunAvailable());
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<SubscriptionPlanId>('1_month');
   const [selectedToken, setSelectedToken] = useState<SubscriptionToken>('USDT');
 
-  // Refresh free trial and subscription state in real-time
-  const refresh = useCallback(() => {
+  // Load wallet subscription & free trial data directly from the permanent database
+  const loadWalletData = useCallback(async (walletAddr: string) => {
     const admin = isAdminUnlocked();
     setIsAdmin(admin);
-    const sub = getActiveSubscription();
-    setSubscription(sub);
-    const active = isSubscriptionActive();
-    setIsActive(active);
-    setHistory(getSubscriptionHistory());
-    const used = getFreeRunsUsed();
-    setFreeRunsUsed(used);
-    setHasFreeRun(used < 1);
+
+    if (!walletAddr) {
+      setWalletRecord(null);
+      setSubscription(null);
+      setHistory([]);
+      setFreeTrialUsed(false);
+      setHasFreeRun(false);
+      setIsActive(admin);
+      setIsDbLoading(false);
+      return;
+    }
+
+    setIsDbLoading(true);
+    try {
+      const record = await fetchWalletSubscriptionFromDb(walletAddr);
+
+      if (record) {
+        setWalletRecord(record);
+        setFreeTrialUsed(record.free_trial_used);
+        // Free run is available ONLY if free trial has never been used by this wallet address
+        const canTrial = !record.free_trial_used && record.trial_runs_used < 1;
+        setHasFreeRun(canTrial);
+
+        const sub = record.subscription;
+        const isSubActive = Boolean(
+          sub && sub.status === 'Active' && Date.now() < sub.expiryTimestamp
+        );
+
+        setIsActive(isSubActive || admin);
+        setSubscription(sub);
+        setHistory(record.history || []);
+      } else {
+        // Brand new wallet not yet recorded: granted 1 trial, used = false
+        setFreeTrialUsed(false);
+        setHasFreeRun(true);
+        setIsActive(admin);
+        setSubscription(null);
+        setHistory([]);
+      }
+    } catch (err) {
+      console.warn('[useSubscription] Error loading wallet record from database:', err);
+      // Fail-safe: if admin unlocked, grant access
+      if (admin) {
+        setIsActive(true);
+      }
+    } finally {
+      setIsDbLoading(false);
+    }
   }, []);
 
+  // Fetch data whenever connected wallet address changes
   useEffect(() => {
-    refresh();
+    loadWalletData(normalizedWallet);
+  }, [normalizedWallet, loadWalletData]);
 
-    // Fetch real-time VERSE price for calculations
+  // Real-time updates & external events listener
+  useEffect(() => {
+    // Fetch live VERSE price for calculations
     fetchCryptoPrices()
       .then((prices) => {
         if (prices?.VERSE && prices.VERSE > 0) {
@@ -56,25 +104,55 @@ export function useSubscription() {
         }
       })
       .catch((err) => {
-        console.warn('Failed to fetch real-time VERSE price, using default fallback:', err);
+        console.warn('Failed to fetch real-time VERSE price, using fallback:', err);
       });
 
-    const handleUpdate = () => {
-      refresh();
+    const handleWalletUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent<{ walletAddress: string; data: WalletSubscriptionData }>;
+      if (
+        customEvent.detail?.walletAddress &&
+        customEvent.detail.walletAddress.toLowerCase() === normalizedWallet.toLowerCase()
+      ) {
+        const record = customEvent.detail.data;
+        setWalletRecord(record);
+        setFreeTrialUsed(record.free_trial_used);
+        setHasFreeRun(!record.free_trial_used && record.trial_runs_used < 1);
+        const sub = record.subscription;
+        const isSubActive = Boolean(
+          sub && sub.status === 'Active' && Date.now() < sub.expiryTimestamp
+        );
+        setIsActive(isSubActive || isAdminUnlocked());
+        setSubscription(sub);
+        setHistory(record.history || []);
+      } else {
+        loadWalletData(normalizedWallet);
+      }
     };
 
-    window.addEventListener('cryptopay_subscription_updated', handleUpdate);
-    window.addEventListener('cryptopay_free_trial_updated', handleUpdate);
-    window.addEventListener('cryptopay_admin_updated', handleUpdate);
-    window.addEventListener('storage', handleUpdate);
+    const handleSubscriptionUpdated = () => {
+      loadWalletData(normalizedWallet);
+    };
+
+    const handleAdminUpdated = () => {
+      const admin = isAdminUnlocked();
+      setIsAdmin(admin);
+      if (admin) {
+        setIsActive(true);
+      } else {
+        loadWalletData(normalizedWallet);
+      }
+    };
+
+    window.addEventListener('cryptopay_wallet_subscription_updated', handleWalletUpdated);
+    window.addEventListener('cryptopay_subscription_updated', handleSubscriptionUpdated);
+    window.addEventListener('cryptopay_admin_updated', handleAdminUpdated);
 
     return () => {
-      window.removeEventListener('cryptopay_subscription_updated', handleUpdate);
-      window.removeEventListener('cryptopay_free_trial_updated', handleUpdate);
-      window.removeEventListener('cryptopay_admin_updated', handleUpdate);
-      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('cryptopay_wallet_subscription_updated', handleWalletUpdated);
+      window.removeEventListener('cryptopay_subscription_updated', handleSubscriptionUpdated);
+      window.removeEventListener('cryptopay_admin_updated', handleAdminUpdated);
     };
-  }, [refresh]);
+  }, [normalizedWallet, loadWalletData]);
 
   const openUpgradeModal = (planId?: SubscriptionPlanId) => {
     if (planId) setSelectedPlanId(planId);
@@ -85,15 +163,79 @@ export function useSubscription() {
     setIsUpgradeModalOpen(false);
   };
 
-  // Consume free run wrapper
-  const handleConsumeFreeRun = useCallback(() => {
-    consumeFreeRun();
-    refresh();
-  }, [refresh]);
+  // Consume Free Trial permanently in the database for this connected wallet
+  const handleConsumeFreeRun = useCallback(async (): Promise<{
+    success: boolean;
+    error?: string;
+    record?: WalletSubscriptionData;
+  }> => {
+    if (isAdminUnlocked()) {
+      return { success: true };
+    }
+    if (!normalizedWallet) {
+      return {
+        success: false,
+        error: 'Please connect your Web3 wallet to verify your Free Trial eligibility.',
+      };
+    }
 
-  // Overall check if user is permitted to run
-  const runCheck = canUserExecuteRun();
-  const canRun = runCheck.canRun;
+    setIsConsumingTrial(true);
+    try {
+      const res = await consumeWalletFreeTrialInDb(normalizedWallet);
+      setIsConsumingTrial(false);
+
+      if (res.success && res.record) {
+        setWalletRecord(res.record);
+        setFreeTrialUsed(true);
+        setHasFreeRun(false);
+        return { success: true, record: res.record };
+      }
+
+      return {
+        success: false,
+        error: res.error || 'This wallet has already used its permanent Free Trial.',
+      };
+    } catch (err: unknown) {
+      setIsConsumingTrial(false);
+      const msg = err instanceof Error ? err.message : 'Database error while consuming Free Trial';
+      return { success: false, error: msg };
+    }
+  }, [normalizedWallet]);
+
+  // Save verified upgraded subscription record to database for this connected wallet
+  const handleSaveSubscription = useCallback(
+    async (sub: SubscriptionRecord) => {
+      if (!normalizedWallet) return;
+      try {
+        await saveWalletSubscriptionToDb(normalizedWallet, sub);
+        await loadWalletData(normalizedWallet);
+      } catch (err) {
+        console.warn('Error saving subscription to DB:', err);
+      }
+    },
+    [normalizedWallet, loadWalletData]
+  );
+
+  // Determine if user is permitted to execute run
+  let canRun = false;
+  let runReason = '';
+
+  if (isAdmin) {
+    canRun = true;
+  } else if (!isConnected || !normalizedWallet) {
+    canRun = false;
+    runReason = 'Please connect your Web3 wallet to verify Free Trial eligibility and access tools.';
+  } else if (isDbLoading) {
+    canRun = false;
+    runReason = 'Verifying wallet address in permanent database...';
+  } else if (isActive) {
+    canRun = true;
+  } else if (hasFreeRun) {
+    canRun = true;
+  } else {
+    canRun = false;
+    runReason = 'Free 1-time Trial used for this wallet. Please upgrade your subscription to continue.';
+  }
 
   // Calculate days remaining on active subscription
   let daysRemaining = 0;
@@ -102,7 +244,6 @@ export function useSubscription() {
     daysRemaining = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   }
 
-  // Helper for current selected plan details
   const currentPlan = SUBSCRIPTION_PLANS[selectedPlanId];
 
   return {
@@ -111,19 +252,27 @@ export function useSubscription() {
     isActive,
     isAdmin,
     versePrice,
-    freeRunsUsed,
+    freeRunsUsed: freeTrialUsed ? 1 : 0,
+    freeTrialUsed,
     hasFreeRun,
+    isConsumingTrial,
+    isDbLoading,
+    walletAddress: normalizedWallet,
+    walletRecord,
+    isWalletConnected: Boolean(isConnected && normalizedWallet),
     canRun,
+    runReason,
     daysRemaining,
     isUpgradeModalOpen,
     selectedPlanId,
     selectedToken,
     currentPlan,
     consumeFreeRun: handleConsumeFreeRun,
+    saveSubscription: handleSaveSubscription,
     setSelectedPlanId,
     setSelectedToken,
     openUpgradeModal,
     closeUpgradeModal,
-    refresh,
+    refresh: () => loadWalletData(normalizedWallet),
   };
 }

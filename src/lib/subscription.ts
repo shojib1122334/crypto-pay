@@ -1,5 +1,6 @@
 import { formatUnits, type TransactionReceipt } from 'viem';
 import { polygonPublicClient, ethereumPublicClient } from './rpcService';
+import { saveWalletSubscriptionToDb } from './subscriptionDatabase';
 
 export const SUBSCRIPTION_RECEIVER_WALLET = '0x7282C4A9dB5f88B8165922D42363D9965CF410f6' as const;
 
@@ -357,7 +358,8 @@ export interface VerifySubscriptionResult {
 export async function verifySubscriptionPaymentOnChain(
   txHashInput: string,
   planId: SubscriptionPlanId,
-  selectedToken: SubscriptionToken = 'USDT'
+  selectedToken: SubscriptionToken = 'USDT',
+  connectedWalletAddress?: string
 ): Promise<VerifySubscriptionResult> {
   const cleanHash = txHashInput.trim();
 
@@ -494,6 +496,12 @@ export async function verifySubscriptionPaymentOnChain(
     };
 
     saveSubscriptionRecord(newSubscription);
+
+    if (connectedWalletAddress) {
+      saveWalletSubscriptionToDb(connectedWalletAddress, newSubscription).catch((err) => {
+        console.warn('Failed to save verified subscription to wallet database:', err);
+      });
+    }
 
     return {
       success: true,

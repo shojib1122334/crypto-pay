@@ -43,6 +43,84 @@ async function startServer() {
     });
   });
 
+  // Permanent Wallet-Linked Subscription & Free Trial APIs
+  const {
+    getWalletSubscription,
+    useWalletFreeTrial,
+    upgradeWalletSubscription,
+  } = await import('./server/subscriptionDb');
+
+  // Get or initialize wallet trial & subscription state
+  app.get('/api/subscription/wallet/:walletAddress', async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      if (!walletAddress) {
+        return res.status(400).json({ error: 'Missing walletAddress parameter' });
+      }
+      const record = await getWalletSubscription(walletAddress);
+      return res.json({ success: true, data: record });
+    } catch (err: unknown) {
+      console.error('[API] /api/subscription/wallet error:', err);
+      const msg = err instanceof Error ? err.message : 'Failed to get wallet subscription';
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  // Consume 1-time Free Trial permanently for this wallet address
+  app.post('/api/subscription/wallet/:walletAddress/use-trial', async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      if (!walletAddress) {
+        return res.status(400).json({ error: 'Missing walletAddress parameter' });
+      }
+      const result = await useWalletFreeTrial(walletAddress);
+      if (!result.success) {
+        return res.status(400).json({ success: false, error: result.error, record: result.record });
+      }
+      return res.json({ success: true, data: result.record });
+    } catch (err: unknown) {
+      console.error('[API] /api/subscription/wallet/use-trial error:', err);
+      const msg = err instanceof Error ? err.message : 'Failed to consume free trial';
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  // Save upgraded subscription linked to this wallet address
+  app.post('/api/subscription/wallet/:walletAddress/upgrade', async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      const { subscription } = req.body;
+      if (!walletAddress || !subscription) {
+        return res.status(400).json({ error: 'Missing walletAddress or subscription payload' });
+      }
+      const result = await upgradeWalletSubscription(walletAddress, subscription);
+      if (!result.success) {
+        return res.status(400).json({ success: false, error: result.error });
+      }
+      return res.json({ success: true, data: result.record });
+    } catch (err: unknown) {
+      console.error('[API] /api/subscription/wallet/upgrade error:', err);
+      const msg = err instanceof Error ? err.message : 'Failed to upgrade subscription';
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  // Get payment history for this wallet address
+  app.get('/api/subscription/wallet/:walletAddress/history', async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      if (!walletAddress) {
+        return res.status(400).json({ error: 'Missing walletAddress parameter' });
+      }
+      const record = await getWalletSubscription(walletAddress);
+      return res.json({ success: true, history: record.history || [] });
+    } catch (err: unknown) {
+      console.error('[API] /api/subscription/wallet/history error:', err);
+      const msg = err instanceof Error ? err.message : 'Failed to get wallet history';
+      return res.status(500).json({ error: msg });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

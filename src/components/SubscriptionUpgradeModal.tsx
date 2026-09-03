@@ -15,11 +15,12 @@ import {
   X,
   CreditCard,
 } from 'lucide-react';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import { parseUnits, erc20Abi, type Address } from 'viem';
 import { TokenIcon } from '@/components/TokenIcon';
 import { TOKENS, POLYGON_CHAIN_ID } from '@/lib/tokens';
 import { parseRpcError } from '@/lib/rpcError';
+import { saveWalletSubscriptionToDb } from '@/lib/subscriptionDatabase';
 import {
   SUBSCRIPTION_RECEIVER_WALLET,
   SUBSCRIPTION_PLANS,
@@ -62,6 +63,8 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
 
   const currentPlan = SUBSCRIPTION_PLANS[selectedPlanId];
   const exactTokenAmountToPay = currentPlan.usdPrice.toFixed(2);
+
+  const { address: connectedAddress } = useAccount();
 
   // Web3 direct on-chain write
   const {
@@ -109,13 +112,17 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
         const result = await verifySubscriptionPaymentOnChain(
           hash,
           selectedPlanId,
-          selectedToken
+          selectedToken,
+          connectedAddress
         );
 
         setIsVerifying(false);
 
         if (result.success && result.record) {
           setVerifiedSuccessRecord(result.record);
+          if (connectedAddress) {
+            saveWalletSubscriptionToDb(connectedAddress, result.record).catch(console.warn);
+          }
           if (onSuccess) {
             onSuccess(result.record);
           }
@@ -132,7 +139,7 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
         );
       }
     },
-    [txHashInput, selectedPlanId, selectedToken, onSuccess]
+    [txHashInput, selectedPlanId, selectedToken, onSuccess, connectedAddress]
   );
 
   // Auto-fill and auto-verify when direct wallet write succeeds
