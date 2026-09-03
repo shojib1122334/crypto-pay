@@ -11,6 +11,7 @@ import {
   Check,
   ExternalLink,
   AlertCircle,
+  AlertTriangle,
   Send,
   QrCode,
   ShieldCheck,
@@ -33,6 +34,7 @@ import {
 } from '@/lib/tokens';
 import { TokenIcon } from '@/components/TokenIcon';
 import { QRScannerModal, type ScannedQRData } from '@/components/QRScannerModal';
+import { parseRpcError, type ParsedRpcError } from '@/lib/rpcError';
 import {
   fetchAllUserBalances,
   fetchCryptoPrices,
@@ -85,6 +87,8 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
   const [txStep, setTxStep] = useState<'idle' | 'preparing' | 'awaiting_signature' | 'broadcasting' | 'success' | 'error'>('idle');
   const [activeTxHash, setActiveTxHash] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [parsedRpcError, setParsedRpcError] = useState<ParsedRpcError | null>(null);
+  const [showTechDetails, setShowTechDetails] = useState<boolean>(false);
   const [lastVerifiedRecord, setLastVerifiedRecord] = useState<VerifiedTransactionRecord | null>(null);
 
   // Receive Form State - Auto-populated from Active Receiver
@@ -241,6 +245,9 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
   // Switch network if needed
   const handleNetworkSwitch = async (targetChainId: number) => {
     setSelectedChainId(targetChainId);
+    setSendError(null);
+    setErrorMessage('');
+    setParsedRpcError(null);
     if (isConnected && chain?.id !== targetChainId && switchChainAsync) {
       try {
         await switchChainAsync({ chainId: targetChainId });
@@ -254,6 +261,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
   const handleSendTransaction = async () => {
     setSendError(null);
     setErrorMessage('');
+    setParsedRpcError(null);
 
     if (!isConnected || !address) {
       if (openConnectModal) {
@@ -280,11 +288,44 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
       return;
     }
 
-    if (chain?.id !== selectedChainId && switchChainAsync) {
-      try {
-        await switchChainAsync({ chainId: selectedChainId });
-      } catch {
-        setSendError(`Please switch your wallet to ${selectedChainId === POLYGON_CHAIN_ID ? 'Polygon' : 'Ethereum'} to continue.`);
+    // 1. Verify Connected Wallet Network
+    if (chain?.id !== selectedChainId) {
+      if (switchChainAsync) {
+        try {
+          await switchChainAsync({ chainId: selectedChainId });
+        } catch (switchErr: unknown) {
+          const targetName = selectedChainId === POLYGON_CHAIN_ID ? 'Polygon Mainnet' : 'Ethereum';
+          const parsed = parseRpcError(switchErr, {
+            chainId: selectedChainId,
+            tokenSymbol: currentToken?.symbol,
+            amount: sendAmount,
+          });
+          setSendError(`Please switch your wallet to ${targetName} (Chain ID ${selectedChainId}) to continue. ${parsed.message}`);
+          return;
+        }
+      } else {
+        const targetName = selectedChainId === POLYGON_CHAIN_ID ? 'Polygon Mainnet' : 'Ethereum';
+        setSendError(`Network mismatch: Please open your wallet and switch to ${targetName} (Chain ID ${selectedChainId}).`);
+        return;
+      }
+    }
+
+    // 2. Pre-flight Balance Checks (Token balance & POL gas)
+    const cleanTokenBalance = parseFloat(currentTokenBalance.replace(/,/g, ''));
+    if (!isNaN(cleanTokenBalance) && parsedAmount > cleanTokenBalance) {
+      setSendError(
+        `Insufficient ${currentToken?.symbol || 'token'} balance: You have ${currentTokenBalance} ${currentToken?.symbol || ''}, which is less than the entered amount (${sendAmount} ${currentToken?.symbol || ''}).`
+      );
+      return;
+    }
+
+    if (selectedChainId === POLYGON_CHAIN_ID && !currentNetworkConfig?.isNative) {
+      const polBalanceStr = getTokenBalance('POL').replace(/,/g, '');
+      const polBalanceNum = parseFloat(polBalanceStr);
+      if (!isNaN(polBalanceNum) && polBalanceNum < 0.001) {
+        setSendError(
+          `Insufficient POL for gas: Your wallet has ${polBalanceStr} POL. You need a small amount of native POL (~0.01 POL) to pay Polygon transaction fees.`
+        );
         return;
       }
     }
@@ -295,6 +336,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
       if (currentNetworkConfig?.isNative) {
         const valueInWei = parseUnits(sendAmount, 18);
         const txHash = await sendTransactionAsync({
+          chainId: selectedChainId as 137 | 1,
           to: recipientAddress as Address,
           value: valueInWei,
         });
@@ -306,6 +348,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
         const contractAddr = currentNetworkConfig?.address as Address;
 
         const txHash = await writeContractAsync({
+          chainId: selectedChainId as 137 | 1,
           address: contractAddr,
           abi: ERC20_ABI,
           functionName: 'transfer',
@@ -317,8 +360,17 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
     } catch (err: unknown) {
       console.error('Send transaction failed:', err);
       setTxStep('error');
-      const errObj = err as { shortMessage?: string; message?: string };
-      setErrorMessage(errObj?.shortMessage || errObj?.message || 'Transaction rejected or failed in wallet.');
+      const parsed = parseRpcError(err, {
+        tokenSymbol: currentToken?.symbol,
+        networkName: currentNetworkConfig?.networkName,
+        amount: sendAmount,
+        chainId: selectedChainId,
+        userBalance: currentTokenBalance,
+        nativeBalance: getTokenBalance('POL'),
+        walletAddress: address,
+      });
+      setParsedRpcError(parsed);
+      setErrorMessage(parsed.message);
     }
   };
 
@@ -608,6 +660,26 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                 )}
               </button>
             </div>
+
+            {/* Connected Wallet Network Mismatch Verification Notice */}
+            {isConnected && chain && chain.id !== selectedChainId && (
+              <div className="mt-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-200">
+                <div className="flex items-center gap-2.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>
+                    Your wallet is currently on <strong>{chain.name || `Chain ID ${chain.id}`}</strong>. Transactions on this page require{' '}
+                    <strong>{selectedChainId === POLYGON_CHAIN_ID ? 'Polygon Mainnet' : 'Ethereum'}</strong>.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleNetworkSwitch(selectedChainId)}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs whitespace-nowrap transition cursor-pointer self-end sm:self-auto shadow-xs"
+                >
+                  Switch Network
+                </button>
+              </div>
+            )}
           </div>
 
           {/* B. Token Selection Section (2x2 Grid) */}
@@ -944,8 +1016,81 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           )}
 
           {txStep === 'error' && (
-            <div className="p-4 rounded-xl bg-zinc-900 border border-[#EF4444]/60 text-[#EF4444] mb-4 text-xs font-mono break-all">
-              {errorMessage}
+            <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900 border border-red-500/60 mb-5 space-y-3 shadow-[0_0_20px_rgba(239,68,68,0.15)] animate-in fade-in">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <h4 className="text-sm font-bold text-white">
+                      {parsedRpcError?.title || 'Transaction Request Failed'}
+                    </h4>
+                    {parsedRpcError?.category && (
+                      <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded-full bg-red-950/80 text-red-300 border border-red-800">
+                        {parsedRpcError.category}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-red-200 mt-1.5 leading-relaxed">
+                    {parsedRpcError?.message || errorMessage}
+                  </p>
+                </div>
+              </div>
+
+              {parsedRpcError?.actionHint && (
+                <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800 flex items-start gap-2.5 text-xs text-zinc-300">
+                  <HelpCircle className="w-4 h-4 text-[#FACC15] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-white font-semibold">Recommended Fix: </strong>
+                    <span>{parsedRpcError.actionHint}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Technical Blockchain Diagnostics Accordion */}
+              {parsedRpcError?.technicalDetails && (
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowTechDetails(!showTechDetails)}
+                    className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 font-mono transition cursor-pointer"
+                  >
+                    <span>{showTechDetails ? 'Hide' : 'Show'} Blockchain Diagnostics</span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showTechDetails ? 'rotate-180' : ''}`} />
+                  </button>
+                  {showTechDetails && (
+                    <div className="mt-2 p-3 rounded-xl bg-black border border-zinc-800 text-[11px] font-mono text-zinc-400 break-all leading-relaxed">
+                      {parsedRpcError.technicalDetails}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Quick Actions */}
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800/80">
+                {parsedRpcError?.category === 'network' && (
+                  <button
+                    type="button"
+                    onClick={() => handleNetworkSwitch(selectedChainId)}
+                    className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Switch to {selectedChainId === POLYGON_CHAIN_ID ? 'Polygon Mainnet' : 'Ethereum'}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTxStep('idle');
+                    setSendError(null);
+                    setParsedRpcError(null);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-xs transition cursor-pointer"
+                >
+                  Dismiss / Try Again
+                </button>
+              </div>
             </div>
           )}
 

@@ -38,11 +38,11 @@ export const TRANSACTION_HISTORY_KEY = 'cryptopay_real_transaction_history';
 export const polygonPublicClient = createPublicClient({
   chain: polygon,
   transport: fallback([
-    http('https://polygon-bor-rpc.publicnode.com'),
-    http('https://1rpc.io/matic'),
-    http('https://polygon.drpc.org'),
-    http('https://polygon.gateway.tenderly.co'),
-    http('https://polygon-rpc.com'),
+    http('https://polygon-bor-rpc.publicnode.com', { retryCount: 3, timeout: 8000 }),
+    http('https://1rpc.io/matic', { retryCount: 3, timeout: 8000 }),
+    http('https://polygon.drpc.org', { retryCount: 3, timeout: 8000 }),
+    http('https://polygon.gateway.tenderly.co', { retryCount: 3, timeout: 8000 }),
+    http('https://polygon.api.onfinality.io/public', { retryCount: 2, timeout: 8000 }),
   ]),
 });
 
@@ -50,11 +50,10 @@ export const polygonPublicClient = createPublicClient({
 export const ethereumPublicClient = createPublicClient({
   chain: mainnet,
   transport: fallback([
-    http('https://eth.llamarpc.com'),
-    http('https://ethereum-rpc.publicnode.com'),
-    http('https://1rpc.io/eth'),
-    http('https://rpc.ankr.com/eth'),
-    http('https://cloudflare-eth.com'),
+    http('https://ethereum-rpc.publicnode.com', { retryCount: 3, timeout: 8000 }),
+    http('https://1rpc.io/eth', { retryCount: 3, timeout: 8000 }),
+    http('https://eth.drpc.org', { retryCount: 3, timeout: 8000 }),
+    http('https://eth.llamarpc.com', { retryCount: 3, timeout: 8000 }),
   ]),
 });
 

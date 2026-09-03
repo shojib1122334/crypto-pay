@@ -40,6 +40,16 @@ export const TOKENS: Record<string, TokenConfig> = {
     networkName: 'Polygon',
     blockExplorerUrl: 'https://polygonscan.com',
   },
+  'usdc.e': {
+    symbol: 'usdc',
+    label: 'USDC.e',
+    name: 'Bridged USD Coin (USDC.e)',
+    address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+    decimals: 6,
+    chainId: POLYGON_CHAIN_ID,
+    networkName: 'Polygon',
+    blockExplorerUrl: 'https://polygonscan.com',
+  },
   verse: {
     symbol: 'verse',
     label: 'VERSE',
@@ -207,7 +217,11 @@ export const TOKEN_LIST: TokenConfig[] = [
 ];
 
 export function getToken(symbol: string): TokenConfig | null {
-  return TOKENS[symbol.toLowerCase() as TokenSymbol] ?? null;
+  const s = symbol.toLowerCase().trim();
+  if (s === 'usdce' || s === 'usdc.e') {
+    return TOKENS['usdc.e'] ?? null;
+  }
+  return TOKENS[s as TokenSymbol] ?? null;
 }
 
 

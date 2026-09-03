@@ -19,6 +19,7 @@ import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseUnits, erc20Abi, type Address } from 'viem';
 import { TokenIcon } from '@/components/TokenIcon';
 import { TOKENS, POLYGON_CHAIN_ID } from '@/lib/tokens';
+import { parseRpcError } from '@/lib/rpcError';
 import {
   SUBSCRIPTION_RECEIVER_WALLET,
   SUBSCRIPTION_PLANS,
@@ -59,11 +60,15 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [verifiedSuccessRecord, setVerifiedSuccessRecord] = useState<SubscriptionRecord | null>(null);
 
+  const currentPlan = SUBSCRIPTION_PLANS[selectedPlanId];
+  const exactTokenAmountToPay = currentPlan.usdPrice.toFixed(2);
+
   // Web3 direct on-chain write
   const {
     data: directTxHash,
     isPending: isDirectTxPending,
     writeContract,
+    error: writeContractError,
   } = useWriteContract();
 
   const { isLoading: isDirectTxConfirming, isSuccess: isDirectTxSuccess } =
@@ -72,13 +77,21 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
     });
 
   useEffect(() => {
+    if (writeContractError) {
+      const parsed = parseRpcError(writeContractError, {
+        tokenSymbol: selectedToken,
+        amount: exactTokenAmountToPay,
+        chainId: POLYGON_CHAIN_ID,
+      });
+      setVerificationError(parsed.message);
+    }
+  }, [writeContractError, selectedToken, exactTokenAmountToPay]);
+
+  useEffect(() => {
     if (initialPlanId) {
       setSelectedPlanId(initialPlanId);
     }
   }, [initialPlanId]);
-
-  const currentPlan = SUBSCRIPTION_PLANS[selectedPlanId];
-  const exactTokenAmountToPay = currentPlan.usdPrice.toFixed(2);
 
   // On-Chain Polygon Verification
   const handleVerify = useCallback(

@@ -38,6 +38,7 @@ import {
 import type { PaymentSession } from '@/lib/supabase';
 import { useEnsureNetwork } from '@/hooks/useEnsurePolygon';
 import { getToken, ERC20_ABI, POLYGON_CHAIN_ID } from '@/lib/tokens';
+import { parseRpcError } from '@/lib/rpcError';
 import { TokenIcon } from '@/components/TokenIcon';
 import {
   saveVerifiedTransaction,
@@ -54,88 +55,18 @@ type PayState = 'idle' | 'sending' | 'confirming' | 'success' | 'error';
 /**
  * Extracts human-readable and technical details from wallet / provider errors.
  */
-function parseTransactionError(err: unknown): { userMessage: string; techDetail: string } {
+function parseTransactionError(err: unknown, tokenSymbol = 'USDT', amount?: string): { userMessage: string; techDetail: string } {
   console.error('[CryptoPay Transaction Error Diagnostic]:', err);
 
-  if (!err) {
-    return {
-      userMessage: 'Unknown error occurred while submitting transaction.',
-      techDetail: 'No error details provided',
-    };
-  }
-
-  const errObj = err as Record<string, unknown>;
-  const rawMessage = typeof errObj.message === 'string' ? errObj.message : String(err);
-  const shortMessage = typeof errObj.shortMessage === 'string' ? errObj.shortMessage : rawMessage;
-  const details = typeof errObj.details === 'string' ? errObj.details : '';
-  const lower = (rawMessage + ' ' + details).toLowerCase();
-
-  // User rejection
-  if (
-    lower.includes('user rejected') ||
-    lower.includes('user cancelled') ||
-    lower.includes('rejected the request') ||
-    lower.includes('action_rejected') ||
-    lower.includes('4001')
-  ) {
-    return {
-      userMessage: 'Transaction was cancelled in your wallet.',
-      techDetail: shortMessage,
-    };
-  }
-
-  // Session / Timeout / Reset
-  if (
-    lower.includes('connection request reset') ||
-    lower.includes('proposal expired') ||
-    lower.includes('session proposal expired') ||
-    lower.includes('pairing proposal expired') ||
-    lower.includes('relay: connection reset')
-  ) {
-    return {
-      userMessage: 'Wallet session timed out. Please tap "Pay" to reconnect.',
-      techDetail: shortMessage,
-    };
-  }
-
-  // Insufficient native gas (POL/MATIC)
-  if (
-    lower.includes('insufficient funds for gas') ||
-    lower.includes('insufficient funds for transfer') ||
-    lower.includes('gas * price + value') ||
-    lower.includes('insufficient balance for transfer') ||
-    lower.includes('out of gas')
-  ) {
-    return {
-      userMessage: 'Insufficient POL/MATIC for gas. Your wallet needs a small amount of POL to pay Polygon network transaction fees.',
-      techDetail: shortMessage,
-    };
-  }
-
-  // Token transfer reverted
-  if (
-    lower.includes('execution reverted') ||
-    lower.includes('transfer amount exceeds balance') ||
-    lower.includes('exceeds balance') ||
-    lower.includes('erc20:')
-  ) {
-    return {
-      userMessage: 'ERC-20 transfer reverted on-chain. Please verify your token balance and try again.',
-      techDetail: shortMessage,
-    };
-  }
-
-  // RPC / Network Error
-  if (lower.includes('failed to fetch') || lower.includes('network error') || lower.includes('http request failed')) {
-    return {
-      userMessage: 'Polygon RPC network response error. Please try again.',
-      techDetail: shortMessage,
-    };
-  }
+  const parsed = parseRpcError(err, {
+    tokenSymbol,
+    amount,
+    chainId: POLYGON_CHAIN_ID,
+  });
 
   return {
-    userMessage: shortMessage || 'Transaction failed to send. Please check your wallet and try again.',
-    techDetail: `${shortMessage} ${details}`.trim(),
+    userMessage: parsed.message,
+    techDetail: parsed.technicalDetails || parsed.message,
   };
 }
 

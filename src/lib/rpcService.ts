@@ -2,23 +2,25 @@ import { createPublicClient, http, fallback, formatUnits, parseUnits, isAddress,
 import { polygon, mainnet } from 'viem/chains';
 import { ERC20_ABI, POLYGON_CHAIN_ID, ETHEREUM_CHAIN_ID } from './tokens';
 
-// Dedicated resilient public clients with multiple fallback RPC providers
+// Dedicated resilient public clients with multiple verified fallback RPC providers
 export const polygonPublicClient = createPublicClient({
   chain: polygon,
   transport: fallback([
-    http('https://polygon-rpc.com'),
-    http('https://rpc.ankr.com/polygon'),
-    http('https://polygon-bor-rpc.publicnode.com'),
-    http('https://1rpc.io/matic'),
+    http('https://polygon-bor-rpc.publicnode.com', { retryCount: 3, timeout: 8000 }),
+    http('https://1rpc.io/matic', { retryCount: 3, timeout: 8000 }),
+    http('https://polygon.drpc.org', { retryCount: 3, timeout: 8000 }),
+    http('https://polygon.gateway.tenderly.co', { retryCount: 3, timeout: 8000 }),
+    http('https://polygon.api.onfinality.io/public', { retryCount: 2, timeout: 8000 }),
   ]),
 });
 
 export const ethereumPublicClient = createPublicClient({
   chain: mainnet,
   transport: fallback([
-    http('https://ethereum-rpc.publicnode.com'),
-    http('https://rpc.ankr.com/eth'),
-    http('https://eth.llamarpc.com'),
+    http('https://ethereum-rpc.publicnode.com', { retryCount: 3, timeout: 8000 }),
+    http('https://1rpc.io/eth', { retryCount: 3, timeout: 8000 }),
+    http('https://eth.drpc.org', { retryCount: 3, timeout: 8000 }),
+    http('https://eth.llamarpc.com', { retryCount: 3, timeout: 8000 }),
   ]),
 });
 
