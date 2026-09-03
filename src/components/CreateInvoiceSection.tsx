@@ -59,10 +59,8 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
   const { address: connectedAddress, isConnected } = useAccount();
   const { activeReceiver } = useSavedReceivers();
   const {
-    subscription,
     isActive: isSubscriptionActive,
     hasFreeRun,
-    daysRemaining,
     versePrice,
     isUpgradeModalOpen,
     openUpgradeModal,
@@ -524,140 +522,59 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
           </div>
         )}
 
-        {/* Real-Time Subscription & Trial Status Banner */}
-        {isSubscriptionActive ? (
-              <div className="p-4 rounded-2xl bg-emerald-50/90 border border-emerald-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-emerald-900 animate-in fade-in">
-                <div className="flex items-center gap-2.5">
-                  <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                  <div>
-                    <strong className="text-emerald-950 font-bold">✨ Active Subscription ({subscription?.planName || '1 Month'}):</strong>
-                    <span className="ml-1 text-emerald-800">
-                      Unlimited Invoices Active • Valid until <strong>{subscription?.expiryDate || 'End of Month'}</strong> ({daysRemaining} days left). No extra fees or limits until the end of your term.
-                    </span>
-                  </div>
-                </div>
-                <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] uppercase tracking-wider whitespace-nowrap border border-emerald-300">
-                  Unlimited Access
-                </span>
-              </div>
-            ) : hasFreeRun ? (
-              <div className="p-4 rounded-2xl bg-blue-50/90 border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-blue-900 animate-in fade-in">
-                <div className="flex items-center gap-2.5">
-                  <Sparkles className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                  <div>
-                    <strong className="text-blue-950 font-bold">🎁 1st Run Free Trial Active:</strong>
-                    <span className="ml-1 text-blue-800">
-                      You can create your first Credit Invoice <strong>completely free</strong>. Subsequent invoice runs will require a subscription upgrade.
-                    </span>
-                  </div>
-                </div>
-                <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-extrabold text-[11px] uppercase tracking-wider whitespace-nowrap border border-blue-200">
-                  1 Free Run Available
-                </span>
-              </div>
-            ) : null}
-
             {/* SECTION 1: INVOICE GENERATION FORM */}
             <form onSubmit={handleCreateInvoice} className="space-y-6">
               
-              {/* 🏪 Store Name & 👛 Receiving Settlement Address */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Store Name Card */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                      <Store className="w-4 h-4 text-blue-700" />
-                      <span>🏪 Store Name</span>
-                    </label>
+              {/* 🏪 Store Name */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                    <Store className="w-4 h-4 text-blue-700" />
+                    <span>🏪 Store Name</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isEditingStore) {
+                        handleSaveStoreName();
+                      } else {
+                        setStoreNameInput(storeName);
+                        setIsEditingStore(true);
+                      }
+                    }}
+                    className="text-xs font-semibold text-blue-700 hover:underline cursor-pointer"
+                  >
+                    {isEditingStore ? 'Save' : 'Edit'}
+                  </button>
+                </div>
+
+                {isEditingStore ? (
+                  <div className="flex gap-2 pt-1">
+                    <input
+                      type="text"
+                      value={storeNameInput}
+                      onChange={(e) => setStoreNameInput(e.target.value)}
+                      placeholder="Enter Store Name"
+                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                      autoFocus
+                    />
                     <button
                       type="button"
-                      onClick={() => {
-                        if (isEditingStore) {
-                          handleSaveStoreName();
-                        } else {
-                          setStoreNameInput(storeName);
-                          setIsEditingStore(true);
-                        }
-                      }}
-                      className="text-xs font-semibold text-blue-700 hover:underline cursor-pointer"
+                      onClick={handleSaveStoreName}
+                      className="px-3 py-1.5 bg-blue-700 text-white text-xs font-bold rounded-xl hover:bg-blue-800 cursor-pointer"
                     >
-                      {isEditingStore ? 'Save' : 'Edit'}
+                      Save
                     </button>
                   </div>
-
-                  {isEditingStore ? (
-                    <div className="flex gap-2 pt-1">
-                      <input
-                        type="text"
-                        value={storeNameInput}
-                        onChange={(e) => setStoreNameInput(e.target.value)}
-                        placeholder="Enter Store Name"
-                        className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
-                        autoFocus
-                      />
-                      <button
-                        type="button"
-                        onClick={handleSaveStoreName}
-                        className="px-3 py-1.5 bg-blue-700 text-white text-xs font-bold rounded-xl hover:bg-blue-800 cursor-pointer"
-                      >
-                        Save
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900">
-                      <span className="truncate">{storeName}</span>
-                      <span className="text-[11px] text-emerald-700 font-normal flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Saved
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Receiving Wallet Address Card */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                      <Wallet className="w-4 h-4 text-emerald-600" />
-                      <span>👛 Receiving Wallet</span>
-                    </label>
-                    {isConnected ? (
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
-                        Connected
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">
-                        Required
-                      </span>
-                    )}
+                ) : (
+                  <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900">
+                    <span className="truncate">{storeName}</span>
+                    <span className="text-[11px] text-emerald-700 font-normal flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Saved
+                    </span>
                   </div>
-
-                  {isConnected && connectedAddress ? (
-                    <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono text-slate-800">
-                      <span className="truncate">{connectedAddress.slice(0, 8)}...{connectedAddress.slice(-6)}</span>
-                      <span className="text-[11px] text-emerald-700 font-sans font-semibold flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Ready
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="bg-white p-2 rounded-xl border border-dashed border-amber-300 flex items-center justify-between gap-2">
-                      <span className="text-xs text-slate-500 italic pl-1">No wallet connected</span>
-                      <ConnectButton.Custom>
-                        {({ openConnectModal }) => (
-                          <button
-                            type="button"
-                            onClick={openConnectModal}
-                            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 transition cursor-pointer"
-                          >
-                            <Wallet className="w-3.5 h-3.5" />
-                            <span>Connect</span>
-                          </button>
-                        )}
-                      </ConnectButton.Custom>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
 
               {/* 📦 Product Name */}
