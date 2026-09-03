@@ -61,7 +61,6 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
   const {
     isActive: isSubscriptionActive,
     hasFreeRun,
-    isDbLoading: isSubDbLoading,
     versePrice,
     isUpgradeModalOpen,
     openUpgradeModal,
@@ -327,24 +326,15 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
     // Enforce Subscription & Free Run Lifecycle ONLY when validations pass
     if (!isSubscriptionActive) {
-      if (!address) {
-        setFormError('Please connect your Web3 wallet first to verify Free Trial eligibility.');
-        return;
-      }
       if (!hasFreeRun) {
         setFormError(
-          `Free trial has already been used permanently for wallet ${address.slice(0, 6)}...${address.slice(-4)}. Please upgrade your subscription to continue generating invoices.`
+          'Your 1 free trial invoice run has been used. Please upgrade your subscription to continue generating invoices.'
         );
         openUpgradeModal('1_month');
         return;
       }
-      // Consume 1st free run in real-time in the permanent database
-      const trialResult = await consumeFreeRun();
-      if (!trialResult.success) {
-        setFormError(trialResult.error || 'Free trial has already been used by this wallet address.');
-        openUpgradeModal('1_month');
-        return;
-      }
+      // Consume 1st free run in real-time
+      consumeFreeRun();
     }
 
     const chainId = network === 'Polygon' ? POLYGON_CHAIN_ID : ETHEREUM_CHAIN_ID;
@@ -800,15 +790,6 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     </button>
                   )}
                 </ConnectButton.Custom>
-              ) : isSubDbLoading ? (
-                <button
-                  type="button"
-                  disabled
-                  className="w-full py-4 px-6 rounded-2xl bg-slate-100 text-slate-500 font-bold text-base flex items-center justify-center gap-2 cursor-wait"
-                >
-                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                  <span>Verifying Wallet in Database...</span>
-                </button>
               ) : isSubscriptionActive ? (
                 <button
                   type="submit"
@@ -823,7 +804,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   className="w-full py-4 px-6 rounded-2xl bg-blue-700 hover:bg-blue-800 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
                 >
                   <Sparkles className="w-5 h-5 text-amber-300" />
-                  <span>🔵 Create Credit Invoice (Free 1st Run — Linked to Wallet)</span>
+                  <span>🔵 Create Credit Invoice (Free 1st Run)</span>
                 </button>
               ) : (
                 <button
@@ -832,7 +813,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
                 >
                   <Lock className="w-5 h-5" />
-                  <span>🔒 Free Trial Used (1/1) — Upgrade to Run ($2 / 1 Month)</span>
+                  <span>🔒 Free Run Used (1/1) — Upgrade to Run ($2 / 1 Month)</span>
                 </button>
               )}
             </form>

@@ -24,9 +24,6 @@ export const SubscriptionManagementCard: React.FC = () => {
     history,
     isActive,
     hasFreeRun,
-    isDbLoading,
-    walletAddress,
-    isWalletConnected,
     daysRemaining,
     isUpgradeModalOpen,
     openUpgradeModal,
@@ -133,26 +130,6 @@ export const SubscriptionManagementCard: React.FC = () => {
       {/* SUBSCRIPTION DETAILS BREAKDOWN CARD                                       */}
       {/* ========================================================================= */}
       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3.5 text-xs sm:text-sm">
-        {/* Connected Wallet */}
-        <div className="flex justify-between items-center border-b border-slate-200 pb-2.5">
-          <span className="text-slate-500 font-medium">Connected Wallet:</span>
-          <div className="flex items-center gap-2">
-            {isWalletConnected ? (
-              <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-slate-800 bg-white border border-slate-300 px-2.5 py-1 rounded-lg">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span title={walletAddress}>{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
-                <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-sans font-bold">
-                  Permanent DB
-                </span>
-              </div>
-            ) : (
-              <span className="text-xs text-amber-700 font-semibold bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg">
-                Wallet not connected
-              </span>
-            )}
-          </div>
-        </div>
-
         {/* Current Plan */}
         <div className="flex justify-between items-center border-b border-slate-200 pb-2.5">
           <span className="text-slate-500 font-medium">Current Plan:</span>
@@ -165,15 +142,13 @@ export const SubscriptionManagementCard: React.FC = () => {
         <div className="flex justify-between items-center border-b border-slate-200 pb-2.5">
           <span className="text-slate-500 font-medium">Free 1st Run Trial:</span>
           <span className="font-bold text-xs flex items-center gap-1.5">
-            {isDbLoading ? (
-              <span className="text-slate-500 text-xs">Checking DB...</span>
-            ) : hasFreeRun ? (
-              <span className="text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
-                🎁 1 Free Run Available for this wallet
+            {hasFreeRun ? (
+              <span className="text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                🎁 1 Free Run Available
               </span>
             ) : (
-              <span className="text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
-                ✓ Free Trial Used (1/1) — Permanent in DB
+              <span className="text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
+                ✓ Free Run Used (1/1)
               </span>
             )}
           </span>

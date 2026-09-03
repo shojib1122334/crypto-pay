@@ -1,1 +1,14 @@
-{}
+{
+  "0x2222222222222222222222222222222222222222": {
+    "wallet_address": "0x2222222222222222222222222222222222222222",
+    "free_trial_granted": true,
+    "free_trial_used": false,
+    "free_trial_used_at": null,
+    "trial_runs_used": 0,
+    "status": "None",
+    "subscription": null,
+    "history": [],
+    "created_at": "2026-09-03T04:01:14.494Z",
+    "updated_at": "2026-09-03T04:01:14.494Z"
+  }
+}
