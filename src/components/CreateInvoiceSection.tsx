@@ -450,54 +450,6 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
       {/* Main Container */}
       <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-7">
-        
-        {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
-          <div>
-            <div className="flex items-center gap-2.5 mb-1">
-              <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
-                <Store className="w-5 h-5" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  Credit Invoice
-                </h1>
-              </div>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-600">
-              Generate authentic Web3 credit payment invoices settled directly to your connected wallet.
-            </p>
-          </div>
-
-          {/* Connected Wallet / Settlement Receiver Indicator */}
-          <div className="flex items-center gap-2.5">
-            {isConnected && connectedAddress ? (
-              <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-300 px-3.5 py-2 rounded-2xl text-xs">
-                <div className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-                <span className="text-slate-600">Connected Wallet:</span>
-                <span className="font-mono font-bold text-emerald-800">
-                  {connectedAddress.slice(0, 6)}...{connectedAddress.slice(-4)}
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <ConnectButton.Custom>
-                  {({ openConnectModal }) => (
-                    <button
-                      type="button"
-                      onClick={openConnectModal}
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold transition cursor-pointer"
-                    >
-                      <Wallet className="w-3.5 h-3.5" />
-                      <span>Connect Wallet</span>
-                    </button>
-                  )}
-                </ConnectButton.Custom>
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Real Wallet Notice Banner */}
         {!isConnected && (
           <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900">
