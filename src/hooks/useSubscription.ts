@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { fetchCryptoPrices } from '@/lib/rpcService';
 import {
   getActiveSubscription,
   getSubscriptionHistory,
@@ -7,6 +8,7 @@ import {
   hasFreeRunAvailable,
   consumeFreeRun,
   canUserExecuteRun,
+  isAdminUnlocked,
   type SubscriptionRecord,
   type SubscriptionPlanId,
   type SubscriptionToken,
@@ -21,6 +23,8 @@ export function useSubscription() {
     getSubscriptionHistory()
   );
   const [isActive, setIsActive] = useState<boolean>(() => isSubscriptionActive());
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => isAdminUnlocked());
+  const [versePrice, setVersePrice] = useState<number>(0.00035);
   const [freeRunsUsed, setFreeRunsUsed] = useState<number>(() => getFreeRunsUsed());
   const [hasFreeRun, setHasFreeRun] = useState<boolean>(() => hasFreeRunAvailable());
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
@@ -29,6 +33,8 @@ export function useSubscription() {
 
   // Refresh free trial and subscription state in real-time
   const refresh = useCallback(() => {
+    const admin = isAdminUnlocked();
+    setIsAdmin(admin);
     const sub = getActiveSubscription();
     setSubscription(sub);
     const active = isSubscriptionActive();
@@ -42,17 +48,30 @@ export function useSubscription() {
   useEffect(() => {
     refresh();
 
+    // Fetch real-time VERSE price for calculations
+    fetchCryptoPrices()
+      .then((prices) => {
+        if (prices?.VERSE && prices.VERSE > 0) {
+          setVersePrice(prices.VERSE);
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to fetch real-time VERSE price, using default fallback:', err);
+      });
+
     const handleUpdate = () => {
       refresh();
     };
 
     window.addEventListener('cryptopay_subscription_updated', handleUpdate);
     window.addEventListener('cryptopay_free_trial_updated', handleUpdate);
+    window.addEventListener('cryptopay_admin_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
 
     return () => {
       window.removeEventListener('cryptopay_subscription_updated', handleUpdate);
       window.removeEventListener('cryptopay_free_trial_updated', handleUpdate);
+      window.removeEventListener('cryptopay_admin_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
     };
   }, [refresh]);
@@ -90,6 +109,8 @@ export function useSubscription() {
     subscription,
     history,
     isActive,
+    isAdmin,
+    versePrice,
     freeRunsUsed,
     hasFreeRun,
     canRun,

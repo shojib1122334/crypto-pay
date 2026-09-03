@@ -522,7 +522,7 @@ export const RecurringSubscriptionInvoiceSection: React.FC<
               {paymentToken === 'VERSE' && (
                 <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
                   <span>
-                    ≈ ${(parseFloat(amount || '0') * (versePrice || 0.00035)).toFixed(2)} USD (at 1 VERSE = ${versePrice.toFixed(6)})
+                    ≈ ${(parseFloat(amount || '0') * (versePrice || 0.00035)).toFixed(2)} USD (at 1 VERSE = ${(versePrice ?? 0.00035).toFixed(6)})
                   </span>
                   <a
                     href="https://www.coingecko.com/en/coins/verse"

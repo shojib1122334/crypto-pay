@@ -3,6 +3,7 @@ import { Download, CheckCircle2, ShieldCheck, Wifi, WifiOff, Globe, Layers } fro
 import { usePWA } from '@/hooks/usePWA';
 import { SavedReceiversSection } from '@/components/SavedReceiversSection';
 import { SubscriptionManagementCard } from '@/components/SubscriptionManagementCard';
+import { AdminPasswordSection } from '@/components/AdminPasswordSection';
 
 export const ComingSoonPage: React.FC = () => {
   const { isInstalled, isInstallable, isOnline, installApp } = usePWA();
@@ -162,6 +163,9 @@ export const ComingSoonPage: React.FC = () => {
           <span className="w-3 h-3 rounded-full bg-rose-600 animate-pulse delay-500" />
         </div>
       </div>
+
+      {/* Admin Password Access Section (Bottom of Settings) */}
+      <AdminPasswordSection />
     </div>
   );
 };

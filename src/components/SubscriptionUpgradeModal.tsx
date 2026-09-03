@@ -33,6 +33,7 @@ interface SubscriptionUpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialPlanId?: SubscriptionPlanId;
+  versePrice?: number;
   onSuccess?: (sub: SubscriptionRecord) => void;
 }
 
@@ -629,6 +630,26 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
                   </div>
                 </div>
 
+                {/* [ Verify Payment ] Button */}
+                <button
+                  type="button"
+                  onClick={() => handleVerify()}
+                  disabled={isVerifying || !txHashInput.trim()}
+                  className="w-full py-3.5 px-6 rounded-2xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+                >
+                  {isVerifying ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Verifying On-Chain...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>[ Verify Payment ]</span>
+                    </>
+                  )}
+                </button>
+
                 {/* ❌ Error Notice */}
                 {verificationError && (
                   <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs flex items-start gap-2.5 animate-in fade-in">
@@ -661,26 +682,6 @@ export const SubscriptionUpgradeModal: React.FC<SubscriptionUpgradeModalProps> =
                     A transaction sent to any other wallet will be rejected.
                   </p>
                 </div>
-
-                {/* [ Verify Payment ] Button */}
-                <button
-                  type="button"
-                  onClick={() => handleVerify()}
-                  disabled={isVerifying || !txHashInput.trim()}
-                  className="w-full py-3.5 px-6 rounded-2xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
-                >
-                  {isVerifying ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Verifying On-Chain...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>[ Verify Payment ]</span>
-                    </>
-                  )}
-                </button>
               </div>
             </div>
           </>

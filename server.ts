@@ -10,9 +10,8 @@ async function startServer() {
   app.use(cors());
   app.use(express.json());
 
-  // Set standard security & opener headers for web3 wallets & iframe compatibility
+  // Set standard resource policy headers for web3 wallets & iframe compatibility
   app.use((_req, res, next) => {
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     next();
   });

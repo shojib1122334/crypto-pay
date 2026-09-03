@@ -79,6 +79,45 @@ const SUBSCRIPTION_HISTORY_KEY = 'cryptopay_subscription_history';
 const USED_TX_HASHES_KEY = 'cryptopay_used_sub_tx_hashes';
 const RECURRING_INVOICES_KEY = 'cryptopay_recurring_invoices';
 const FREE_TRIAL_RUNS_KEY = 'cryptopay_free_trial_runs_used';
+const ADMIN_STORAGE_KEY = 'cryptopay_admin_unlocked_session';
+
+// Helper: Check if admin is currently authenticated
+export function isAdminUnlocked(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem(ADMIN_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+// Helper: Unlock admin access with password
+export function unlockAdminAccess(password: string): { success: boolean; error?: string } {
+  if (typeof window === 'undefined') return { success: false, error: 'Window not available' };
+  if (password === 'shojib@@@@@') {
+    try {
+      localStorage.setItem(ADMIN_STORAGE_KEY, 'true');
+      window.dispatchEvent(new CustomEvent('cryptopay_admin_updated', { detail: { unlocked: true } }));
+      window.dispatchEvent(new CustomEvent('cryptopay_subscription_updated'));
+      return { success: true };
+    } catch {
+      return { success: false, error: 'Failed to save admin session' };
+    }
+  }
+  return { success: false, error: 'Incorrect admin password. Access denied.' };
+}
+
+// Helper: Lock admin access
+export function lockAdminAccess(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(ADMIN_STORAGE_KEY);
+    window.dispatchEvent(new CustomEvent('cryptopay_admin_updated', { detail: { unlocked: false } }));
+    window.dispatchEvent(new CustomEvent('cryptopay_subscription_updated'));
+  } catch (err) {
+    console.warn('Failed to lock admin access:', err);
+  }
+}
 
 // Helper: Get number of free runs used
 export function getFreeRunsUsed(): number {
@@ -117,6 +156,38 @@ export function consumeFreeRun(): void {
 export function getActiveSubscription(): SubscriptionRecord | null {
   if (typeof window === 'undefined') return null;
   try {
+    if (isAdminUnlocked()) {
+      const raw = localStorage.getItem(SUBSCRIPTION_STORAGE_KEY);
+      if (raw) {
+        try {
+          const sub: SubscriptionRecord = JSON.parse(raw);
+          return {
+            ...sub,
+            status: 'Active',
+            expiryTimestamp: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          };
+        } catch (err) {
+          console.warn('Failed to parse existing subscription in admin mode:', err);
+        }
+      }
+      return {
+        id: 'ADMIN-MASTER-UNLIMITED',
+        planId: '3_months',
+        planName: 'Admin Master Pass',
+        usdAmount: 0,
+        token: 'USDT',
+        tokenAmount: '0',
+        receivingWallet: SUBSCRIPTION_RECEIVER_WALLET,
+        txHash: '0xadmin_authorized_access',
+        startDate: 'Permanent Admin',
+        expiryDate: 'Lifetime Unlimited',
+        startTimestamp: Date.now(),
+        expiryTimestamp: Date.now() + 100 * 365 * 24 * 60 * 60 * 1000,
+        status: 'Active',
+        createdAt: Date.now(),
+      };
+    }
+
     const raw = localStorage.getItem(SUBSCRIPTION_STORAGE_KEY);
     if (!raw) return null;
     const sub: SubscriptionRecord = JSON.parse(raw);
@@ -136,6 +207,9 @@ export function getActiveSubscription(): SubscriptionRecord | null {
 
 // Check if user has active subscription
 export function isSubscriptionActive(): boolean {
+  if (isAdminUnlocked()) {
+    return true;
+  }
   const sub = getActiveSubscription();
   return Boolean(sub && sub.status === 'Active' && Date.now() < sub.expiryTimestamp);
 }
@@ -147,6 +221,14 @@ export function canUserExecuteRun(): {
   isSubscriptionActive: boolean;
   reason?: string;
 } {
+  if (isAdminUnlocked()) {
+    return {
+      canRun: true,
+      isFreeTrialRun: false,
+      isSubscriptionActive: true,
+    };
+  }
+
   const isSubActive = isSubscriptionActive();
   if (isSubActive) {
     return {

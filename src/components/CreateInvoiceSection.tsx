@@ -46,7 +46,6 @@ import {
   type CryptoPayInvoiceData,
 } from '@/lib/invoices';
 import { useSubscription } from '@/hooks/useSubscription';
-import { RecurringSubscriptionInvoiceSection } from '@/components/RecurringSubscriptionInvoiceSection';
 import { SubscriptionUpgradeModal } from '@/components/SubscriptionUpgradeModal';
 import type { NavTab } from '@/types/navigation';
 
@@ -71,9 +70,6 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
     consumeFreeRun,
     refresh: refreshSubscription,
   } = useSubscription();
-
-  // Invoice Mode: 'one-time' | 'subscription'
-  const [invoiceMode, setInvoiceMode] = useState<'one-time' | 'subscription'>('one-time');
 
   // 1. Store Name (Saved during initial setup / editable)
   const [storeName, setStoreName] = useState<string>(() => {
@@ -528,63 +524,8 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
           </div>
         )}
 
-        {/* 🌟 Invoice Mode Switcher: One-Time Invoice vs. Recurring Subscription Invoice */}
-        <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setInvoiceMode('one-time')}
-            className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer ${
-              invoiceMode === 'one-time'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <FileText className="w-4 h-4 text-blue-700" />
-            <span>One-Time Credit Invoice</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setInvoiceMode('subscription')}
-            className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer relative ${
-              invoiceMode === 'subscription'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            {isSubscriptionActive ? (
-              <Sparkles className="w-4 h-4 text-amber-500" />
-            ) : (
-              <Lock className="w-4 h-4 text-blue-700" />
-            )}
-            <span>Subscription Payment Tools</span>
-            {isSubscriptionActive ? (
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300">
-                Unlocked
-              </span>
-            ) : (
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                Upgrade Required
-              </span>
-            )}
-          </button>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* SUBSECTION A: RECURRING SUBSCRIPTION TOOLS                                 */}
-        {/* ========================================================================= */}
-        {invoiceMode === 'subscription' ? (
-          <RecurringSubscriptionInvoiceSection
-            effectiveReceiverAddress={effectiveReceiverAddress}
-            storeName={storeName}
-          />
-        ) : (
-          /* ========================================================================= */
-          /* SUBSECTION B: STANDARD ONE-TIME CREDIT INVOICE                            */
-          /* ========================================================================= */
-          <>
-            {/* Real-Time Subscription & Trial Status Banner */}
-            {isSubscriptionActive ? (
+        {/* Real-Time Subscription & Trial Status Banner */}
+        {isSubscriptionActive ? (
               <div className="p-4 rounded-2xl bg-emerald-50/90 border border-emerald-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-emerald-900 animate-in fade-in">
                 <div className="flex items-center gap-2.5">
                   <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
@@ -614,26 +555,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   1 Free Run Available
                 </span>
               </div>
-            ) : (
-              <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900 animate-in fade-in">
-                <div className="flex items-center gap-2.5">
-                  <Lock className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                  <div>
-                    <strong className="text-amber-950 font-bold">🔒 Free 1st Run Completed (1/1):</strong>
-                    <span className="ml-1 text-amber-800">
-                      Your free trial run has been used. Upgrade your subscription to continue generating invoices ($2 for 1 Month or $5 for 3 Months).
-                    </span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => openUpgradeModal('1_month')}
-                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold whitespace-nowrap transition cursor-pointer shadow-xs"
-                >
-                  Upgrade to Run ($2)
-                </button>
-              </div>
-            )}
+            ) : null}
 
             {/* SECTION 1: INVOICE GENERATION FORM */}
             <form onSubmit={handleCreateInvoice} className="space-y-6">
@@ -1088,8 +1010,6 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 </div>
               </div>
             )}
-          </>
-        )}
 
       </div>
 
