@@ -13,8 +13,10 @@ export function useSwapEngine() {
   const wagmiConfig = useConfig();
 
   // Selected tokens (Defaults to 10,000 VERSE -> USDT as specified)
-  const [inputToken, setInputToken] = useState<SwapTokenInfo>(SWAP_TOKENS[2]); // VERSE
-  const [outputToken, setOutputToken] = useState<SwapTokenInfo>(SWAP_TOKENS[0]); // USDT
+  const defaultInput = SWAP_TOKENS.find((t) => t.symbol === 'VERSE') || SWAP_TOKENS[3];
+  const defaultOutput = SWAP_TOKENS.find((t) => t.symbol === 'USDT') || SWAP_TOKENS[1];
+  const [inputToken, setInputToken] = useState<SwapTokenInfo>(defaultInput);
+  const [outputToken, setOutputToken] = useState<SwapTokenInfo>(defaultOutput);
   const [inputAmount, setInputAmount] = useState<string>('10000');
 
   // Settings
@@ -98,8 +100,8 @@ export function useSwapEngine() {
   const checkAllowance = useCallback(async (currentQuote: SwapQuote) => {
     if (!address || !isConnected) return;
 
-    // Native MATIC is gas asset, no ERC-20 approval needed
-    if (currentQuote.inputToken.symbol === 'MATIC') {
+    // Native MATIC/POL is gas asset, no ERC-20 approval needed
+    if (currentQuote.inputToken.symbol === 'MATIC' || currentQuote.inputToken.symbol === 'POL') {
       setAllowance(BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'));
       setStatus('APPROVED');
       setIsCheckingAllowance(false);
@@ -135,6 +137,7 @@ export function useSwapEngine() {
 
   // Debounced quote fetcher
   const quoteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchQuote = useCallback(async () => {
     const num = parseFloat(inputAmount);
@@ -144,7 +147,7 @@ export function useSwapEngine() {
       return;
     }
 
-    if (inputToken.symbol === 'MATIC' && num < 3) {
+    if ((inputToken.symbol === 'MATIC' || inputToken.symbol === 'POL') && num < 3) {
       setQuote(null);
       setQuoteError('Minimum Swap amount for Polygon (MATIC) is 3 MATIC.');
       return;
@@ -162,6 +165,12 @@ export function useSwapEngine() {
       return;
     }
 
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsQuoteLoading(true);
     setQuoteError(null);
 
@@ -175,12 +184,21 @@ export function useSwapEngine() {
         slippage: slippage.toString(),
       });
 
-      const res = await fetch(`/api/swap/quote?${query.toString()}`);
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
+      const res = await fetch(`/api/swap/quote?${query.toString()}`, {
+        signal: controller.signal,
+      });
+      let data: { success?: boolean; quote?: SwapQuote; error?: string; message?: string } | null = null;
+      try {
+        data = await res.json();
+      } catch {
         setQuote(null);
-        setQuoteError(data.error || 'Failed to get live quote from Polygon.');
+        setQuoteError('Polygon swap quote service is momentarily unavailable.');
+        return;
+      }
+
+      if (!res.ok || !data || !data.success) {
+        setQuote(null);
+        setQuoteError(data?.error || data?.message || 'Failed to get live quote from Polygon.');
       } else {
         setQuote(data.quote);
         setQuoteError(null);
@@ -189,9 +207,13 @@ export function useSwapEngine() {
           checkAllowance(data.quote);
         }
       }
-    } catch {
+    } catch (err: unknown) {
+      if ((err as Error)?.name === 'AbortError') {
+        return;
+      }
       setQuote(null);
-      setQuoteError('Failed to connect to Polygon quote service.');
+      const msg = err instanceof Error && err.message ? err.message : 'Failed to connect to Polygon quote service.';
+      setQuoteError(msg);
     } finally {
       setIsQuoteLoading(false);
     }
@@ -313,12 +335,13 @@ export function useSwapEngine() {
     // Check gas balance
     const estGasPol = parseFloat(quote.estimatedGasFeePol);
     const userPol = parseFloat(polBalance);
-    const requiredPol = quote.inputToken.symbol === 'MATIC' ? (parseFloat(inputAmount) + estGasPol) : estGasPol;
+    const isNativeIn = quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL';
+    const requiredPol = isNativeIn ? (parseFloat(inputAmount) + estGasPol) : estGasPol;
     if (userPol < requiredPol) {
       setStatus('INSUFFICIENT_GAS');
       setExecutionError(
-        quote.inputToken.symbol === 'MATIC'
-          ? `Insufficient POL/MATIC balance for swap amount (${inputAmount} MATIC) + network gas fee (~${estGasPol.toFixed(2)} POL).`
+        isNativeIn
+          ? `Insufficient POL/MATIC balance for swap amount (${inputAmount} ${quote.inputToken.symbol}) + network gas fee (~${estGasPol.toFixed(2)} POL).`
           : `You need at least ${estGasPol.toFixed(2)} POL for network gas fee.`
       );
       setIsStatusModalOpen(true);
@@ -350,7 +373,7 @@ export function useSwapEngine() {
       const tx = prepData.transaction;
       const txValue = tx.value && tx.value !== '0x0' && tx.value !== '0'
         ? BigInt(tx.value)
-        : quote.inputToken.symbol === 'MATIC'
+        : (quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL')
         ? BigInt(quote.inputAmountRaw)
         : 0n;
 

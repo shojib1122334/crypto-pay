@@ -16,7 +16,7 @@ import { TokenSelectModal } from './TokenSelectModal';
 import { SlippageModal } from './SlippageModal';
 import { SwapDetails } from './SwapDetails';
 import { SwapStatusModal } from './SwapStatusModal';
-import { formatTokenAmount } from './tokenData';
+import { formatTokenAmount, formatRealQuotedAmount } from './tokenData';
 import { TokenIcon } from '../TokenIcon';
 
 interface SwapCardProps {
@@ -69,7 +69,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
 
   // Check if minimum rules are met
   let minAmountNotice: string | null = null;
-  if (inputToken.symbol === 'MATIC') {
+  if (inputToken.symbol === 'MATIC' || inputToken.symbol === 'POL') {
     minAmountNotice = 'Min: 3 MATIC';
   } else if (inputToken.symbol === 'VERSE') {
     minAmountNotice = 'Min: 10,000 VERSE';
@@ -217,7 +217,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               {isQuoteLoading ? (
                 <span className="text-slate-400 animate-pulse">Calculating...</span>
               ) : quote ? (
-                <span>{formatTokenAmount(quote.expectedOutput)}</span>
+                <span>{formatRealQuotedAmount(quote.expectedOutput)}</span>
               ) : (
                 <span className="text-slate-300 dark:text-slate-600">--</span>
               )}
@@ -239,7 +239,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
 
           <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2">
             <span>
-              {quote ? `Guaranteed min: ${formatTokenAmount(quote.minimumReceived)} ${outputToken.symbol}` : 'Executable on-chain quote'}
+              {quote ? `Guaranteed min: ${formatRealQuotedAmount(quote.minimumReceived)} ${outputToken.symbol}` : 'Executable on-chain quote'}
             </span>
             {quote && (
               <span className="text-emerald-600 dark:text-emerald-400 font-medium">

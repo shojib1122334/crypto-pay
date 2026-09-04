@@ -185,8 +185,8 @@ async function startServer() {
       const quote = await generateExecutableQuote({
         chainId: Number(chainId),
         walletAddress: (walletAddress as string) || '0x0000000000000000000000000000000000000000',
-        inputSymbol: (inputToken as string).toUpperCase() as 'USDT' | 'USDC' | 'VERSE' | 'MATIC',
-        outputSymbol: (outputToken as string).toUpperCase() as 'USDT' | 'USDC' | 'VERSE' | 'MATIC',
+        inputSymbol: (inputToken as string).toUpperCase() as 'USDT' | 'USDC' | 'VERSE' | 'MATIC' | 'POL',
+        outputSymbol: (outputToken as string).toUpperCase() as 'USDT' | 'USDC' | 'VERSE' | 'MATIC' | 'POL',
         inputAmount: inputAmount as string,
         slippage: slippage ? Number(slippage) : undefined,
       });
@@ -194,7 +194,7 @@ async function startServer() {
       return res.json({ success: true, quote });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to generate executable quote';
-      return res.status(400).json({ error: msg });
+      return res.status(400).json({ success: false, error: msg });
     }
   });
 

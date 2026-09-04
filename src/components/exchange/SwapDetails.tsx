@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, ExternalLink, Zap, Info } from 'lucide-react';
 import { SwapQuote } from '../../types/swap';
-import { getPolygonscanAddressUrl, formatTokenAmount } from './tokenData';
+import { getPolygonscanAddressUrl, formatTokenAmount, formatRealQuotedAmount } from './tokenData';
 
 interface SwapDetailsProps {
   quote: SwapQuote;
@@ -91,7 +91,7 @@ export const SwapDetails: React.FC<SwapDetailsProps> = ({ quote }) => {
                 </span>
               </span>
               <span className="font-semibold text-slate-900 dark:text-white">
-                {formatTokenAmount(quote.minimumReceived)} {quote.outputToken.symbol}
+                {formatRealQuotedAmount(quote.minimumReceived)} {quote.outputToken.symbol}
               </span>
             </div>
 
@@ -105,7 +105,7 @@ export const SwapDetails: React.FC<SwapDetailsProps> = ({ quote }) => {
             <div className="flex items-center justify-between">
               <span className="text-slate-500 dark:text-slate-400">Liquidity Provider Fee ({quote.liquidityFeePercent}%)</span>
               <span className="font-medium text-slate-900 dark:text-white">
-                {formatTokenAmount(quote.providerFeeAmount.split(' ')[0])} {quote.inputToken.symbol}
+                {formatRealQuotedAmount(quote.providerFeeAmount.split(' ')[0])} {quote.inputToken.symbol}
               </span>
             </div>
 

@@ -1,5 +1,5 @@
 export interface TokenConfig {
-  symbol: 'USDT' | 'USDC' | 'VERSE' | 'MATIC';
+  symbol: 'USDT' | 'USDC' | 'VERSE' | 'MATIC' | 'POL';
   name: string;
   address: `0x${string}`;
   decimals: number;
@@ -12,10 +12,20 @@ export interface TokenConfig {
 
 export const POLYGON_CHAIN_ID = 137;
 
-export const WHITELISTED_TOKENS: Record<'USDT' | 'USDC' | 'VERSE' | 'MATIC', TokenConfig> = {
+export const WHITELISTED_TOKENS: Record<'USDT' | 'USDC' | 'VERSE' | 'MATIC' | 'POL', TokenConfig> = {
   MATIC: {
     symbol: 'MATIC',
-    name: 'Polygon (MATIC)',
+    name: 'Polygon (POL/MATIC)',
+    address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+    decimals: 18,
+    logo: '/tokens/matic.png',
+    color: '#8247E5',
+    enabled: true,
+    minInputAmount: 3,
+  },
+  POL: {
+    symbol: 'POL',
+    name: 'Polygon Ecosystem Token (POL)',
     address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     decimals: 18,
     logo: '/tokens/matic.png',
@@ -104,4 +114,10 @@ export const VALID_PAIRS = new Set([
   'USDC-MATIC',
   'MATIC-VERSE',
   'VERSE-MATIC',
+  'POL-USDT',
+  'USDT-POL',
+  'POL-USDC',
+  'USDC-POL',
+  'POL-VERSE',
+  'VERSE-POL',
 ]);

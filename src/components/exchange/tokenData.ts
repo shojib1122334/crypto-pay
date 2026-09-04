@@ -1,5 +1,5 @@
 export interface SwapTokenInfo {
-  symbol: 'USDT' | 'USDC' | 'VERSE' | 'MATIC';
+  symbol: 'USDT' | 'USDC' | 'VERSE' | 'MATIC' | 'POL';
   name: string;
   address: `0x${string}`;
   decimals: number;
@@ -14,7 +14,7 @@ export const POLYGON_CHAIN_ID = 137;
 export const SWAP_TOKENS: SwapTokenInfo[] = [
   {
     symbol: 'MATIC',
-    name: 'Polygon (MATIC)',
+    name: 'Polygon (POL / MATIC)',
     address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     decimals: 18,
     logo: '/tokens/matic.png',
@@ -91,5 +91,46 @@ export function formatTokenAmount(
     minimumFractionDigits: minDecimals,
     maximumFractionDigits: maxDecimals,
   });
+}
+
+/**
+ * Formats the live executable quoted receive amount for display in "You Receive".
+ * Shows the exact real quoted amount without aggressively rounding or truncating to <0.01.
+ */
+export function formatRealQuotedAmount(
+  amount: string | number | undefined | null
+): string {
+  if (amount === undefined || amount === null || amount === '') return '0.00';
+  const cleanStr = typeof amount === 'string' ? amount.replace(/,/g, '').trim() : String(amount);
+  const num = parseFloat(cleanStr);
+  if (isNaN(num)) return '0.00';
+  if (num === 0) return '0.00';
+
+  const parts = cleanStr.split('.');
+  const intPart = Number(parts[0]).toLocaleString('en-US');
+
+  if (parts.length === 1) {
+    return `${intPart}.00`;
+  }
+
+  let decPart = parts[1];
+
+  // For large amounts >= 1,000 (e.g. 13,044.88 VERSE), show 2 decimals
+  if (num >= 1000) {
+    decPart = decPart.slice(0, 2);
+    return `${intPart}.${decPart}`;
+  }
+
+  // For amounts >= 1 (e.g. 5.019644 USDC or 52.437178 MATIC), show up to 6 decimals
+  if (num >= 1) {
+    decPart = decPart.slice(0, 6).replace(/0+$/, '');
+    if (decPart.length < 2) decPart = decPart.padEnd(2, '0');
+    return `${intPart}.${decPart}`;
+  }
+
+  // For small amounts < 1 (e.g. 0.286668 USDT), show up to 6 significant decimals
+  decPart = decPart.slice(0, 6).replace(/0+$/, '');
+  if (decPart.length < 2) decPart = decPart.padEnd(2, '0');
+  return `${intPart}.${decPart}`;
 }
 

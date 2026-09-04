@@ -250,12 +250,12 @@ async function getNetworkFeeDetails(estimatedGasUnits: bigint): Promise<{
 export async function generateExecutableQuote(params: {
   chainId: number;
   walletAddress: string;
-  inputSymbol: 'USDT' | 'USDC' | 'VERSE' | 'MATIC';
-  outputSymbol: 'USDT' | 'USDC' | 'VERSE' | 'MATIC';
+  inputSymbol: 'USDT' | 'USDC' | 'VERSE' | 'MATIC' | 'POL' | string;
+  outputSymbol: 'USDT' | 'USDC' | 'VERSE' | 'MATIC' | 'POL' | string;
   inputAmount: string;
   slippage?: number;
 }): Promise<ExecutableQuote> {
-  const { chainId, walletAddress, inputSymbol, outputSymbol, inputAmount } = params;
+  const { chainId, walletAddress, inputAmount } = params;
 
   // 1. Strict Chain ID Validation
   if (Number(chainId) !== POLYGON_CHAIN_ID) {
@@ -263,13 +263,19 @@ export async function generateExecutableQuote(params: {
   }
 
   // 2. Token Whitelist Validation
-  const tokenIn = WHITELISTED_TOKENS[inputSymbol];
-  const tokenOut = WHITELISTED_TOKENS[outputSymbol];
+  const inSym = (params.inputSymbol || '').toUpperCase() as 'USDT' | 'USDC' | 'VERSE' | 'MATIC' | 'POL';
+  const outSym = (params.outputSymbol || '').toUpperCase() as 'USDT' | 'USDC' | 'VERSE' | 'MATIC' | 'POL';
+
+  const tokenIn = WHITELISTED_TOKENS[inSym];
+  const tokenOut = WHITELISTED_TOKENS[outSym];
   if (!tokenIn || !tokenOut) {
-    throw new Error('One or both selected tokens are not supported. Supported tokens are MATIC, USDT, USDC, and VERSE on Polygon.');
+    throw new Error('One or both selected tokens are not supported. Supported tokens are MATIC, POL, USDT, USDC, and VERSE on Polygon.');
   }
 
-  if (tokenIn.symbol === tokenOut.symbol) {
+  const isNativeIn = tokenIn.symbol === 'MATIC' || tokenIn.symbol === 'POL';
+  const isNativeOut = tokenOut.symbol === 'MATIC' || tokenOut.symbol === 'POL';
+
+  if (tokenIn.symbol === tokenOut.symbol || (isNativeIn && isNativeOut)) {
     throw new Error('Same-token swaps are not permitted.');
   }
 
@@ -285,9 +291,9 @@ export async function generateExecutableQuote(params: {
     throw new Error('Please enter a valid swap amount greater than zero.');
   }
 
-  // Rule: MATIC input minimum is 3 MATIC
-  if (tokenIn.symbol === 'MATIC' && numAmount < 3) {
-    throw new Error('Minimum Swap amount for Polygon (MATIC) is 3 MATIC.');
+  // Rule: MATIC/POL input minimum is 3 MATIC
+  if (isNativeIn && numAmount < 3) {
+    throw new Error('Minimum Swap amount for Polygon (POL/MATIC) is 3 MATIC.');
   }
 
   // Rule: VERSE input minimum is 10,000 VERSE
@@ -328,49 +334,60 @@ export async function generateExecutableQuote(params: {
     const kyberRes = await fetch(kyberUrl, {
       headers: {
         'x-client-id': KYBERSWAP_CONFIG.clientId,
+        'Accept': 'application/json',
       },
+      signal: AbortSignal.timeout(8000),
     });
 
     if (kyberRes.ok) {
       const kyberJson = await kyberRes.json();
       if (kyberJson.code === 0 && kyberJson.data?.routeSummary) {
         const summary = kyberJson.data.routeSummary as KyberRouteSummary;
-        kyberRouteSummary = summary;
-        bestExpectedRaw = BigInt(summary.amountOut);
-        routerAddress = (kyberJson.data.routerAddress || KYBERSWAP_CONFIG.routerAddress) as `0x${string}`;
+        if (summary.amountOut && BigInt(summary.amountOut) > 0n) {
+          kyberRouteSummary = summary;
+          bestExpectedRaw = BigInt(summary.amountOut);
+          routerAddress = (kyberJson.data.routerAddress || KYBERSWAP_CONFIG.routerAddress) as `0x${string}`;
 
-        const parsed = parseKyberRoute(tokenIn.symbol, tokenOut.symbol, summary);
-        routeDescription = parsed.description;
-        routePath = parsed.path.length > 0 ? parsed.path : [tokenIn.address, tokenOut.address];
-        hops = parsed.hops;
+          const parsed = parseKyberRoute(tokenIn.symbol, tokenOut.symbol, summary);
+          routeDescription = parsed.description;
+          routePath = parsed.path.length > 0 ? parsed.path : [tokenIn.address, tokenOut.address];
+          hops = parsed.hops;
 
-        // Exact live price impact from KyberSwap Aggregator USD values
-        const inUsd = parseFloat(summary.amountInUsd || '0');
-        const outUsd = parseFloat(summary.amountOutUsd || '0');
-        if (inUsd > 0 && outUsd > 0) {
-          const diff = ((inUsd - outUsd) / inUsd) * 100;
-          priceImpact = Math.max(0.01, parseFloat(diff.toFixed(2)));
-        }
+          // Exact live price impact from KyberSwap Aggregator USD values
+          const inUsd = parseFloat(summary.amountInUsd || '0');
+          const outUsd = parseFloat(summary.amountOutUsd || '0');
+          if (inUsd > 0 && outUsd > 0) {
+            const diff = ((inUsd - outUsd) / inUsd) * 100;
+            priceImpact = Math.max(0.01, parseFloat(diff.toFixed(2)));
+          }
 
-        // Live gas estimate from KyberSwap
-        if (summary.gas) {
-          estimatedGasUnits = BigInt(summary.gas);
+          // Live gas estimate from KyberSwap
+          if (summary.gas) {
+            estimatedGasUnits = BigInt(summary.gas);
+          }
+          if (summary.gasPrice && summary.gas) {
+            const gasWei = BigInt(summary.gas) * BigInt(summary.gasPrice);
+            estimatedGasFeePol = parseFloat(formatUnits(gasWei, 18)).toFixed(5);
+          }
+          if (summary.gasUsd) {
+            estimatedGasFeeUsd = `$${parseFloat(summary.gasUsd).toFixed(4)}`;
+          }
         }
-        if (summary.gasPrice && summary.gas) {
-          const gasWei = BigInt(summary.gas) * BigInt(summary.gasPrice);
-          estimatedGasFeePol = parseFloat(formatUnits(gasWei, 18)).toFixed(5);
-        }
-        if (summary.gasUsd) {
-          estimatedGasFeeUsd = `$${parseFloat(summary.gasUsd).toFixed(4)}`;
-        }
+      } else {
+        console.warn(`[KyberSwap] Aggregator non-zero response (${kyberJson.code}): ${kyberJson.message || 'No route found'}`);
       }
+    } else {
+      console.warn(`[KyberSwap] Aggregator HTTP status: ${kyberRes.status} ${kyberRes.statusText}`);
     }
   } catch (err) {
-    console.warn('KyberSwap Aggregator API query failed, trying direct on-chain fallback:', err);
+    console.warn('KyberSwap Aggregator API query error, checking on-chain fallback:', err);
   }
 
   // Fallback to on-chain Uniswap/Quickswap if KyberSwap Aggregator is temporarily unreachable
   if (bestExpectedRaw <= 0n) {
+    const inAddr = isNativeIn ? WMATIC_ADDRESS : tokenIn.address;
+    const outAddr = isNativeOut ? WMATIC_ADDRESS : tokenOut.address;
+
     if (
       (tokenIn.symbol === 'USDT' && tokenOut.symbol === 'USDC') ||
       (tokenIn.symbol === 'USDC' && tokenOut.symbol === 'USDT')
@@ -426,7 +443,14 @@ export async function generateExecutableQuote(params: {
         estimatedGasUnits = 160000n;
       }
     } else {
-      routePath = [tokenIn.address, WMATIC_ADDRESS, tokenOut.address];
+      if (inAddr.toLowerCase() === WMATIC_ADDRESS.toLowerCase()) {
+        routePath = [WMATIC_ADDRESS, outAddr];
+      } else if (outAddr.toLowerCase() === WMATIC_ADDRESS.toLowerCase()) {
+        routePath = [inAddr, WMATIC_ADDRESS];
+      } else {
+        routePath = [inAddr, WMATIC_ADDRESS, outAddr];
+      }
+
       try {
         const qRes = await polygonClient.readContract({
           address: SWAP_ROUTERS.quickswapV2Router,
@@ -434,11 +458,11 @@ export async function generateExecutableQuote(params: {
           functionName: 'getAmountsOut',
           args: [amountInRaw, routePath],
         });
-        bestExpectedRaw = qRes[2];
+        bestExpectedRaw = qRes[qRes.length - 1];
         selectedProtocol = 'QuickSwap V2';
         liquidityFeePercent = 0.30;
         routerAddress = SWAP_ROUTERS.quickswapV2Router;
-        routeDescription = `${tokenIn.symbol} → QuickSwap V2 (via WMATIC) → ${tokenOut.symbol}`;
+        routeDescription = `${tokenIn.symbol} → QuickSwap V2 (${routePath.length > 2 ? 'via WMATIC' : 'Direct'}) → ${tokenOut.symbol}`;
         estimatedGasUnits = 195000n;
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Insufficient liquidity';
@@ -625,7 +649,7 @@ export async function prepareSwapTransaction(params: {
         if (buildJson.code === 0 && buildJson.data?.data) {
           const txValue = (buildJson.data.transactionValue && buildJson.data.transactionValue !== '0')
             ? (`0x${BigInt(buildJson.data.transactionValue).toString(16)}` as `0x${string}`)
-            : quote.inputToken.symbol === 'MATIC'
+            : (quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL')
             ? (`0x${BigInt(quote.inputAmountRaw).toString(16)}` as `0x${string}`)
             : '0x0';
 
@@ -679,7 +703,7 @@ export async function prepareSwapTransaction(params: {
     });
   }
 
-  const fallbackValue = quote.inputToken.symbol === 'MATIC'
+  const fallbackValue = (quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL')
     ? (`0x${BigInt(quote.inputAmountRaw).toString(16)}` as `0x${string}`)
     : '0x0';
 
