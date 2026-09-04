@@ -121,6 +121,192 @@ async function startServer() {
     }
   });
 
+  // ==========================================
+  // CryptoPay Swap — Production Backend APIs
+  // ==========================================
+  const {
+    WHITELISTED_TOKENS,
+    SWAP_ENGINE_CONFIG,
+    SWAP_ROUTERS,
+    VALID_PAIRS,
+  } = await import('./server/swapConfig');
+  const {
+    generateExecutableQuote,
+    prepareSwapTransaction,
+    simulateSwapTransaction,
+    verifySwapTransaction,
+  } = await import('./server/swapEngine');
+  const {
+    getSwapHistoryForWallet,
+    getSwapByTxHash,
+  } = await import('./server/swapDb');
+
+  // 1. Whitelisted Polygon Tokens Source of Truth
+  app.get('/api/swap/tokens', (_req, res) => {
+    const tokens = Object.values(WHITELISTED_TOKENS).filter((t) => t.enabled);
+    return res.json({
+      success: true,
+      chainId: SWAP_ENGINE_CONFIG.chainId,
+      network: SWAP_ENGINE_CONFIG.networkName,
+      tokens,
+    });
+  });
+
+  // 2. Production Swap Engine Configuration
+  app.get('/api/swap/config', (_req, res) => {
+    return res.json({
+      success: true,
+      config: {
+        ...SWAP_ENGINE_CONFIG,
+        supportedPairs: Array.from(VALID_PAIRS),
+        routers: SWAP_ROUTERS,
+        whitelistedTokens: Object.values(WHITELISTED_TOKENS),
+      },
+    });
+  });
+
+  // 3. Real-Time Executable Quote Engine
+  app.get('/api/swap/quote', async (req, res) => {
+    try {
+      const { chainId, walletAddress, inputToken, outputToken, inputAmount, slippage } = req.query;
+
+      if (!chainId || !inputToken || !outputToken || !inputAmount) {
+        return res.status(400).json({
+          error: 'Missing required query parameters (chainId, inputToken, outputToken, inputAmount)',
+        });
+      }
+
+      if (Number(chainId) !== SWAP_ENGINE_CONFIG.chainId) {
+        return res.status(400).json({
+          error: `Invalid chainId ${chainId}. CryptoPay Swap operates exclusively on Polygon Mainnet (${SWAP_ENGINE_CONFIG.chainId}).`,
+        });
+      }
+
+      const quote = await generateExecutableQuote({
+        chainId: Number(chainId),
+        walletAddress: (walletAddress as string) || '0x0000000000000000000000000000000000000000',
+        inputSymbol: (inputToken as string).toUpperCase() as 'USDT' | 'USDC' | 'VERSE' | 'MATIC',
+        outputSymbol: (outputToken as string).toUpperCase() as 'USDT' | 'USDC' | 'VERSE' | 'MATIC',
+        inputAmount: inputAmount as string,
+        slippage: slippage ? Number(slippage) : undefined,
+      });
+
+      return res.json({ success: true, quote });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to generate executable quote';
+      return res.status(400).json({ error: msg });
+    }
+  });
+
+  // 4. Prepare Polygon Swap Transaction Calldata
+  app.post('/api/swap/prepare', async (req, res) => {
+    try {
+      const { quoteId, walletAddress, chainId } = req.body;
+
+      if (!quoteId || !walletAddress) {
+        return res.status(400).json({ error: 'Missing quoteId or walletAddress in request body.' });
+      }
+
+      if (Number(chainId) !== SWAP_ENGINE_CONFIG.chainId) {
+        return res.status(400).json({
+          error: `Invalid chainId ${chainId}. Only Polygon Mainnet (${SWAP_ENGINE_CONFIG.chainId}) is supported.`,
+        });
+      }
+
+      const preparedTx = await prepareSwapTransaction({
+        quoteId,
+        walletAddress,
+        chainId: Number(chainId),
+      });
+
+      return res.json({ success: true, transaction: preparedTx });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to prepare transaction';
+      return res.status(400).json({ error: msg });
+    }
+  });
+
+  // 5. Transaction Simulation via eth_call
+  app.post('/api/swap/simulate', async (req, res) => {
+    try {
+      const { quoteId, walletAddress, to, data, value } = req.body;
+      if (!walletAddress || !to || !data) {
+        return res.status(400).json({ error: 'Missing walletAddress, to, or data for simulation.' });
+      }
+
+      const simulation = await simulateSwapTransaction({
+        quoteId: quoteId || '',
+        walletAddress,
+        to,
+        data,
+        value,
+      });
+
+      return res.json(simulation);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Simulation error';
+      return res.status(400).json({ success: false, error: msg });
+    }
+  });
+
+  // 6. Verify Transaction Receipt on Polygon Blockchain
+  app.post('/api/swap/verify', async (req, res) => {
+    try {
+      const { txHash, walletAddress, quoteId } = req.body;
+
+      if (!txHash || !walletAddress) {
+        return res.status(400).json({ error: 'Missing txHash or walletAddress' });
+      }
+
+      const verification = await verifySwapTransaction({
+        txHash,
+        walletAddress,
+        quoteId,
+      });
+
+      return res.json({ success: true, ...verification });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Verification failed';
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  // 7. Get Swap Status by Hash
+  app.get('/api/swap/status/:txHash', async (req, res) => {
+    try {
+      const { txHash } = req.params;
+      if (!txHash) {
+        return res.status(400).json({ error: 'Missing txHash parameter' });
+      }
+
+      const record = await getSwapByTxHash(txHash);
+      if (!record) {
+        return res.status(404).json({ error: 'Swap record not found' });
+      }
+
+      return res.json({ success: true, record });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to get swap status';
+      return res.status(500).json({ error: msg });
+    }
+  });
+
+  // 8. Wallet Swap History (Strictly wallet-associated)
+  app.get('/api/swap/history/:wallet', async (req, res) => {
+    try {
+      const { wallet } = req.params;
+      if (!wallet) {
+        return res.status(400).json({ error: 'Missing wallet parameter' });
+      }
+
+      const history = await getSwapHistoryForWallet(wallet);
+      return res.json({ success: true, wallet, history });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to retrieve swap history';
+      return res.status(500).json({ error: msg });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

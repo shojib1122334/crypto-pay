@@ -24,7 +24,7 @@ export const config = getDefaultConfig({
       http('https://eth.llamarpc.com', { retryCount: 3, timeout: 8000 }),
     ]),
   },
-  ssr: false,
+  ssr: true,
 });
 
 export { polygon, mainnet };

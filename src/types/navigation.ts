@@ -1,4 +1,4 @@
-export type NavTab = 'dashboard' | 'pay-system' | 'create-invoice' | 'activity' | 'settings';
+export type NavTab = 'dashboard' | 'pay-system' | 'create-invoice' | 'exchange' | 'activity' | 'settings';
 
 export interface NavItemConfig {
   id: NavTab;

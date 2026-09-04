@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Wallet, Download, LayoutDashboard, Layers, FileText, Activity, Settings, Menu, X } from 'lucide-react';
+import { Wallet, Download, LayoutDashboard, Layers, FileText, ArrowLeftRight, Activity, Settings, Menu, X } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 import { usePWA } from '@/hooks/usePWA';
 import type { NavTab } from '@/types/navigation';
@@ -94,6 +94,18 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
             >
               <FileText className="w-4 h-4 text-emerald-600" />
               <span>Create Invoice</span>
+            </button>
+
+            <button
+              onClick={() => handleNav('exchange')}
+              className={`text-xs lg:text-sm font-semibold transition-all cursor-pointer py-2 px-2.5 lg:px-3 rounded-xl flex items-center gap-1.5 whitespace-nowrap ${
+                activeTab === 'exchange'
+                  ? 'text-indigo-700 bg-indigo-50 border border-indigo-300 shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
+              }`}
+            >
+              <ArrowLeftRight className="w-4 h-4 text-indigo-600" />
+              <span>Exchange</span>
             </button>
 
             <button
@@ -271,6 +283,18 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
               >
                 <FileText className="w-4 h-4 text-emerald-600" />
                 <span>Create Invoice</span>
+              </button>
+
+              <button
+                onClick={() => handleNav('exchange')}
+                className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${
+                  activeTab === 'exchange'
+                    ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
+                }`}
+              >
+                <ArrowLeftRight className="w-4 h-4 text-indigo-600" />
+                <span>Exchange</span>
               </button>
 
               <button

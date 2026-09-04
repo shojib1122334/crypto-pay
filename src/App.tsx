@@ -12,6 +12,7 @@ import BottomNavBar from '@/components/BottomNavBar';
 import ComingSoonPage from '@/components/ComingSoonPage';
 import TransactionHistoryView from '@/components/TransactionHistoryView';
 import { CreateInvoiceSection } from '@/components/CreateInvoiceSection';
+import { ExchangeView } from '@/components/exchange/ExchangeView';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemeProvider } from '@/context/ThemeContext';
@@ -52,6 +53,9 @@ function parseTabFromHash(hashStr: string): NavTab {
   }
   if (clean === 'create-invoice' || clean === 'invoice' || clean === 'credit-invoice') {
     return 'create-invoice';
+  }
+  if (clean === 'exchange' || clean === 'swap') {
+    return 'exchange';
   }
   if (clean === 'activity' || clean === 'transactions' || clean === 'history') {
     return 'activity';
@@ -159,6 +163,13 @@ function AppContent() {
             </div>
           )}
 
+          {/* Exchange Tab (Polygon Mainnet Swap for USDT, USDC, and VERSE) */}
+          {activeTab === 'exchange' && (
+            <div id="exchange-page" className="w-full max-w-7xl mx-auto px-4 py-6 min-h-[50vh]">
+              <ExchangeView />
+            </div>
+          )}
+
           {/* Activity Tab (Real Transaction History & Verification Ledger) */}
           {activeTab === 'activity' && <TransactionHistoryView />}
 
@@ -196,15 +207,15 @@ function AppWithTheme() {
 export default function App() {
   return (
     <ErrorBoundary fallbackTitle="CryptoPay Application Recovery">
-      <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
         <WagmiProvider config={config}>
-          <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
             <SavedReceiversProvider>
               <AppWithTheme />
             </SavedReceiversProvider>
-          </QueryClientProvider>
+          </ThemeProvider>
         </WagmiProvider>
-      </ThemeProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

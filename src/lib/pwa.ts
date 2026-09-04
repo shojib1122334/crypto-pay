@@ -37,6 +37,18 @@ export function registerServiceWorker(): void {
     return;
   }
 
+  // Never register SW in development mode or inside an iframe
+  const isDev = import.meta.env.DEV;
+  const isIframe = window.self !== window.top;
+  if (isDev || isIframe) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const reg of registrations) {
+        reg.unregister();
+      }
+    });
+    return;
+  }
+
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })

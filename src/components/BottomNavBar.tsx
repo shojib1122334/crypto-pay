@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Layers, FileText, Activity, Settings } from 'lucide-react';
+import { LayoutDashboard, Layers, FileText, ArrowLeftRight, Activity, Settings } from 'lucide-react';
 import { motion } from 'motion/react';
 import type { NavTab } from '@/types/navigation';
 
@@ -31,6 +31,11 @@ const NAV_ITEMS: NavItem[] = [
     icon: FileText,
   },
   {
+    id: 'exchange',
+    label: 'Exchange',
+    icon: ArrowLeftRight,
+  },
+  {
     id: 'activity',
     label: 'Activity',
     icon: Activity,
@@ -55,7 +60,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
         paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0px))',
       }}
     >
-      <div className="max-w-md md:max-w-xl mx-auto px-3 sm:px-6 pt-2 pb-1 flex items-center justify-around">
+      <div className="max-w-md md:max-w-xl mx-auto px-2 sm:px-6 pt-2 pb-1 flex items-center justify-around">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -65,7 +70,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               key={item.id}
               id={`nav-tab-${item.id}`}
               onClick={() => onTabChange(item.id)}
-              className={`relative flex flex-col items-center justify-center min-w-[72px] sm:min-w-[88px] py-1.5 px-3 rounded-xl transition-all duration-150 group select-none cursor-pointer ${
+              className={`relative flex flex-col items-center justify-center flex-1 min-w-[50px] sm:min-w-[70px] py-1.5 px-1 sm:px-2 rounded-xl transition-all duration-150 group select-none cursor-pointer ${
                 isActive
                   ? 'text-slate-900'
                   : 'text-slate-500 hover:text-slate-900'

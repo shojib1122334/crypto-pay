@@ -76,6 +76,20 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // 1.5 Never intercept Vite dev assets, hot module replacements, or node_modules
+  if (
+    url.pathname.startsWith('/src/') ||
+    url.pathname.startsWith('/@') ||
+    url.pathname.startsWith('/node_modules/') ||
+    url.pathname.includes('.vite') ||
+    url.search.includes('?v=') ||
+    url.hostname.includes('run.app') ||
+    url.hostname === 'localhost' ||
+    url.port === '3000'
+  ) {
+    return;
+  }
+
   // 2. Bypass Web3 RPCs, live payment APIs, WebSocket connections
   const isNetworkOnly = NETWORK_ONLY_PATTERNS.some((pattern) => url.href.includes(pattern));
   if (isNetworkOnly) {

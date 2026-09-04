@@ -13,15 +13,10 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
+    dedupe: ['react', 'react-dom', '@tanstack/react-query', 'wagmi', 'viem'],
   },
   optimizeDeps: {
     exclude: ['lucide-react'],
-    include: [
-      '@rainbow-me/rainbowkit',
-      'wagmi',
-      'viem',
-      '@tanstack/react-query',
-    ],
   },
 });
 

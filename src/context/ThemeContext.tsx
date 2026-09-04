@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { ThemeContext, type ThemeMode } from './themeContextDef';
 
 const THEME_STORAGE_KEY = 'cryptopay_app_theme';
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme] = useState<ThemeMode>('light');
+  const theme: ThemeMode = 'light';
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
     const root = document.documentElement;
     const body = document.body;
 
@@ -24,16 +25,17 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  const setTheme = () => {
-    // Light mode only
-  };
-
-  const toggleTheme = () => {
-    // Light mode only
-  };
+  const value = useMemo(
+    () => ({
+      theme,
+      setTheme: () => {},
+      toggleTheme: () => {},
+    }),
+    []
+  );
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
