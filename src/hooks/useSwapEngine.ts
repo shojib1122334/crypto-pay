@@ -149,13 +149,13 @@ export function useSwapEngine() {
 
     if ((inputToken.symbol === 'MATIC' || inputToken.symbol === 'POL') && num < 3) {
       setQuote(null);
-      setQuoteError('Minimum Swap amount for Polygon (MATIC) is 3 MATIC.');
+      setQuoteError('Minimum Swap amount for Polygon (POL/MATIC) is 3 MATIC.');
       return;
     }
 
     if (inputToken.symbol === 'VERSE' && num < 10000) {
       setQuote(null);
-      setQuoteError('Minimum Swap amount for VERSE is 10,000 VERSE.');
+      setQuoteError('Minimum Swap amount for Verse is 10,000 VERSE.');
       return;
     }
 
@@ -174,50 +174,83 @@ export function useSwapEngine() {
     setIsQuoteLoading(true);
     setQuoteError(null);
 
-    try {
-      const query = new URLSearchParams({
-        chainId: POLYGON_CHAIN_ID.toString(),
-        walletAddress: address || '0x0000000000000000000000000000000000000000',
-        inputToken: inputToken.symbol,
-        outputToken: outputToken.symbol,
-        inputAmount,
-        slippage: slippage.toString(),
-      });
-
-      const res = await fetch(`/api/swap/quote?${query.toString()}`, {
-        signal: controller.signal,
-      });
-      let data: { success?: boolean; quote?: SwapQuote; error?: string; message?: string } | null = null;
+    const executeFetch = async (attempt: number): Promise<void> => {
       try {
-        data = await res.json();
-      } catch {
-        setQuote(null);
-        setQuoteError('Polygon swap quote service is momentarily unavailable.');
-        return;
-      }
+        const query = new URLSearchParams({
+          chainId: POLYGON_CHAIN_ID.toString(),
+          walletAddress: address || '0x0000000000000000000000000000000000000000',
+          inputToken: inputToken.symbol,
+          outputToken: outputToken.symbol,
+          inputAmount,
+          slippage: slippage.toString(),
+        });
 
-      if (!res.ok || !data || !data.success) {
+        const res = await fetch(`/api/swap/quote?${query.toString()}`, {
+          signal: controller.signal,
+        });
+
+        if (controller.signal.aborted) return;
+
+        const text = await res.text();
+        if (controller.signal.aborted) return;
+
+        let data: { success?: boolean; quote?: SwapQuote; error?: string; message?: string } | null = null;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          // Response was not JSON (e.g. 502 Bad Gateway during server reload or network glitch)
+          if (attempt < 2 && !controller.signal.aborted) {
+            await new Promise((r) => setTimeout(r, 600));
+            if (controller.signal.aborted) return;
+            return executeFetch(attempt + 1);
+          }
+          if (controller.signal.aborted) return;
+          setQuote(null);
+          setQuoteError('Polygon swap quote service is momentarily unavailable. Click Retry to re-fetch.');
+          return;
+        }
+
+        if (controller.signal.aborted) return;
+
+        if (!res.ok || !data || !data.success) {
+          // If it's a 500/502/503 temporary error, retry up to 2 times
+          if (res.status >= 500 && attempt < 2 && !controller.signal.aborted) {
+            await new Promise((r) => setTimeout(r, 600));
+            if (controller.signal.aborted) return;
+            return executeFetch(attempt + 1);
+          }
+          setQuote(null);
+          setQuoteError(data?.error || data?.message || 'Failed to get live quote from Polygon.');
+        } else {
+          setQuote(data.quote);
+          setQuoteError(null);
+          setSecondsRemaining(45);
+          if (address) {
+            checkAllowance(data.quote);
+          }
+        }
+      } catch (err: unknown) {
+        if ((err as Error)?.name === 'AbortError' || controller.signal.aborted) {
+          return;
+        }
+        if (attempt < 2 && !controller.signal.aborted) {
+          await new Promise((r) => setTimeout(r, 600));
+          if (controller.signal.aborted) return;
+          return executeFetch(attempt + 1);
+        }
+        if (controller.signal.aborted) return;
         setQuote(null);
-        setQuoteError(data?.error || data?.message || 'Failed to get live quote from Polygon.');
-      } else {
-        setQuote(data.quote);
-        setQuoteError(null);
-        setSecondsRemaining(45);
-        if (address) {
-          checkAllowance(data.quote);
+        const msg = err instanceof Error && err.message ? err.message : 'Polygon swap quote service is momentarily unavailable.';
+        setQuoteError(msg);
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsQuoteLoading(false);
         }
       }
-    } catch (err: unknown) {
-      if ((err as Error)?.name === 'AbortError') {
-        return;
-      }
-      setQuote(null);
-      const msg = err instanceof Error && err.message ? err.message : 'Failed to connect to Polygon quote service.';
-      setQuoteError(msg);
-    } finally {
-      setIsQuoteLoading(false);
-    }
-  }, [inputAmount, inputToken, outputToken, slippage, address, checkAllowance]);
+    };
+
+    await executeFetch(0);
+  }, [inputAmount, inputToken.symbol, outputToken.symbol, slippage, address, checkAllowance]);
 
   // Invalidate quote when user types
   useEffect(() => {

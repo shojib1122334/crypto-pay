@@ -22,6 +22,8 @@ import {
 } from './swapConfig';
 import { recordSwap, type SwapDbRecord } from './swapDb';
 
+export const WETH_ADDRESS: `0x${string}` = '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619';
+
 // Reusable Viem Public Client with multiple Polygon RPCs for high resilience
 const polygonTransports = SWAP_ENGINE_CONFIG.rpcEndpoints.map((url) =>
   http(url, { timeout: 8000, retryCount: 2 })
@@ -93,12 +95,24 @@ export interface ExecutableQuote {
 // In-memory cache for active non-expired quotes
 const activeQuotes = new Map<string, ExecutableQuote>();
 
+// Short-term quote cache to prevent duplicate external requests (10s TTL)
+interface CachedQuoteEntry {
+  quote: ExecutableQuote;
+  cachedUntil: number;
+}
+const recentQuoteCache = new Map<string, CachedQuoteEntry>();
+
 // Cleanup expired quotes periodically
 const cleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [id, quote] of activeQuotes.entries()) {
     if (now > quote.expiresAt + 120000) {
       activeQuotes.delete(id);
+    }
+  }
+  for (const [key, entry] of recentQuoteCache.entries()) {
+    if (now > entry.cachedUntil) {
+      recentQuoteCache.delete(key);
     }
   }
 }, 30000);
@@ -314,6 +328,13 @@ export async function generateExecutableQuote(params: {
 
   const amountInRaw = parseUnits(inputAmount, tokenIn.decimals);
 
+  // Check short-term quote cache (10s)
+  const cacheKey = `${tokenIn.symbol}_${tokenOut.symbol}_${inputAmount}_${slippage}`;
+  const cached = recentQuoteCache.get(cacheKey);
+  if (cached && Date.now() < cached.cachedUntil) {
+    return cached.quote;
+  }
+
   // 5. Query KyberSwap Aggregator API on Polygon Mainnet for best route & live quote
   let kyberRouteSummary: KyberRouteSummary | undefined = undefined;
   let routerAddress: `0x${string}` = KYBERSWAP_CONFIG.routerAddress;
@@ -441,6 +462,56 @@ export async function generateExecutableQuote(params: {
         routePath = [tokenIn.address, tokenOut.address];
         routeDescription = `${tokenIn.symbol} → QuickSwap V2 (Direct) → ${tokenOut.symbol}`;
         estimatedGasUnits = 160000n;
+      }
+    } else if (tokenIn.symbol === 'VERSE' || tokenOut.symbol === 'VERSE') {
+      try {
+        if (tokenIn.symbol === 'VERSE') {
+          // VERSE -> WETH (3000) -> outAddr (500)
+          const wethOut = await polygonClient.readContract({
+            address: SWAP_ROUTERS.uniswapV3Quoter,
+            abi: uniswapV3QuoterAbi,
+            functionName: 'quoteExactInputSingle',
+            args: [tokenIn.address, WETH_ADDRESS, 3000, amountInRaw, 0n],
+          });
+          const finalOut = await polygonClient.readContract({
+            address: SWAP_ROUTERS.uniswapV3Quoter,
+            abi: uniswapV3QuoterAbi,
+            functionName: 'quoteExactInputSingle',
+            args: [WETH_ADDRESS, outAddr, 500, wethOut, 0n],
+          });
+          bestExpectedRaw = finalOut;
+          selectedProtocol = 'Uniswap V3';
+          poolFee = 3000;
+          liquidityFeePercent = 0.35;
+          routerAddress = SWAP_ROUTERS.uniswapV3Router;
+          routePath = [tokenIn.address, WETH_ADDRESS, outAddr];
+          routeDescription = `${tokenIn.symbol} → Uniswap V3 (via WETH) → ${tokenOut.symbol}`;
+          estimatedGasUnits = 210000n;
+        } else {
+          // inAddr -> WETH (500) -> VERSE (3000)
+          const wethOut = await polygonClient.readContract({
+            address: SWAP_ROUTERS.uniswapV3Quoter,
+            abi: uniswapV3QuoterAbi,
+            functionName: 'quoteExactInputSingle',
+            args: [inAddr, WETH_ADDRESS, 500, amountInRaw, 0n],
+          });
+          const finalOut = await polygonClient.readContract({
+            address: SWAP_ROUTERS.uniswapV3Quoter,
+            abi: uniswapV3QuoterAbi,
+            functionName: 'quoteExactInputSingle',
+            args: [WETH_ADDRESS, tokenOut.address, 3000, wethOut, 0n],
+          });
+          bestExpectedRaw = finalOut;
+          selectedProtocol = 'Uniswap V3';
+          poolFee = 3000;
+          liquidityFeePercent = 0.35;
+          routerAddress = SWAP_ROUTERS.uniswapV3Router;
+          routePath = [inAddr, WETH_ADDRESS, tokenOut.address];
+          routeDescription = `${tokenIn.symbol} → Uniswap V3 (via WETH) → ${tokenOut.symbol}`;
+          estimatedGasUnits = 210000n;
+        }
+      } catch (uniErr: unknown) {
+        console.warn('Uniswap V3 VERSE fallback failed:', uniErr);
       }
     } else {
       if (inAddr.toLowerCase() === WMATIC_ADDRESS.toLowerCase()) {
@@ -587,6 +658,7 @@ export async function generateExecutableQuote(params: {
   };
 
   activeQuotes.set(quoteId, quote);
+  recentQuoteCache.set(cacheKey, { quote, cachedUntil: Date.now() + 10000 });
   return quote;
 }
 

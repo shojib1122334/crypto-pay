@@ -253,9 +253,22 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
         {/* Quote Error / Warning Messages */}
         {/* ======================================================== */}
         {quoteError && (
-          <div className="mt-3 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 rounded-xl text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2 animate-in fade-in">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span>{quoteError}</span>
+          <div className="mt-3 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 rounded-xl text-xs text-rose-600 dark:text-rose-400 flex items-center justify-between gap-2 animate-in fade-in">
+            <div className="flex items-center gap-2 min-w-0">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
+              <span className="break-words">{quoteError}</span>
+            </div>
+            {!quoteError.includes('Minimum') && (
+              <button
+                type="button"
+                onClick={() => fetchQuote()}
+                disabled={isQuoteLoading}
+                className="shrink-0 px-2.5 py-1 bg-rose-100 dark:bg-rose-900/60 hover:bg-rose-200 dark:hover:bg-rose-800 text-rose-700 dark:text-rose-300 font-semibold text-[11px] rounded-lg transition-colors flex items-center gap-1"
+              >
+                <RefreshCw className={`w-3 h-3 ${isQuoteLoading ? 'animate-spin' : ''}`} />
+                Retry
+              </button>
+            )}
           </div>
         )}
 
