@@ -5,7 +5,7 @@ import { erc20Abi, formatUnits, parseUnits, getAddress } from 'viem';
 import { SwapQuote, SwapStatus } from '../types/swap';
 import { POLYGON_CHAIN_ID, SWAP_TOKENS, SwapTokenInfo } from '../components/exchange/tokenData';
 import { fetchDirectDEXQuote, prepareDirectSwapTransaction } from '../services/clientSwapService';
-import { polygonPublicClient, ethereumPublicClient } from '../lib/rpcService';
+import { polygonPublicClient, ethereumPublicClient, fetchCryptoPrices } from '../lib/rpcService';
 
 export function useSwapEngine() {
   const { address, isConnected, chainId } = useAccount();
@@ -46,6 +46,16 @@ export function useSwapEngine() {
     VERSE: '0.00',
     USDT: '0.00',
     USDC: '0.00',
+  });
+
+  // Live Token USD Prices for real-time market value estimation
+  const [tokenPrices, setTokenPrices] = useState<Record<string, number>>({
+    USDT: 1.0,
+    USDC: 1.0,
+    MATIC: 0.095,
+    POL: 0.095,
+    VERSE: 0.0000212,
+    ETH: 2450.0,
   });
 
   // Allowance & Approval
@@ -193,6 +203,24 @@ export function useSwapEngine() {
     }
   }, [address, isConnected, chainId]);
 
+  // Live token market prices fetcher
+  const updatePrices = useCallback(async () => {
+    try {
+      const p = await fetchCryptoPrices();
+      if (p) {
+        setTokenPrices((prev) => ({ ...prev, ...p }));
+      }
+    } catch {
+      // Non-blocking
+    }
+  }, []);
+
+  useEffect(() => {
+    updatePrices();
+    const interval = setInterval(updatePrices, 15000);
+    return () => clearInterval(interval);
+  }, [updatePrices]);
+
   useEffect(() => {
     fetchBalances();
     const interval = setInterval(fetchBalances, 12000);
@@ -314,6 +342,23 @@ export function useSwapEngine() {
         setSecondsRemaining(45);
         if (address) {
           checkAllowance(fetchedQuote);
+        }
+
+        // Dynamically calibrate tokenPrices based on executable quote if one side is USD pegged
+        const inAmt = parseFloat(fetchedQuote.inputAmount);
+        const outAmt = parseFloat(fetchedQuote.expectedOutput);
+        if (inAmt > 0 && outAmt > 0) {
+          if (fetchedQuote.outputToken.symbol === 'USDT' || fetchedQuote.outputToken.symbol === 'USDC') {
+            const derivedRate = outAmt / inAmt;
+            if (derivedRate > 0) {
+              setTokenPrices((prev) => ({ ...prev, [fetchedQuote.inputToken.symbol]: derivedRate }));
+            }
+          } else if (fetchedQuote.inputToken.symbol === 'USDT' || fetchedQuote.inputToken.symbol === 'USDC') {
+            const derivedRate = inAmt / outAmt;
+            if (derivedRate > 0) {
+              setTokenPrices((prev) => ({ ...prev, [fetchedQuote.outputToken.symbol]: derivedRate }));
+            }
+          }
         }
       } else {
         setQuote(null);
@@ -576,12 +621,13 @@ export function useSwapEngine() {
     isPolygon,
     handleSwitchToPolygon,
 
-    // Balances
+    // Balances & Prices
     balances,
     polBalance,
     ethereumBalances,
     isBalanceLoading,
     fetchBalances,
+    tokenPrices,
 
     // Tokens
     inputToken,

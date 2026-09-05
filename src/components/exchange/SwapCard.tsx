@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ArrowUpDown,
   Settings,
@@ -33,6 +33,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
     ethereumBalances,
     isBalanceLoading,
     fetchBalances,
+    tokenPrices,
     inputToken,
     setInputToken,
     outputToken,
@@ -76,6 +77,51 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
   const isNativeIn = inputToken.symbol === 'MATIC' || inputToken.symbol === 'POL';
   const requiredPol = isNativeIn ? (enteredAmount + estGasPol) : estGasPol;
   const isInsufficientGas = isConnected && isPolygon && enteredAmount > 0 && !isInsufficientBalance && userPol < requiredPol;
+
+  // Real live USD value calculation for the currently selected input token
+  const inputUsdValue = useMemo(() => {
+    if (isNaN(enteredAmount) || enteredAmount <= 0) {
+      return '~$0.00';
+    }
+
+    // 1. Stablecoins pegged 1:1 with USD
+    if (inputToken.symbol === 'USDT' || inputToken.symbol === 'USDC') {
+      return `~$${enteredAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    // 2. If an active quote directly swapping into USDT or USDC is available for this exact input amount,
+    // use the exact executable quoted output amount
+    if (
+      quote &&
+      quote.inputToken.symbol === inputToken.symbol &&
+      (quote.outputToken.symbol === 'USDT' || quote.outputToken.symbol === 'USDC') &&
+      parseFloat(quote.expectedOutput) > 0
+    ) {
+      const quotedUsd = parseFloat(quote.expectedOutput);
+      if (quotedUsd >= 100) {
+        return `~$${quotedUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
+      if (quotedUsd >= 0.01) {
+        return `~$${quotedUsd.toFixed(2)}`;
+      }
+      return `~$${quotedUsd.toFixed(4)}`;
+    }
+
+    // 3. Use real-time live market price from tokenPrices
+    const livePrice = tokenPrices[inputToken.symbol] ?? (inputToken.symbol === 'VERSE' ? 0.0000212 : 0.095);
+    const calculatedUsd = enteredAmount * livePrice;
+
+    if (calculatedUsd >= 100) {
+      return `~$${calculatedUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    if (calculatedUsd >= 0.01) {
+      return `~$${calculatedUsd.toFixed(2)}`;
+    }
+    if (calculatedUsd >= 0.0001) {
+      return `~$${calculatedUsd.toFixed(4)}`;
+    }
+    return '<$0.0001';
+  }, [enteredAmount, inputToken.symbol, quote, tokenPrices]);
 
   // Handle Quick Percent (50%, MAX)
   const handlePercent = (pct: number) => {
@@ -230,15 +276,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2">
-            <span>
-              {enteredAmount > 0 ? (
-                inputToken.symbol === 'USDT' || inputToken.symbol === 'USDC'
-                  ? `~$${enteredAmount.toFixed(2)}`
-                  : quote
-                  ? `~$${(enteredAmount * parseFloat(quote.exchangeRate)).toFixed(2)}`
-                  : ''
-              ) : '~$0.00'}
-            </span>
+            <span>{inputUsdValue}</span>
             {isConnected && (
               <span className="text-[10px] text-slate-400">
                 Available: {formatTokenAmount(balances[inputToken.symbol])} {inputToken.symbol}

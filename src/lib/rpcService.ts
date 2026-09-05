@@ -50,17 +50,17 @@ export interface GasFeeInfo {
 
 // Token price approximate fetcher / estimator for UI display with multi-source fallback
 export async function fetchCryptoPrices(): Promise<Record<string, number>> {
-  let versePrice = 0.00035;
-  let polPrice = 0.45;
-  let ethPrice = 3200;
-  let usdtPrice = 1.0;
-  let usdcPrice = 1.0;
+  let versePrice = 0.0000212;
+  let polPrice = 0.095;
+  let ethPrice = 2450;
+  const usdtPrice = 1.0;
+  const usdcPrice = 1.0;
 
-  // 1. Try GeckoTerminal (CoinGecko's official DEX API - guaranteed CORS & live rate)
+  // 1. Try GeckoTerminal (CoinGecko's official DEX on-chain API for Polygon VERSE)
   try {
     const gtRes = await fetch(
       'https://api.geckoterminal.com/api/v2/simple/networks/polygon_pos/token_price/0xc708d6f2153933daa50b2d0758955be0a93a8fec',
-      { headers: { Accept: 'application/json' } }
+      { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(3000) }
     );
     if (gtRes.ok) {
       const gtData = await gtRes.json();
@@ -76,10 +76,51 @@ export async function fetchCryptoPrices(): Promise<Record<string, number>> {
     // Continue to next provider
   }
 
-  // 2. Try DefiLlama (Aggregated real-time feed from CoinGecko + DEXes)
+  // 2. Try DexScreener for Polygon VERSE
+  try {
+    const dexRes = await fetch(
+      'https://api.dexscreener.com/latest/dex/tokens/0xc708D6F2153933DAA50B2D0758955Be0A93A8FEc',
+      { signal: AbortSignal.timeout(3000) }
+    );
+    if (dexRes.ok) {
+      const dexData = await dexRes.json();
+      const pair = dexData.pairs?.[0];
+      if (pair?.priceUsd) {
+        const parsed = parseFloat(pair.priceUsd);
+        if (!isNaN(parsed) && parsed > 0) {
+          versePrice = parsed;
+        }
+      }
+    }
+  } catch {
+    // Keep existing
+  }
+
+  // 3. Try Binance for POL and ETH live rates
+  try {
+    const [polRes, ethRes] = await Promise.allSettled([
+      fetch('https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT', { signal: AbortSignal.timeout(3000) }),
+      fetch('https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT', { signal: AbortSignal.timeout(3000) }),
+    ]);
+    if (polRes.status === 'fulfilled' && polRes.value.ok) {
+      const d = await polRes.value.json();
+      const p = parseFloat(d?.price);
+      if (!isNaN(p) && p > 0) polPrice = p;
+    }
+    if (ethRes.status === 'fulfilled' && ethRes.value.ok) {
+      const d = await ethRes.value.json();
+      const p = parseFloat(d?.price);
+      if (!isNaN(p) && p > 0) ethPrice = p;
+    }
+  } catch {
+    // Keep existing
+  }
+
+  // 4. Try DefiLlama for Polygon assets
   try {
     const llamaRes = await fetch(
-      'https://coins.llama.fi/prices/current/polygon:0xc708d6f2153933daa50b2d0758955be0a93a8fec,polygon:0x0000000000000000000000000000000000000000,ethereum:0x0000000000000000000000000000000000000000'
+      'https://coins.llama.fi/prices/current/polygon:0xc708d6f2153933daa50b2d0758955be0a93a8fec,polygon:0x0000000000000000000000000000000000000000',
+      { signal: AbortSignal.timeout(3000) }
     );
     if (llamaRes.ok) {
       const llamaData = await llamaRes.json();
@@ -90,50 +131,9 @@ export async function fetchCryptoPrices(): Promise<Record<string, number>> {
       if (coins['polygon:0x0000000000000000000000000000000000000000']?.price) {
         polPrice = coins['polygon:0x0000000000000000000000000000000000000000'].price;
       }
-      if (coins['ethereum:0x0000000000000000000000000000000000000000']?.price) {
-        ethPrice = coins['ethereum:0x0000000000000000000000000000000000000000'].price;
-      }
     }
   } catch {
     // Continue to next provider
-  }
-
-  // 3. Try DexScreener Polygon pair
-  if (versePrice === 0.00035) {
-    try {
-      const dexRes = await fetch(
-        'https://api.dexscreener.com/latest/dex/tokens/0xc708D6F2153933DAA50B2D0758955Be0A93A8FEc'
-      );
-      if (dexRes.ok) {
-        const dexData = await dexRes.json();
-        const pair = dexData.pairs?.[0];
-        if (pair?.priceUsd) {
-          const parsed = parseFloat(pair.priceUsd);
-          if (!isNaN(parsed) && parsed > 0) {
-            versePrice = parsed;
-          }
-        }
-      }
-    } catch {
-      // Keep existing
-    }
-  }
-
-  // 4. Try CoinGecko Direct
-  try {
-    const res = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=matic-network,ethereum,tether,usd-coin,verse&vs_currencies=usd'
-    );
-    if (res.ok) {
-      const data = await res.json();
-      if (data['verse']?.usd && data['verse'].usd > 0) versePrice = data['verse'].usd;
-      if (data['matic-network']?.usd && data['matic-network'].usd > 0) polPrice = data['matic-network'].usd;
-      if (data['ethereum']?.usd && data['ethereum'].usd > 0) ethPrice = data['ethereum'].usd;
-      if (data['tether']?.usd && data['tether'].usd > 0) usdtPrice = data['tether'].usd;
-      if (data['usd-coin']?.usd && data['usd-coin'].usd > 0) usdcPrice = data['usd-coin'].usd;
-    }
-  } catch {
-    // Keep resolved values
   }
 
   return {
