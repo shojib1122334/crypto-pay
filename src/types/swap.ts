@@ -62,6 +62,7 @@ export interface SwapQuote {
     hops: SwapRouteHop[];
     routerAddress: `0x${string}`;
   };
+  kyberRouteSummary?: unknown;
   expiresAt: number;            // Timestamp in ms
   createdAt: number;            // Timestamp in ms
 }

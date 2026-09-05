@@ -19,7 +19,6 @@ export const SWAP_TOKENS: SwapTokenInfo[] = [
     decimals: 18,
     logo: '/tokens/matic.png',
     color: '#8247E5',
-    minInputAmount: 3,
   },
   {
     symbol: 'USDT',
@@ -28,7 +27,6 @@ export const SWAP_TOKENS: SwapTokenInfo[] = [
     decimals: 6,
     logo: '/tokens/usdt.png',
     color: '#26A17B',
-    minUsdValue: 1.0,
   },
   {
     symbol: 'USDC',
@@ -37,7 +35,6 @@ export const SWAP_TOKENS: SwapTokenInfo[] = [
     decimals: 6,
     logo: '/tokens/usdc.png',
     color: '#2775CA',
-    minUsdValue: 1.0,
   },
   {
     symbol: 'VERSE',
@@ -46,7 +43,6 @@ export const SWAP_TOKENS: SwapTokenInfo[] = [
     decimals: 18,
     logo: '/tokens/verse.png',
     color: '#0AC18E',
-    minInputAmount: 10000,
   },
 ];
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useSwitchChain } from 'wagmi';
 import { SwapCard } from './SwapCard';
 import { SwapHistoryView } from './SwapHistoryView';
 import { ShieldCheck, History, ArrowLeftRight, Fuel } from 'lucide-react';
@@ -8,6 +8,7 @@ import { POLYGON_CHAIN_ID } from './tokenData';
 export const ExchangeView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'swap' | 'history'>('swap');
   const { address, chainId } = useAccount();
+  const { switchChain } = useSwitchChain();
 
   const isPolygon = chainId === POLYGON_CHAIN_ID;
 
@@ -58,13 +59,20 @@ export const ExchangeView: React.FC = () => {
 
       {/* Network Notice if user is connected to non-Polygon network */}
       {address && !isPolygon && (
-        <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Fuel className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
             <span>
               Your connected wallet is not on Polygon. CryptoPay Swap operates strictly on Polygon Mainnet (Chain ID 137).
             </span>
           </div>
+          <button
+            type="button"
+            onClick={() => switchChain && switchChain({ chainId: POLYGON_CHAIN_ID })}
+            className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl text-xs shadow-xs transition-colors shrink-0"
+          >
+            Switch to Polygon (137)
+          </button>
         </div>
       )}
 

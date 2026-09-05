@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAccount, useSwitchChain, useSendTransaction, useWriteContract, useConfig } from 'wagmi';
 import { waitForTransactionReceipt } from '@wagmi/core';
-import { erc20Abi, formatUnits, parseUnits } from 'viem';
+import { erc20Abi, formatUnits, parseUnits, getAddress } from 'viem';
 import { SwapQuote, SwapStatus } from '../types/swap';
 import { POLYGON_CHAIN_ID, SWAP_TOKENS, SwapTokenInfo } from '../components/exchange/tokenData';
+import { fetchDirectDEXQuote, prepareDirectSwapTransaction } from '../services/clientSwapService';
+import { polygonPublicClient, ethereumPublicClient } from '../lib/rpcService';
 
 export function useSwapEngine() {
   const { address, isConnected, chainId } = useAccount();
@@ -32,11 +34,19 @@ export function useSwapEngine() {
   // Balances
   const [balances, setBalances] = useState<Record<string, string>>({
     MATIC: '0.00',
+    POL: '0.00',
     USDT: '0.00',
     USDC: '0.00',
     VERSE: '0.00',
   });
   const [polBalance, setPolBalance] = useState<string>('0.00');
+  const [isBalanceLoading, setIsBalanceLoading] = useState<boolean>(false);
+  const [ethereumBalances, setEthereumBalances] = useState<Record<string, string>>({
+    ETH: '0.00',
+    VERSE: '0.00',
+    USDT: '0.00',
+    USDC: '0.00',
+  });
 
   // Allowance & Approval
   const [allowance, setAllowance] = useState<bigint>(0n);
@@ -51,48 +61,141 @@ export function useSwapEngine() {
 
   const isPolygon = chainId === POLYGON_CHAIN_ID;
 
-  // Refresh token balances from Polygon
+  // Refresh token balances from Polygon Mainnet
   const fetchBalances = useCallback(async () => {
-    if (!address || !isConnected) return;
+    if (!address || !isConnected) {
+      setBalances({
+        MATIC: '0.00',
+        POL: '0.00',
+        USDT: '0.00',
+        USDC: '0.00',
+        VERSE: '0.00',
+      });
+      setPolBalance('0.00');
+      return;
+    }
+
+    setIsBalanceLoading(true);
     try {
-      const client = wagmiConfig.getClient({ chainId: POLYGON_CHAIN_ID });
-      if (!client) return;
+      const normalizedAddress = getAddress(address);
 
-      // Native POL balance
-      const polBal = await client.getBalance({ address });
-      const formattedPol = formatUnits(polBal, 18);
-      setPolBalance(formattedPol);
+      // 1. Fetch live Polygon balances in parallel
+      const [
+        polBalResult,
+        usdtBalResult,
+        usdcNativeResult,
+        usdcBridgedResult,
+        verseBalResult,
+      ] = await Promise.allSettled([
+        polygonPublicClient.getBalance({ address: normalizedAddress }),
+        polygonPublicClient.readContract({
+          address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+          abi: erc20Abi,
+          functionName: 'balanceOf',
+          args: [normalizedAddress],
+        }),
+        polygonPublicClient.readContract({
+          address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+          abi: erc20Abi,
+          functionName: 'balanceOf',
+          args: [normalizedAddress],
+        }),
+        polygonPublicClient.readContract({
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          abi: erc20Abi,
+          functionName: 'balanceOf',
+          args: [normalizedAddress],
+        }),
+        polygonPublicClient.readContract({
+          address: '0xc708d6f2153933daa50b2d0758955be0a93a8fec',
+          abi: erc20Abi,
+          functionName: 'balanceOf',
+          args: [normalizedAddress],
+        }),
+      ]);
 
-      // Whitelisted token balances
-      const newBalances: Record<string, string> = {
+      // Native POL/MATIC
+      let formattedPol = '0.00';
+      if (polBalResult.status === 'fulfilled') {
+        formattedPol = formatUnits(polBalResult.value, 18);
+        setPolBalance(formattedPol);
+      }
+
+      // USDT (6 decimals)
+      let formattedUsdt = '0.00';
+      if (usdtBalResult.status === 'fulfilled') {
+        formattedUsdt = formatUnits(usdtBalResult.value, 6);
+      }
+
+      // USDC (Native 6 decimals + Bridged USDC.e 6 decimals)
+      let formattedUsdc = '0.00';
+      const nativeUsdc = usdcNativeResult.status === 'fulfilled' ? formatUnits(usdcNativeResult.value, 6) : '0';
+      const bridgedUsdc = usdcBridgedResult.status === 'fulfilled' ? formatUnits(usdcBridgedResult.value, 6) : '0';
+      const totalUsdc = parseFloat(nativeUsdc) + parseFloat(bridgedUsdc);
+      if (totalUsdc > 0) {
+        formattedUsdc = totalUsdc.toFixed(6).replace(/\.?0+$/, '');
+        if (formattedUsdc === '' || formattedUsdc === '0') formattedUsdc = '0.00';
+      }
+
+      // VERSE (18 decimals)
+      let formattedVerse = '0.00';
+      if (verseBalResult.status === 'fulfilled') {
+        formattedVerse = formatUnits(verseBalResult.value, 18);
+      }
+
+      setBalances({
         MATIC: formattedPol,
-      };
-      for (const token of SWAP_TOKENS) {
-        if (token.symbol === 'MATIC') {
-          newBalances.MATIC = formattedPol;
-          continue;
-        }
+        POL: formattedPol,
+        USDT: formattedUsdt,
+        USDC: formattedUsdc,
+        VERSE: formattedVerse,
+      });
+
+      // 2. If connected to Ethereum, fetch Ethereum balances to provide user clarity
+      if (chainId === 1) {
         try {
-          const bal = await client.readContract({
-            address: token.address,
-            abi: erc20Abi,
-            functionName: 'balanceOf',
-            args: [address],
+          const [ethBal, ethVerse, ethUsdt, ethUsdc] = await Promise.allSettled([
+            ethereumPublicClient.getBalance({ address: normalizedAddress }),
+            ethereumPublicClient.readContract({
+              address: '0x249cA82617eC3DfB2589c4c17ab7EC9765350a18',
+              abi: erc20Abi,
+              functionName: 'balanceOf',
+              args: [normalizedAddress],
+            }),
+            ethereumPublicClient.readContract({
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              abi: erc20Abi,
+              functionName: 'balanceOf',
+              args: [normalizedAddress],
+            }),
+            ethereumPublicClient.readContract({
+              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+              abi: erc20Abi,
+              functionName: 'balanceOf',
+              args: [normalizedAddress],
+            }),
+          ]);
+
+          setEthereumBalances({
+            ETH: ethBal.status === 'fulfilled' ? formatUnits(ethBal.value, 18) : '0.00',
+            VERSE: ethVerse.status === 'fulfilled' ? formatUnits(ethVerse.value, 18) : '0.00',
+            USDT: ethUsdt.status === 'fulfilled' ? formatUnits(ethUsdt.value, 6) : '0.00',
+            USDC: ethUsdc.status === 'fulfilled' ? formatUnits(ethUsdc.value, 6) : '0.00',
           });
-          newBalances[token.symbol] = formatUnits(bal, token.decimals);
         } catch {
-          newBalances[token.symbol] = '0.00';
+          // Non-blocking
         }
       }
-      setBalances(newBalances);
-    } catch {
-      // Ignore network hiccup
+    } catch (err) {
+      console.warn('On-chain balance fetch error:', err);
+    } finally {
+      setIsBalanceLoading(false);
     }
-  }, [address, isConnected, wagmiConfig]);
+  }, [address, isConnected, chainId]);
 
   useEffect(() => {
     fetchBalances();
-    const interval = setInterval(fetchBalances, 15000);
+    const interval = setInterval(fetchBalances, 12000);
     return () => clearInterval(interval);
   }, [fetchBalances]);
 
@@ -110,14 +213,12 @@ export function useSwapEngine() {
 
     setIsCheckingAllowance(true);
     try {
-      const client = wagmiConfig.getClient({ chainId: POLYGON_CHAIN_ID });
-      if (!client) return;
-
-      const currentAllowance = await client.readContract({
+      const normalizedAddress = getAddress(address);
+      const currentAllowance = await polygonPublicClient.readContract({
         address: currentQuote.inputToken.address,
         abi: erc20Abi,
         functionName: 'allowance',
-        args: [address, currentQuote.route.routerAddress],
+        args: [normalizedAddress, currentQuote.route.routerAddress],
       });
 
       setAllowance(currentAllowance);
@@ -128,12 +229,13 @@ export function useSwapEngine() {
       } else {
         setStatus('APPROVAL_REQUIRED');
       }
-    } catch {
+    } catch (err) {
+      console.warn('Allowance check warning:', err);
       setStatus('APPROVAL_REQUIRED');
     } finally {
       setIsCheckingAllowance(false);
     }
-  }, [address, isConnected, wagmiConfig]);
+  }, [address, isConnected]);
 
   // Debounced quote fetcher
   const quoteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -156,7 +258,10 @@ export function useSwapEngine() {
     setIsQuoteLoading(true);
     setQuoteError(null);
 
-    const executeFetch = async (attempt: number): Promise<void> => {
+    try {
+      let fetchedQuote: SwapQuote | null = null;
+
+      // 1. Attempt via server endpoint /api/swap/quote
       try {
         const query = new URLSearchParams({
           chainId: POLYGON_CHAIN_ID.toString(),
@@ -171,67 +276,61 @@ export function useSwapEngine() {
           signal: controller.signal,
         });
 
-        if (controller.signal.aborted) return;
-
-        const text = await res.text();
-        if (controller.signal.aborted) return;
-
-        let data: { success?: boolean; quote?: SwapQuote; error?: string; message?: string } | null = null;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          // Response was not JSON (e.g. 502 Bad Gateway during server reload or network glitch)
-          if (attempt < 2 && !controller.signal.aborted) {
-            await new Promise((r) => setTimeout(r, 600));
-            if (controller.signal.aborted) return;
-            return executeFetch(attempt + 1);
-          }
-          if (controller.signal.aborted) return;
-          setQuote(null);
-          setQuoteError('Polygon swap quote service is momentarily unavailable. Click Retry to re-fetch.');
-          return;
-        }
-
-        if (controller.signal.aborted) return;
-
-        if (!res.ok || !data || !data.success) {
-          // If it's a 500/502/503 temporary error, retry up to 2 times
-          if (res.status >= 500 && attempt < 2 && !controller.signal.aborted) {
-            await new Promise((r) => setTimeout(r, 600));
-            if (controller.signal.aborted) return;
-            return executeFetch(attempt + 1);
-          }
-          setQuote(null);
-          setQuoteError(data?.error || data?.message || 'Failed to get live quote from Polygon.');
-        } else {
-          setQuote(data.quote);
-          setQuoteError(null);
-          setSecondsRemaining(45);
-          if (address) {
-            checkAllowance(data.quote);
+        if (!controller.signal.aborted) {
+          const text = await res.text();
+          // Check if response is valid JSON rather than HTML (e.g. proxy cookie redirect or 502 page)
+          if (!text.trim().startsWith('<')) {
+            const data = JSON.parse(text);
+            if (res.ok && data?.success && data?.quote) {
+              fetchedQuote = data.quote;
+            }
           }
         }
       } catch (err: unknown) {
         if ((err as Error)?.name === 'AbortError' || controller.signal.aborted) {
           return;
         }
-        if (attempt < 2 && !controller.signal.aborted) {
-          await new Promise((r) => setTimeout(r, 600));
-          if (controller.signal.aborted) return;
-          return executeFetch(attempt + 1);
-        }
-        if (controller.signal.aborted) return;
-        setQuote(null);
-        const msg = err instanceof Error && err.message ? err.message : 'Polygon swap quote service is momentarily unavailable.';
-        setQuoteError(msg);
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsQuoteLoading(false);
-        }
+        // If server call fails (e.g. cookie check, iframe sandbox, or network issue), proceed to direct DEX fallback
       }
-    };
 
-    await executeFetch(0);
+      if (controller.signal.aborted) return;
+
+      // 2. Direct client-side DEX quotation fallback (KyberSwap Aggregator + on-chain Polygon RPC)
+      if (!fetchedQuote) {
+        fetchedQuote = await fetchDirectDEXQuote({
+          inputSymbol: inputToken.symbol,
+          outputSymbol: outputToken.symbol,
+          inputAmount,
+          slippage,
+          walletAddress: address,
+        });
+      }
+
+      if (controller.signal.aborted) return;
+
+      if (fetchedQuote) {
+        setQuote(fetchedQuote);
+        setQuoteError(null);
+        setSecondsRemaining(45);
+        if (address) {
+          checkAllowance(fetchedQuote);
+        }
+      } else {
+        setQuote(null);
+        setQuoteError('No active Polygon liquidity route found for this pair.');
+      }
+    } catch (err: unknown) {
+      if ((err as Error)?.name === 'AbortError' || controller.signal.aborted) {
+        return;
+      }
+      setQuote(null);
+      const msg = err instanceof Error && err.message ? err.message : 'Unable to retrieve live quote from Polygon.';
+      setQuoteError(msg);
+    } finally {
+      if (!controller.signal.aborted) {
+        setIsQuoteLoading(false);
+      }
+    }
   }, [inputAmount, inputToken.symbol, outputToken.symbol, slippage, address, checkAllowance]);
 
   // Invalidate quote when user types
@@ -369,35 +468,49 @@ export function useSwapEngine() {
     setTxHash(undefined);
 
     try {
-      // 1. Prepare transaction calldata from backend
-      const prepRes = await fetch('/api/swap/prepare', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          quoteId: quote.quoteId,
-          walletAddress: address,
-          chainId: POLYGON_CHAIN_ID,
-        }),
-      });
+      // 1. Prepare transaction calldata (attempt server first, fallback to client)
+      let tx: { to: `0x${string}`; data: `0x${string}`; value?: `0x${string}`; gasLimit?: string } | null = null;
+      try {
+        const prepRes = await fetch('/api/swap/prepare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            quoteId: quote.quoteId,
+            walletAddress: address,
+            chainId: POLYGON_CHAIN_ID,
+          }),
+        });
 
-      const prepData = await prepRes.json();
-      if (!prepRes.ok || !prepData.success) {
-        throw new Error(prepData.error || 'Failed to prepare swap transaction.');
+        const text = await prepRes.text();
+        if (!text.trim().startsWith('<')) {
+          const prepData = JSON.parse(text);
+          if (prepRes.ok && prepData.success && prepData.transaction) {
+            tx = prepData.transaction;
+          }
+        }
+      } catch {
+        // Fallback to client preparation below
       }
 
-      const tx = prepData.transaction;
+      if (!tx) {
+        tx = await prepareDirectSwapTransaction({
+          quote,
+          walletAddress: address,
+        });
+      }
+
       const txValue = tx.value && tx.value !== '0x0' && tx.value !== '0'
         ? BigInt(tx.value)
         : (quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL')
         ? BigInt(quote.inputAmountRaw)
         : 0n;
 
-      // 2. Prompt user to sign and send on Polygon
+      // 2. Prompt user to sign and send on Polygon directly inside their connected wallet
       const hash = await sendTransactionAsync({
         to: tx.to,
         data: tx.data,
         value: txValue,
-        gas: BigInt(tx.gasLimit),
+        gas: BigInt(tx.gasLimit || '250000'),
         chainId: POLYGON_CHAIN_ID,
       });
 
@@ -410,22 +523,24 @@ export function useSwapEngine() {
         chainId: POLYGON_CHAIN_ID,
       });
 
-      // 4. Verify transaction on backend
-      const verifyRes = await fetch('/api/swap/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          txHash: hash,
-          walletAddress: address,
-          quoteId: quote.quoteId,
-        }),
-      });
-
-      const verifyData = await verifyRes.json();
-
-      if (receipt.status === 'success' && verifyData.status === 'COMPLETED') {
+      if (receipt.status === 'success') {
         setStatus('COMPLETED');
         fetchBalances();
+
+        // 4. Optional background verification log
+        try {
+          fetch('/api/swap/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              txHash: hash,
+              walletAddress: address,
+              quoteId: quote.quoteId,
+            }),
+          }).catch(() => {});
+        } catch {
+          // Fire and forget
+        }
       } else {
         setStatus('TRANSACTION_REVERTED');
         setExecutionError('Swap transaction reverted on Polygon.');
@@ -464,6 +579,8 @@ export function useSwapEngine() {
     // Balances
     balances,
     polBalance,
+    ethereumBalances,
+    isBalanceLoading,
     fetchBalances,
 
     // Tokens

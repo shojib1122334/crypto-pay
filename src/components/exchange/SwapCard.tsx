@@ -30,6 +30,9 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
     handleSwitchToPolygon,
     balances,
     polBalance,
+    ethereumBalances,
+    isBalanceLoading,
+    fetchBalances,
     inputToken,
     setInputToken,
     outputToken,
@@ -63,7 +66,8 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
   const [isOutputTokenModalOpen, setIsOutputTokenModalOpen] = useState(false);
   const [isSlippageModalOpen, setIsSlippageModalOpen] = useState(false);
 
-  const inputBalance = parseFloat(balances[inputToken.symbol] || '0');
+  const rawInputBalance = balances[inputToken.symbol] || '0';
+  const inputBalance = parseFloat(rawInputBalance);
   const enteredAmount = parseFloat(inputAmount || '0');
   const isInsufficientBalance = isConnected && enteredAmount > inputBalance;
 
@@ -76,8 +80,19 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
   // Handle Quick Percent (50%, MAX)
   const handlePercent = (pct: number) => {
     if (inputBalance <= 0) return;
-    const val = (inputBalance * pct).toFixed(2);
-    setInputAmount(val);
+    if (pct === 1.0) {
+      if (inputToken.symbol === 'MATIC' || inputToken.symbol === 'POL') {
+        const afterGas = Math.max(0, inputBalance - 0.02);
+        setInputAmount(afterGas > 0 ? (afterGas >= 100 ? afterGas.toFixed(2) : afterGas.toFixed(4)) : '0');
+      } else {
+        const val = inputBalance >= 100 ? inputBalance.toFixed(2) : inputBalance.toFixed(6).replace(/\.?0+$/, '');
+        setInputAmount(val);
+      }
+    } else {
+      const half = inputBalance * pct;
+      const val = half >= 100 ? half.toFixed(2) : half.toFixed(6).replace(/\.?0+$/, '');
+      setInputAmount(val);
+    }
   };
 
   return (
@@ -121,6 +136,32 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
           </div>
         </div>
 
+        {/* Network Warning banner if not on Polygon */}
+        {isConnected && !isPolygon && (
+          <div className="mb-3.5 p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+              <div>
+                <span>
+                  Wallet is not on Polygon. CryptoPay Swap executes on Polygon Mainnet (137).
+                </span>
+                {parseFloat(ethereumBalances?.VERSE || '0') > 0 && (
+                  <div className="text-[11px] text-amber-700 dark:text-amber-300 font-medium mt-0.5">
+                    Detected on Ethereum: {formatTokenAmount(ethereumBalances.VERSE)} VERSE
+                  </div>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleSwitchToPolygon}
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl text-xs shadow-xs transition-colors shrink-0"
+            >
+              Switch to Polygon
+            </button>
+          </div>
+        )}
+
         {/* ======================================================== */}
         {/* "You Pay" Input Box */}
         {/* ======================================================== */}
@@ -128,7 +169,20 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
           <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
             <span>You Pay</span>
             <div className="flex items-center gap-2">
-              <span>Balance: <strong className="text-slate-700 dark:text-slate-200 font-semibold">{formatTokenAmount(balances[inputToken.symbol])}</strong></span>
+              <div className="flex items-center gap-1">
+                <span>Balance: <strong className="text-slate-700 dark:text-slate-200 font-semibold">{formatTokenAmount(balances[inputToken.symbol])}</strong></span>
+                {isConnected && (
+                  <button
+                    type="button"
+                    onClick={() => fetchBalances()}
+                    disabled={isBalanceLoading}
+                    className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-md hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-colors"
+                    title="Refresh on-chain balance"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isBalanceLoading ? 'animate-spin text-indigo-500' : ''}`} />
+                  </button>
+                )}
+              </div>
               {isConnected && inputBalance > 0 && (
                 <div className="flex items-center gap-1">
                   <button
