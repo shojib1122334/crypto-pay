@@ -139,6 +139,7 @@ async function startServer() {
   const {
     getSwapHistoryForWallet,
     getSwapByTxHash,
+    recordSwap,
   } = await import('./server/swapDb');
 
   // 1. Whitelisted Polygon Tokens Source of Truth
@@ -291,18 +292,39 @@ async function startServer() {
     }
   });
 
-  // 8. Wallet Swap History (Strictly wallet-associated)
-  app.get('/api/swap/history/:wallet', async (req, res) => {
+  // 8. Wallet Swap History (Strictly wallet-associated, supports both /:wallet and query param)
+  const handleSwapHistory = async (req: express.Request, res: express.Response) => {
     try {
-      const { wallet } = req.params;
+      const walletParam = (req.params as Record<string, string>).wallet;
+      const walletQuery = req.query.wallet;
+      const wallet = (walletParam || (typeof walletQuery === 'string' ? walletQuery : '')).trim();
+
       if (!wallet) {
-        return res.status(400).json({ error: 'Missing wallet parameter' });
+        return res.json({ success: true, history: [] });
       }
 
       const history = await getSwapHistoryForWallet(wallet);
-      return res.json({ success: true, wallet, history });
+      return res.json({ success: true, wallet, history: history || [] });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to retrieve swap history';
+      console.warn('[SwapHistory] Handled error in swap history retrieval:', err);
+      return res.json({ success: true, history: [] });
+    }
+  };
+
+  app.get('/api/swap/history', handleSwapHistory);
+  app.get('/api/swap/history/:wallet', handleSwapHistory);
+
+  // 9. Record Swap Transaction from Client
+  app.post('/api/swap/record', async (req, res) => {
+    try {
+      const { record } = req.body;
+      if (!record || !record.walletAddress || !record.txHash) {
+        return res.status(400).json({ error: 'Missing swap record details' });
+      }
+      const saved = await recordSwap(record);
+      return res.json({ success: true, record: saved });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to record swap';
       return res.status(500).json({ error: msg });
     }
   });

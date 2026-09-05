@@ -95,9 +95,22 @@ export async function getSwapByTxHash(txHash: string): Promise<SwapDbRecord | nu
 }
 
 export async function getSwapHistoryForWallet(walletAddress: string): Promise<SwapDbRecord[]> {
-  const db = loadSwapDb();
-  const normalized = walletAddress.toLowerCase();
-  return Object.values(db)
-    .filter((rec) => rec.walletAddress.toLowerCase() === normalized)
-    .sort((a, b) => b.createdAt - a.createdAt);
+  try {
+    if (!walletAddress) return [];
+    const db = loadSwapDb();
+    if (!db || typeof db !== 'object') return [];
+    const normalized = walletAddress.toLowerCase();
+    return Object.values(db)
+      .filter(
+        (rec) =>
+          rec &&
+          rec.walletAddress &&
+          typeof rec.walletAddress === 'string' &&
+          rec.walletAddress.toLowerCase() === normalized
+      )
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  } catch (err) {
+    console.error('[SwapDb] Error filtering swap history:', err);
+    return [];
+  }
 }

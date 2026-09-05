@@ -6,6 +6,7 @@ import { SwapQuote, SwapStatus } from '../types/swap';
 import { POLYGON_CHAIN_ID, SWAP_TOKENS, SwapTokenInfo } from '../components/exchange/tokenData';
 import { fetchDirectDEXQuote, prepareDirectSwapTransaction } from '../services/clientSwapService';
 import { polygonPublicClient, ethereumPublicClient, fetchCryptoPrices } from '../lib/rpcService';
+import { saveLocalSwapRecord } from '../services/swapHistoryStorage';
 
 export function useSwapEngine() {
   const { address, isConnected, chainId } = useAccount();
@@ -572,7 +573,35 @@ export function useSwapEngine() {
         setStatus('COMPLETED');
         fetchBalances();
 
-        // 4. Optional background verification log
+        // 4. Save to local storage for immediate offline & client history
+        try {
+          saveLocalSwapRecord({
+            id: `swap_${Date.now()}_${hash.slice(2, 10)}`,
+            walletAddress: address.toLowerCase(),
+            chainId: POLYGON_CHAIN_ID,
+            inputToken: quote.inputToken.symbol,
+            outputToken: quote.outputToken.symbol,
+            inputAmount: quote.inputAmount,
+            expectedOutputAmount: quote.expectedOutput,
+            actualOutputAmount: quote.expectedOutput,
+            minimumReceived: quote.minimumReceived,
+            exchangeRate: quote.exchangeRate,
+            priceImpact: quote.priceImpact,
+            slippage: quote.slippage,
+            providerFee: quote.providerFeeAmount,
+            networkFee: quote.estimatedGasFeePol,
+            routerAddress: quote.route.routerAddress,
+            routerName: quote.route.protocol,
+            txHash: hash,
+            status: 'COMPLETED',
+            createdAt: Date.now(),
+            confirmedAt: Date.now(),
+          });
+        } catch {
+          // Ignore local storage error
+        }
+
+        // 5. Optional background verification log
         try {
           fetch('/api/swap/verify', {
             method: 'POST',
