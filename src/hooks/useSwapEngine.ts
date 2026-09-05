@@ -147,24 +147,6 @@ export function useSwapEngine() {
       return;
     }
 
-    if ((inputToken.symbol === 'MATIC' || inputToken.symbol === 'POL') && num < 3) {
-      setQuote(null);
-      setQuoteError('Minimum Swap amount for Polygon (POL/MATIC) is 3 MATIC.');
-      return;
-    }
-
-    if (inputToken.symbol === 'VERSE' && num < 10000) {
-      setQuote(null);
-      setQuoteError('Minimum Swap amount for Verse is 10,000 VERSE.');
-      return;
-    }
-
-    if ((inputToken.symbol === 'USDT' || inputToken.symbol === 'USDC') && num < 1.0) {
-      setQuote(null);
-      setQuoteError(`Minimum Swap amount for ${inputToken.symbol} is $1.00.`);
-      return;
-    }
-
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }

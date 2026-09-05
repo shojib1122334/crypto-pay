@@ -67,15 +67,11 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
   const enteredAmount = parseFloat(inputAmount || '0');
   const isInsufficientBalance = isConnected && enteredAmount > inputBalance;
 
-  // Check if minimum rules are met
-  let minAmountNotice: string | null = null;
-  if (inputToken.symbol === 'MATIC' || inputToken.symbol === 'POL') {
-    minAmountNotice = 'Min: 3 MATIC';
-  } else if (inputToken.symbol === 'VERSE') {
-    minAmountNotice = 'Min: 10,000 VERSE';
-  } else {
-    minAmountNotice = 'Min: $1.00';
-  }
+  const userPol = parseFloat(polBalance || '0');
+  const estGasPol = quote ? parseFloat(quote.estimatedGasFeePol || '0.01') : 0.01;
+  const isNativeIn = inputToken.symbol === 'MATIC' || inputToken.symbol === 'POL';
+  const requiredPol = isNativeIn ? (enteredAmount + estGasPol) : estGasPol;
+  const isInsufficientGas = isConnected && isPolygon && enteredAmount > 0 && !isInsufficientBalance && userPol < requiredPol;
 
   // Handle Quick Percent (50%, MAX)
   const handlePercent = (pct: number) => {
@@ -181,11 +177,19 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
 
           <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2">
             <span>
-              {inputToken.symbol === 'VERSE' || inputToken.symbol === 'MATIC' ? minAmountNotice : `~$${enteredAmount > 0 ? enteredAmount.toFixed(2) : '0.00'}`}
+              {enteredAmount > 0 ? (
+                inputToken.symbol === 'USDT' || inputToken.symbol === 'USDC'
+                  ? `~$${enteredAmount.toFixed(2)}`
+                  : quote
+                  ? `~$${(enteredAmount * parseFloat(quote.exchangeRate)).toFixed(2)}`
+                  : ''
+              ) : '~$0.00'}
             </span>
-            <span className="text-[10px] text-slate-400">
-              {minAmountNotice}
-            </span>
+            {isConnected && (
+              <span className="text-[10px] text-slate-400">
+                Available: {formatTokenAmount(balances[inputToken.symbol])} {inputToken.symbol}
+              </span>
+            )}
           </div>
         </div>
 
@@ -315,7 +319,15 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               disabled
               className="w-full py-3.5 px-4 bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-semibold text-sm rounded-2xl border border-rose-200 dark:border-rose-800 cursor-not-allowed"
             >
-              Insufficient {inputToken.symbol} Balance
+              Insufficient Balance
+            </button>
+          ) : isInsufficientGas ? (
+            <button
+              type="button"
+              disabled
+              className="w-full py-3.5 px-4 bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-semibold text-sm rounded-2xl border border-amber-200 dark:border-amber-800 cursor-not-allowed"
+            >
+              Insufficient Gas Balance
             </button>
           ) : quoteError ? (
             <button
@@ -323,7 +335,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               disabled
               className="w-full py-3.5 px-4 bg-slate-100 dark:bg-slate-800 text-slate-400 font-semibold text-sm rounded-2xl cursor-not-allowed"
             >
-              Cannot Swap ({quoteError.includes('Minimum') ? 'Under Minimum' : 'No Route'})
+              Cannot Swap (No Route)
             </button>
           ) : status === 'APPROVAL_REQUIRED' ? (
             <button

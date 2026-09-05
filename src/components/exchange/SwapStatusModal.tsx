@@ -135,6 +135,28 @@ export const SwapStatusModal: React.FC<SwapStatusModalProps> = ({
             </div>
           </div>
 
+          {/* On-Chain Transaction Details */}
+          <div className="p-3 bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800 rounded-xl text-left text-xs space-y-1.5">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span>Network</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">Polygon Mainnet (137)</span>
+            </div>
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span>Swap Status</span>
+              <span className={`font-semibold ${isSuccess ? 'text-emerald-600 dark:text-emerald-400' : isFailed ? 'text-rose-500' : 'text-indigo-600 dark:text-indigo-400'}`}>
+                {isSuccess ? 'Confirmed & Completed' : isPending ? 'Processing On-Chain' : status}
+              </span>
+            </div>
+            {txHash && (
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+                <span>Transaction Hash</span>
+                <span className="font-mono text-[11px] text-slate-700 dark:text-slate-300">
+                  {txHash.slice(0, 8)}...{txHash.slice(-6)}
+                </span>
+              </div>
+            )}
+          </div>
+
           {/* Polygonscan explorer link */}
           {txHash && (
             <div className="pt-1">
@@ -144,7 +166,7 @@ export const SwapStatusModal: React.FC<SwapStatusModalProps> = ({
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
               >
-                View Transaction on Polygonscan <ExternalLink className="w-3.5 h-3.5" />
+                View on Polygon Explorer (Polygonscan) <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
           )}

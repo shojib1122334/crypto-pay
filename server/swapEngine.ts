@@ -299,25 +299,10 @@ export async function generateExecutableQuote(params: {
     throw new Error(`Swap pair ${pairKey} is not supported.`);
   }
 
-  // 4. Amount parsing and minimum rules validation
+  // 4. Amount parsing and validation
   const numAmount = parseFloat(inputAmount);
   if (isNaN(numAmount) || numAmount <= 0) {
     throw new Error('Please enter a valid swap amount greater than zero.');
-  }
-
-  // Rule: MATIC/POL input minimum is 3 MATIC
-  if (isNativeIn && numAmount < 3) {
-    throw new Error('Minimum Swap amount for Polygon (POL/MATIC) is 3 MATIC.');
-  }
-
-  // Rule: VERSE input minimum is 10,000 VERSE
-  if (tokenIn.symbol === 'VERSE' && numAmount < 10000) {
-    throw new Error('Minimum Swap amount for VERSE is 10,000 VERSE.');
-  }
-
-  // Rule: USDT / USDC minimum is $1 USD equivalent
-  if ((tokenIn.symbol === 'USDT' || tokenIn.symbol === 'USDC') && numAmount < 1.0) {
-    throw new Error(`Minimum Swap amount for ${tokenIn.symbol} is $1.00.`);
   }
 
   // Slippage validation
@@ -327,6 +312,9 @@ export async function generateExecutableQuote(params: {
   }
 
   const amountInRaw = parseUnits(inputAmount, tokenIn.decimals);
+  if (amountInRaw <= 0n) {
+    throw new Error('Please enter a valid swap amount greater than zero.');
+  }
 
   // Check short-term quote cache (10s)
   const cacheKey = `${tokenIn.symbol}_${tokenOut.symbol}_${inputAmount}_${slippage}`;
@@ -357,7 +345,7 @@ export async function generateExecutableQuote(params: {
         'x-client-id': KYBERSWAP_CONFIG.clientId,
         'Accept': 'application/json',
       },
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(4500),
     });
 
     if (kyberRes.ok) {
@@ -464,54 +452,82 @@ export async function generateExecutableQuote(params: {
         estimatedGasUnits = 160000n;
       }
     } else if (tokenIn.symbol === 'VERSE' || tokenOut.symbol === 'VERSE') {
+      // 1. Try QuickSwap V2 (native VERSE/WMATIC liquidity pool on Polygon)
+      let quickVersePath: `0x${string}`[] = [];
+      if (tokenIn.symbol === 'VERSE') {
+        quickVersePath = outAddr.toLowerCase() === WMATIC_ADDRESS.toLowerCase()
+          ? [tokenIn.address, WMATIC_ADDRESS]
+          : [tokenIn.address, WMATIC_ADDRESS, outAddr];
+      } else {
+        quickVersePath = inAddr.toLowerCase() === WMATIC_ADDRESS.toLowerCase()
+          ? [WMATIC_ADDRESS, tokenOut.address]
+          : [inAddr, WMATIC_ADDRESS, tokenOut.address];
+      }
+
+      let quickOutRaw = 0n;
+      try {
+        const qRes = await polygonClient.readContract({
+          address: SWAP_ROUTERS.quickswapV2Router,
+          abi: quickswapV2RouterAbi,
+          functionName: 'getAmountsOut',
+          args: [amountInRaw, quickVersePath],
+        });
+        quickOutRaw = qRes[qRes.length - 1];
+      } catch (qErr) {
+        console.warn('QuickSwap VERSE query:', qErr);
+      }
+
+      // 2. Try Uniswap V3 via WETH
+      let uniOutRaw = 0n;
       try {
         if (tokenIn.symbol === 'VERSE') {
-          // VERSE -> WETH (3000) -> outAddr (500)
           const wethOut = await polygonClient.readContract({
             address: SWAP_ROUTERS.uniswapV3Quoter,
             abi: uniswapV3QuoterAbi,
             functionName: 'quoteExactInputSingle',
             args: [tokenIn.address, WETH_ADDRESS, 3000, amountInRaw, 0n],
           });
-          const finalOut = await polygonClient.readContract({
+          uniOutRaw = await polygonClient.readContract({
             address: SWAP_ROUTERS.uniswapV3Quoter,
             abi: uniswapV3QuoterAbi,
             functionName: 'quoteExactInputSingle',
             args: [WETH_ADDRESS, outAddr, 500, wethOut, 0n],
           });
-          bestExpectedRaw = finalOut;
-          selectedProtocol = 'Uniswap V3';
-          poolFee = 3000;
-          liquidityFeePercent = 0.35;
-          routerAddress = SWAP_ROUTERS.uniswapV3Router;
-          routePath = [tokenIn.address, WETH_ADDRESS, outAddr];
-          routeDescription = `${tokenIn.symbol} → Uniswap V3 (via WETH) → ${tokenOut.symbol}`;
-          estimatedGasUnits = 210000n;
         } else {
-          // inAddr -> WETH (500) -> VERSE (3000)
           const wethOut = await polygonClient.readContract({
             address: SWAP_ROUTERS.uniswapV3Quoter,
             abi: uniswapV3QuoterAbi,
             functionName: 'quoteExactInputSingle',
             args: [inAddr, WETH_ADDRESS, 500, amountInRaw, 0n],
           });
-          const finalOut = await polygonClient.readContract({
+          uniOutRaw = await polygonClient.readContract({
             address: SWAP_ROUTERS.uniswapV3Quoter,
             abi: uniswapV3QuoterAbi,
             functionName: 'quoteExactInputSingle',
             args: [WETH_ADDRESS, tokenOut.address, 3000, wethOut, 0n],
           });
-          bestExpectedRaw = finalOut;
-          selectedProtocol = 'Uniswap V3';
-          poolFee = 3000;
-          liquidityFeePercent = 0.35;
-          routerAddress = SWAP_ROUTERS.uniswapV3Router;
-          routePath = [inAddr, WETH_ADDRESS, tokenOut.address];
-          routeDescription = `${tokenIn.symbol} → Uniswap V3 (via WETH) → ${tokenOut.symbol}`;
-          estimatedGasUnits = 210000n;
         }
       } catch (uniErr: unknown) {
-        console.warn('Uniswap V3 VERSE fallback failed:', uniErr);
+        console.warn('Uniswap V3 VERSE query:', uniErr);
+      }
+
+      if (quickOutRaw >= uniOutRaw && quickOutRaw > 0n) {
+        bestExpectedRaw = quickOutRaw;
+        selectedProtocol = 'QuickSwap V2';
+        liquidityFeePercent = 0.30;
+        routerAddress = SWAP_ROUTERS.quickswapV2Router;
+        routePath = quickVersePath;
+        routeDescription = `${tokenIn.symbol} → QuickSwap V2 (${quickVersePath.length > 2 ? 'via WMATIC' : 'Direct'}) → ${tokenOut.symbol}`;
+        estimatedGasUnits = 185000n;
+      } else if (uniOutRaw > 0n) {
+        bestExpectedRaw = uniOutRaw;
+        selectedProtocol = 'Uniswap V3';
+        poolFee = 3000;
+        liquidityFeePercent = 0.35;
+        routerAddress = SWAP_ROUTERS.uniswapV3Router;
+        routePath = tokenIn.symbol === 'VERSE' ? [tokenIn.address, WETH_ADDRESS, outAddr] : [inAddr, WETH_ADDRESS, tokenOut.address];
+        routeDescription = `${tokenIn.symbol} → Uniswap V3 (via WETH) → ${tokenOut.symbol}`;
+        estimatedGasUnits = 210000n;
       }
     } else {
       if (inAddr.toLowerCase() === WMATIC_ADDRESS.toLowerCase()) {
