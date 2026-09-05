@@ -81,7 +81,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
   // Real live USD value calculation for the currently selected input token
   const inputUsdValue = useMemo(() => {
     if (isNaN(enteredAmount) || enteredAmount <= 0) {
-      return '~$0.00';
+      return '$0.00';
     }
 
     // 1. Stablecoins pegged 1:1 with USD
@@ -255,7 +255,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               type="number"
               min="0"
               step="any"
-              placeholder="0.0"
+              placeholder="0"
               value={inputAmount}
               onChange={(e) => setInputAmount(e.target.value)}
               className="w-full bg-transparent text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none"

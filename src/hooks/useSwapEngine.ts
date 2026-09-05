@@ -14,12 +14,12 @@ export function useSwapEngine() {
   const { writeContractAsync } = useWriteContract();
   const wagmiConfig = useConfig();
 
-  // Selected tokens (Defaults to 10,000 VERSE -> USDT as specified)
+  // Selected tokens (Defaults to VERSE -> USDT)
   const defaultInput = SWAP_TOKENS.find((t) => t.symbol === 'VERSE') || SWAP_TOKENS[3];
   const defaultOutput = SWAP_TOKENS.find((t) => t.symbol === 'USDT') || SWAP_TOKENS[1];
   const [inputToken, setInputToken] = useState<SwapTokenInfo>(defaultInput);
   const [outputToken, setOutputToken] = useState<SwapTokenInfo>(defaultOutput);
-  const [inputAmount, setInputAmount] = useState<string>('10000');
+  const [inputAmount, setInputAmount] = useState<string>('');
 
   // Settings
   const [slippage, setSlippage] = useState<number>(0.5);
