@@ -372,6 +372,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           chainId: selectedChainId as 137 | 1,
           to: targetRecipient as Address,
           value: valueInWei,
+          gas: 21000n, // Explicit standard native transfer gas prevents RPC pre-flight aborts
         });
         setActiveTxHash(txHash);
         setTxStep('broadcasting');
@@ -958,10 +959,27 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
             </div>
           )}
 
+          {/* Native Token Direct Transfer Guidance */}
+          {currentNetworkConfig?.isNative && (
+            <div className="p-3.5 rounded-xl bg-blue-950/40 border border-blue-500/30 text-blue-200 text-xs flex items-start gap-2.5 mb-4">
+              <ShieldCheck className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-white font-semibold">Direct Native Transfer: </strong>
+                <span>
+                  Polygon (POL / MATIC) is the native gas coin of the network, which means it transfers directly with <strong>zero token approval needed</strong>. When your wallet pops up, click <strong>"Confirm"</strong> (or "Send") to authorize the transaction.
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Transaction Steps & Confirmation */}
           {txStep === 'awaiting_signature' && (
             <div className="p-4 rounded-xl bg-zinc-900 border border-[#FACC15]/60 text-[#FACC15] mb-4 animate-pulse">
-              <div className="text-xs font-bold">Please approve the transaction in your wallet...</div>
+              <div className="text-xs font-bold">
+                {currentNetworkConfig?.isNative
+                  ? 'Please click "Confirm" in your wallet to send Polygon (POL / MATIC)...'
+                  : 'Please confirm the transfer in your wallet...'}
+              </div>
             </div>
           )}
 
