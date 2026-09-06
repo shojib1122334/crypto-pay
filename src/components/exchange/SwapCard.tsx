@@ -429,7 +429,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
             >
               Cannot Swap (No Route)
             </button>
-          ) : status === 'APPROVAL_REQUIRED' ? (
+          ) : status === 'APPROVAL_REQUIRED' && !isNativeIn ? (
             <button
               type="button"
               onClick={handleApprove}

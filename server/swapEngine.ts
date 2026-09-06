@@ -90,6 +90,7 @@ export interface ExecutableQuote {
     hops?: SwapRouteHop[];
   };
   kyberRouteSummary?: unknown;
+  transactionValue?: string;
   expiresAt: number;
   createdAt: number;
 }
@@ -671,6 +672,9 @@ export async function generateExecutableQuote(params: {
       hops,
     },
     kyberRouteSummary,
+    transactionValue: isNativeIn && (kyberRouteSummary as { amountIn?: string })?.amountIn
+      ? (kyberRouteSummary as { amountIn?: string }).amountIn
+      : undefined,
     expiresAt,
     createdAt,
   };
@@ -737,19 +741,40 @@ export async function prepareSwapTransaction(params: {
       if (buildRes.ok) {
         const buildJson = await buildRes.json();
         if (buildJson.code === 0 && buildJson.data?.data) {
-          const isNativeIn = quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL';
-          const txValue = (buildJson.data.transactionValue !== undefined && buildJson.data.transactionValue !== null && buildJson.data.transactionValue !== '')
-            ? (`0x${BigInt(buildJson.data.transactionValue).toString(16)}` as `0x${string}`)
-            : isNativeIn
-            ? (`0x${BigInt(quote.inputAmountRaw).toString(16)}` as `0x${string}`)
-            : '0x0';
+          const isNativeIn =
+            quote.inputToken.symbol === 'MATIC' ||
+            quote.inputToken.symbol === 'POL' ||
+            quote.inputToken.address.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+
+          // Separate MATIC (native token) from ERC-20 tokens:
+          // 1. For ERC-20 tokens, transaction value MUST strictly be 0 (0 wei).
+          // 2. For native MATIC, transaction value must exactly match the native MATIC
+          //    amount required by the KyberSwap quote/calldata, using the API-provided
+          //    transaction value in wei without manually recalculating or modifying it.
+          let txValueHex: `0x${string}`;
+          let txValueWei: string;
+
+          if (isNativeIn) {
+            const apiTxVal =
+              buildJson.data.transactionValue !== undefined && buildJson.data.transactionValue !== null && buildJson.data.transactionValue !== ''
+                ? buildJson.data.transactionValue
+                : (quote.kyberRouteSummary as { amountIn?: string })?.amountIn ?? quote.transactionValue ?? buildJson.data.amountIn;
+
+            txValueWei = apiTxVal ? apiTxVal.toString() : quote.inputAmountRaw;
+            txValueHex = `0x${BigInt(txValueWei).toString(16)}` as `0x${string}`;
+          } else {
+            txValueWei = '0';
+            txValueHex = '0x0';
+          }
 
           return {
             quoteId,
             chainId: POLYGON_CHAIN_ID,
             to: (buildJson.data.routerAddress || quote.route.routerAddress) as `0x${string}`,
             data: buildJson.data.data as `0x${string}`,
-            value: txValue,
+            value: txValueHex,
+            transactionValue: txValueWei,
+            valueWei: txValueWei,
             gasLimit: (BigInt(buildJson.data.gas || quote.estimatedGas) + 50000n).toString(),
             deadline,
             minimumOutputAmountRaw: quote.minimumReceivedRaw,
@@ -763,8 +788,14 @@ export async function prepareSwapTransaction(params: {
 
   let calldata: `0x${string}` = '0x';
 
-  const isNativeIn = quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL';
-  const isNativeOut = quote.outputToken.symbol === 'MATIC' || quote.outputToken.symbol === 'POL';
+  const isNativeIn =
+    quote.inputToken.symbol === 'MATIC' ||
+    quote.inputToken.symbol === 'POL' ||
+    quote.inputToken.address.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+  const isNativeOut =
+    quote.outputToken.symbol === 'MATIC' ||
+    quote.outputToken.symbol === 'POL' ||
+    quote.outputToken.address.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
   if (quote.route.protocol === 'Uniswap V3' && quote.route.fee) {
     calldata = encodeFunctionData({
@@ -822,6 +853,11 @@ export async function prepareSwapTransaction(params: {
     });
   }
 
+  const fallbackRouter =
+    quote.route.protocol === 'Uniswap V3'
+      ? SWAP_ROUTERS.uniswapV3Router
+      : SWAP_ROUTERS.quickswapV2Router;
+
   const fallbackValue = isNativeIn
     ? (`0x${BigInt(quote.inputAmountRaw).toString(16)}` as `0x${string}`)
     : '0x0';
@@ -829,9 +865,11 @@ export async function prepareSwapTransaction(params: {
   return {
     quoteId,
     chainId: POLYGON_CHAIN_ID,
-    to: quote.route.routerAddress,
+    to: fallbackRouter,
     data: calldata,
     value: fallbackValue,
+    transactionValue: isNativeIn ? quote.inputAmountRaw : '0',
+    valueWei: isNativeIn ? quote.inputAmountRaw : '0',
     gasLimit: (BigInt(quote.estimatedGas) + 50000n).toString(),
     deadline,
     minimumOutputAmountRaw: quote.minimumReceivedRaw,

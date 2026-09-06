@@ -515,7 +515,14 @@ export function useSwapEngine() {
 
     try {
       // 1. Prepare transaction calldata (attempt server first, fallback to client)
-      let tx: { to: `0x${string}`; data: `0x${string}`; value?: `0x${string}`; gasLimit?: string } | null = null;
+      let tx: {
+        to: `0x${string}`;
+        data: `0x${string}`;
+        value?: `0x${string}`;
+        transactionValue?: string;
+        valueWei?: string;
+        gasLimit?: string;
+      } | null = null;
       try {
         const prepRes = await fetch('/api/swap/prepare', {
           method: 'POST',
@@ -545,12 +552,33 @@ export function useSwapEngine() {
         });
       }
 
-      const isNativeIn = quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL';
-      const txValue = tx.value !== undefined && tx.value !== null && tx.value !== ''
-        ? BigInt(tx.value)
-        : isNativeIn
-        ? BigInt(quote.inputAmountRaw)
-        : 0n;
+      const isNativeIn =
+        quote.inputToken.symbol === 'MATIC' ||
+        quote.inputToken.symbol === 'POL' ||
+        quote.inputToken.address.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+
+      // Ensure MATIC (native token) is handled separately from ERC-20 tokens:
+      // 1. For ERC-20 tokens: transaction value MUST strictly be 0n (0 wei).
+      // 2. For native MATIC: transaction value must strictly match the native MATIC
+      //    amount required by the KyberSwap quote/calldata, using the API-provided
+      //    transaction value in wei without manually recalculating or modifying it.
+      let txValue: bigint;
+      if (!isNativeIn) {
+        txValue = 0n;
+      } else {
+        const rawApiValue =
+          tx.valueWei ||
+          tx.transactionValue ||
+          (tx.value && tx.value !== '0x0' ? tx.value : undefined) ||
+          quote.transactionValue ||
+          (quote.kyberRouteSummary as { amountIn?: string })?.amountIn;
+
+        if (rawApiValue !== undefined && rawApiValue !== null && rawApiValue !== '') {
+          txValue = BigInt(rawApiValue);
+        } else {
+          txValue = BigInt(tx.value || '0');
+        }
+      }
 
       // 2. Pre-flight simulation and dynamic gas estimation with safety buffer
       let finalGasLimit = BigInt(tx.gasLimit || '350000');

@@ -63,6 +63,7 @@ export interface SwapQuote {
     routerAddress: `0x${string}`;
   };
   kyberRouteSummary?: unknown;
+  transactionValue?: string;    // Raw wei transaction value provided by Aggregator API
   expiresAt: number;            // Timestamp in ms
   createdAt: number;            // Timestamp in ms
 }
@@ -73,6 +74,8 @@ export interface SwapPrepareResponse {
   to: `0x${string}`;
   data: `0x${string}`;
   value: `0x${string}`;
+  transactionValue?: string;    // API-provided value in wei
+  valueWei?: string;            // Exact wei amount for native token
   gasLimit: string;
   deadline: number;
   minimumOutputAmountRaw: string;
