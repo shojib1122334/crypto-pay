@@ -78,21 +78,30 @@ export function parseRpcError(err: unknown, context?: ErrorContext): ParsedRpcEr
     cleanTechDetail = cleanTechDetail.slice(0, 300) + '...';
   }
 
-  // 1. User Rejected / Cancelled Signature
+  // 1. User Rejected / Cancelled Signature or Connection
   if (
     causeCode === 4001 ||
     combinedText.includes('user rejected') ||
     combinedText.includes('user denied') ||
     combinedText.includes('user cancelled') ||
     combinedText.includes('user closed') ||
+    combinedText.includes('modal closed') ||
     combinedText.includes('action_rejected') ||
-    combinedText.includes('rejected the request')
+    combinedText.includes('rejected the request') ||
+    combinedText.includes('connection request reset')
   ) {
+    const isConnReset = combinedText.includes('connection request reset') || combinedText.includes('modal closed');
     return {
-      title: 'Signature Cancelled',
-      message: 'You cancelled the transaction in your wallet.',
-      actionHint: 'No funds were moved. You can retry whenever you are ready.',
-      technicalDetails: 'User rejected signature request (Code: 4001)',
+      title: isConnReset ? 'Connection Cancelled' : 'Signature Cancelled',
+      message: isConnReset
+        ? 'The wallet connection request was reset or cancelled. You can retry whenever you are ready.'
+        : 'You cancelled the transaction in your wallet.',
+      actionHint: isConnReset
+        ? 'Click Connect Wallet to select your wallet or scan the QR code.'
+        : 'No funds were moved. You can retry whenever you are ready.',
+      technicalDetails: isConnReset
+        ? 'Connection request reset or aborted by user.'
+        : 'User rejected signature request (Code: 4001)',
       category: 'user',
       rawCode: 4001,
     };

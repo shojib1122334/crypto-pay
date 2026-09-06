@@ -5,10 +5,24 @@ import { polygon, mainnet } from 'wagmi/chains';
 const projectId =
   import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '31fd3c9688d3fa1f2ada8d5419c90657';
 
+const originUrl =
+  typeof window !== 'undefined' && window.location.origin
+    ? window.location.origin
+    : 'https://cryptopay.network';
+
 export const config = getDefaultConfig({
   appName: 'CryptoPay',
   projectId,
   chains: [polygon, mainnet],
+  ssr: false,
+  walletConnectParameters: {
+    metadata: {
+      name: 'CryptoPay',
+      description: 'Institutional non-custodial crypto payments accepting USDT and USDC on Polygon',
+      url: originUrl,
+      icons: [`${originUrl}/brand/app-logo.png`],
+    },
+  },
   transports: {
     [polygon.id]: fallback([
       http('https://polygon-bor-rpc.publicnode.com', { retryCount: 3, timeout: 8000 }),
@@ -24,7 +38,6 @@ export const config = getDefaultConfig({
       http('https://eth.llamarpc.com', { retryCount: 3, timeout: 8000 }),
     ]),
   },
-  ssr: true,
 });
 
 export { polygon, mainnet };

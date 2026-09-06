@@ -17,6 +17,31 @@ interface SwapStatusModalProps {
   onReset?: () => void;
 }
 
+function formatFriendlyError(err?: string): string | undefined {
+  if (!err) return undefined;
+  if (err.includes('Connection request reset') || err.includes('connection request reset')) {
+    return 'Wallet connection was cancelled or reset. Please open your wallet and try again.';
+  }
+  if (err.includes('Invalid msg.value')) {
+    return 'The swap contract rejected the transaction value. The route has been updated with native POL parameters.';
+  }
+  if (err.includes('User rejected') || err.includes('user cancelled') || err.includes('User denied')) {
+    return 'Transaction was cancelled in wallet.';
+  }
+  if (err.includes('insufficient funds') || err.includes('exceeds balance')) {
+    return 'Insufficient balance to cover the swap amount and network gas fees.';
+  }
+  if (err.includes('TRANSFER_FROM_FAILED')) {
+    return 'Token transfer allowance expired or failed. Please re-approve the token.';
+  }
+  const reasonMatch = err.match(/reverted with reason:\s*([^.\n]+)/i) || err.match(/execution reverted:\s*([^.\n]+)/i);
+  if (reasonMatch && reasonMatch[1]) {
+    return `Execution reverted: ${reasonMatch[1].trim()}`;
+  }
+  const clean = err.split('Raw Call Arguments:')[0].split('Version: viem')[0].trim();
+  return clean.length > 140 ? clean.slice(0, 140) + '...' : clean;
+}
+
 export const SwapStatusModal: React.FC<SwapStatusModalProps> = ({
   isOpen,
   onClose,
@@ -111,8 +136,8 @@ export const SwapStatusModal: React.FC<SwapStatusModalProps> = ({
               {status === 'COMPLETED' &&
                 `You successfully swapped ${formatTokenAmount(inputAmount)} ${inputTokenSymbol} for ~${formatTokenAmount(expectedOutput)} ${outputTokenSymbol}.`}
               {errorMessage && (
-                <span className="block mt-1 text-rose-500 font-medium">
-                  {errorMessage}
+                <span className="block mt-1 text-rose-500 font-medium break-words">
+                  {formatFriendlyError(errorMessage)}
                 </span>
               )}
             </p>

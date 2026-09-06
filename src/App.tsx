@@ -24,14 +24,30 @@ import { getCurrentPaymentParams } from '@/lib/payments';
 import type { NavTab } from '@/types/navigation';
 
 
+const isIgnorableNotice = (err: unknown): boolean => {
+  if (!err) return false;
+  const anyErr = err as Record<string, unknown>;
+  const msg = `${anyErr.message || ''} ${anyErr.shortMessage || ''} ${anyErr.details || ''} ${anyErr.name || ''}`.toLowerCase();
+  return (
+    msg.includes('connection request reset') ||
+    msg.includes('user rejected') ||
+    msg.includes('user cancelled') ||
+    msg.includes('user denied') ||
+    msg.includes('modal closed') ||
+    msg.includes('cross-origin-opener-policy')
+  );
+};
+
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error) => {
+      if (isIgnorableNotice(error)) return;
       console.warn('React Query cache warning:', error?.message || error);
     },
   }),
   mutationCache: new MutationCache({
     onError: (error) => {
+      if (isIgnorableNotice(error)) return;
       console.warn('React Query mutation warning:', error?.message || error);
     },
   }),
@@ -42,6 +58,9 @@ const queryClient = new QueryClient({
     },
     mutations: {
       retry: false,
+      onError: (error) => {
+        if (isIgnorableNotice(error)) return;
+      },
     },
   },
 });

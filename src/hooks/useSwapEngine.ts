@@ -545,18 +545,36 @@ export function useSwapEngine() {
         });
       }
 
-      const txValue = tx.value && tx.value !== '0x0' && tx.value !== '0'
+      const isNativeIn = quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL';
+      const txValue = tx.value !== undefined && tx.value !== null && tx.value !== ''
         ? BigInt(tx.value)
-        : (quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL')
+        : isNativeIn
         ? BigInt(quote.inputAmountRaw)
         : 0n;
 
-      // 2. Prompt user to sign and send on Polygon directly inside their connected wallet
+      // 2. Pre-flight simulation and dynamic gas estimation with safety buffer
+      let finalGasLimit = BigInt(tx.gasLimit || '350000');
+      try {
+        const estimatedGas = await polygonPublicClient.estimateGas({
+          account: address,
+          to: tx.to,
+          data: tx.data,
+          value: txValue,
+        });
+        if (estimatedGas > 0n) {
+          // Provide 30% safety buffer for Polygon state changes
+          finalGasLimit = (estimatedGas * 130n) / 100n;
+        }
+      } catch (estErr) {
+        console.warn('Pre-flight gas estimation fallback to preset:', estErr);
+      }
+
+      // 3. Prompt user to sign and send on Polygon directly inside their connected wallet
       const hash = await sendTransactionAsync({
         to: tx.to,
         data: tx.data,
         value: txValue,
-        gas: BigInt(tx.gasLimit || '250000'),
+        gas: finalGasLimit,
         chainId: POLYGON_CHAIN_ID,
       });
 

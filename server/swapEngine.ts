@@ -38,6 +38,8 @@ const polygonClient = createPublicClient({
 const quickswapV2RouterAbi = parseAbi([
   'function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint256[] memory amounts)',
   'function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] calldata path, address to, uint256 deadline) external returns (uint256[] memory amounts)',
+  'function swapExactETHForTokens(uint256 amountOutMin, address[] calldata path, address to, uint256 deadline) external payable returns (uint256[] memory amounts)',
+  'function swapExactTokensForETH(uint256 amountIn, uint256 amountOutMin, address[] calldata path, address to, uint256 deadline) external returns (uint256[] memory amounts)',
 ]);
 
 const uniswapV3QuoterAbi = parseAbi([
@@ -735,9 +737,10 @@ export async function prepareSwapTransaction(params: {
       if (buildRes.ok) {
         const buildJson = await buildRes.json();
         if (buildJson.code === 0 && buildJson.data?.data) {
-          const txValue = (buildJson.data.transactionValue && buildJson.data.transactionValue !== '0')
+          const isNativeIn = quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL';
+          const txValue = (buildJson.data.transactionValue !== undefined && buildJson.data.transactionValue !== null && buildJson.data.transactionValue !== '')
             ? (`0x${BigInt(buildJson.data.transactionValue).toString(16)}` as `0x${string}`)
-            : (quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL')
+            : isNativeIn
             ? (`0x${BigInt(quote.inputAmountRaw).toString(16)}` as `0x${string}`)
             : '0x0';
 
@@ -760,6 +763,9 @@ export async function prepareSwapTransaction(params: {
 
   let calldata: `0x${string}` = '0x';
 
+  const isNativeIn = quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL';
+  const isNativeOut = quote.outputToken.symbol === 'MATIC' || quote.outputToken.symbol === 'POL';
+
   if (quote.route.protocol === 'Uniswap V3' && quote.route.fee) {
     calldata = encodeFunctionData({
       abi: uniswapV3RouterAbi,
@@ -776,8 +782,33 @@ export async function prepareSwapTransaction(params: {
         },
       ],
     });
+  } else if (isNativeIn) {
+    // QuickSwap V2 - native token input
+    calldata = encodeFunctionData({
+      abi: quickswapV2RouterAbi,
+      functionName: 'swapExactETHForTokens',
+      args: [
+        BigInt(quote.minimumReceivedRaw),
+        quote.route.path,
+        normalizedWallet,
+        BigInt(deadline),
+      ],
+    });
+  } else if (isNativeOut) {
+    // QuickSwap V2 - native token output
+    calldata = encodeFunctionData({
+      abi: quickswapV2RouterAbi,
+      functionName: 'swapExactTokensForETH',
+      args: [
+        BigInt(quote.inputAmountRaw),
+        BigInt(quote.minimumReceivedRaw),
+        quote.route.path,
+        normalizedWallet,
+        BigInt(deadline),
+      ],
+    });
   } else {
-    // QuickSwap V2
+    // QuickSwap V2 - token to token
     calldata = encodeFunctionData({
       abi: quickswapV2RouterAbi,
       functionName: 'swapExactTokensForTokens',
@@ -791,7 +822,7 @@ export async function prepareSwapTransaction(params: {
     });
   }
 
-  const fallbackValue = (quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL')
+  const fallbackValue = isNativeIn
     ? (`0x${BigInt(quote.inputAmountRaw).toString(16)}` as `0x${string}`)
     : '0x0';
 

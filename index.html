@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en" class="scroll-smooth light" data-theme="light">
-  <head><script defer data-domain="crypto-pay-eight.vercel.app" src="https://analytics.vgdh.io/js/script.js"></script>
+  <head>
     <meta charset="UTF-8" />
     <script>
       // Clean up any stale service workers or caches in development/iframe
@@ -19,10 +19,67 @@
             }
           }).catch(function() {});
         }
+
+        // Deep inspection helper for ignorable wallet interaction/cancellation errors
+        function getErrorText(err) {
+          if (!err) return '';
+          if (typeof err === 'string') return err;
+          var text = (err.message || '') + ' ' + (err.shortMessage || '') + ' ' + (err.details || '') + ' ' + (err.name || '');
+          if (err.cause) {
+            text += ' ' + getErrorText(err.cause);
+          }
+          try {
+            text += ' ' + String(err);
+          } catch(e) {}
+          return text;
+        }
+
+        function isIgnorableWalletNotice(err) {
+          var str = getErrorText(err).toLowerCase();
+          return (
+            str.indexOf('connection request reset') !== -1 ||
+            str.indexOf('user rejected') !== -1 ||
+            str.indexOf('user cancelled') !== -1 ||
+            str.indexOf('user denied') !== -1 ||
+            str.indexOf('modal closed') !== -1 ||
+            str.indexOf('proposal expired') !== -1 ||
+            str.indexOf('session proposal expired') !== -1 ||
+            str.indexOf('pairing proposal expired') !== -1 ||
+            str.indexOf('cross-origin-opener-policy') !== -1 ||
+            str.indexOf('cannot set property fetch') !== -1 ||
+            str.indexOf('has only a getter') !== -1 ||
+            str.indexOf('already pending') !== -1 ||
+            str.indexOf('no matching key') !== -1 ||
+            str.indexOf('pairing already exists') !== -1 ||
+            str.indexOf('missing or invalid') !== -1
+          );
+        }
+
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = event ? event.reason : null;
+          if (isIgnorableWalletNotice(reason)) {
+            console.warn('[CryptoPay] Handled wallet interaction event:', getErrorText(reason).slice(0, 150));
+            if (typeof event.preventDefault === 'function') event.preventDefault();
+            if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+            if (typeof event.stopPropagation === 'function') event.stopPropagation();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('error', function(event) {
+          var target = (event && (event.error || event.message)) || event;
+          if (isIgnorableWalletNotice(target)) {
+            console.warn('[CryptoPay] Handled wallet window error:', getErrorText(target).slice(0, 150));
+            if (typeof event.preventDefault === 'function') event.preventDefault();
+            if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+            if (typeof event.stopPropagation === 'function') event.stopPropagation();
+            return true;
+          }
+        }, true);
       }
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>CryptoPay — Enterprise Non-Custodial Crypto Payments</title>
+    <title>CryptoPay</title>
     <meta name="description" content="Institutional non-custodial crypto payments accepting USDT and USDC on Polygon with direct wallet settlement." />
     
     <!-- PWA & Mobile App Meta Tags -->
@@ -47,7 +104,7 @@
 
     <!-- Open Graph & Social -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="CryptoPay — Enterprise Non-Custodial Crypto Payments" />
+    <meta property="og:title" content="CryptoPay" />
     <meta property="og:description" content="Institutional non-custodial crypto payments accepting USDT and USDC on Polygon with direct wallet settlement." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

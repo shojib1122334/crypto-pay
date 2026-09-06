@@ -14,6 +14,7 @@ import { SWAP_TOKENS, POLYGON_CHAIN_ID } from '../components/exchange/tokenData'
 
 export const WMATIC_ADDRESS: `0x${string}` = '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270';
 export const WETH_ADDRESS: `0x${string}` = '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619';
+export const NATIVE_TOKEN_ADDRESS: `0x${string}` = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
 export const SWAP_ROUTERS = {
   kyberSwapRouter: '0x6131B5fae19EA4f9D964eAc0408E4408b66337b5' as `0x${string}`,
@@ -87,6 +88,8 @@ export async function fetchDirectDEXQuote(params: {
 
   const isNativeIn = tokenIn.symbol === 'MATIC' || tokenIn.symbol === 'POL';
   const isNativeOut = tokenOut.symbol === 'MATIC' || tokenOut.symbol === 'POL';
+  const kyberInAddr = isNativeIn ? NATIVE_TOKEN_ADDRESS : tokenIn.address;
+  const kyberOutAddr = isNativeOut ? NATIVE_TOKEN_ADDRESS : tokenOut.address;
   const inAddr = isNativeIn ? WMATIC_ADDRESS : tokenIn.address;
   const outAddr = isNativeOut ? WMATIC_ADDRESS : tokenOut.address;
 
@@ -98,7 +101,7 @@ export async function fetchDirectDEXQuote(params: {
   let bestExpectedRaw = 0n;
   let selectedProtocol = 'KyberSwap Aggregator';
   let routeDescription = `${tokenIn.symbol} → ${tokenOut.symbol}`;
-  let routePath: `0x${string}`[] = [inAddr, outAddr];
+  let routePath: `0x${string}`[] = [kyberInAddr, kyberOutAddr];
   let hops: SwapRouteHop[] = [];
   let routerAddress = SWAP_ROUTERS.kyberSwapRouter;
   let kyberRouteSummary: unknown = null;
@@ -110,7 +113,7 @@ export async function fetchDirectDEXQuote(params: {
 
   // 1. Query KyberSwap Aggregator directly (supports open browser CORS)
   try {
-    const kyberUrl = `https://aggregator-api.kyberswap.com/polygon/api/v1/routes?tokenIn=${inAddr}&tokenOut=${outAddr}&amountIn=${amountInRaw.toString()}`;
+    const kyberUrl = `https://aggregator-api.kyberswap.com/polygon/api/v1/routes?tokenIn=${kyberInAddr}&tokenOut=${kyberOutAddr}&amountIn=${amountInRaw.toString()}`;
     const kyberRes = await fetch(kyberUrl, {
       headers: {
         'x-client-id': 'cryptopay-client',
@@ -360,10 +363,11 @@ export async function prepareDirectSwapTransaction(params: {
       if (buildRes.ok) {
         const buildJson = await buildRes.json();
         if (buildJson.code === 0 && buildJson.data?.data) {
+          const isNativeIn = quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL';
           const txValue =
-            buildJson.data.transactionValue && buildJson.data.transactionValue !== '0'
+            buildJson.data.transactionValue !== undefined && buildJson.data.transactionValue !== null && buildJson.data.transactionValue !== ''
               ? (`0x${BigInt(buildJson.data.transactionValue).toString(16)}` as `0x${string}`)
-              : quote.inputToken.symbol === 'MATIC'
+              : isNativeIn
               ? (`0x${BigInt(quote.inputAmountRaw).toString(16)}` as `0x${string}`)
               : '0x0';
 
@@ -385,8 +389,8 @@ export async function prepareDirectSwapTransaction(params: {
   }
 
   // 2. Direct on-chain router calldata fallback (QuickSwap V2 Router)
-  const isNativeIn = quote.inputToken.symbol === 'MATIC';
-  const isNativeOut = quote.outputToken.symbol === 'MATIC';
+  const isNativeIn = quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL';
+  const isNativeOut = quote.outputToken.symbol === 'MATIC' || quote.outputToken.symbol === 'POL';
   const inAddr = isNativeIn ? WMATIC_ADDRESS : quote.inputToken.address;
   const outAddr = isNativeOut ? WMATIC_ADDRESS : quote.outputToken.address;
 
