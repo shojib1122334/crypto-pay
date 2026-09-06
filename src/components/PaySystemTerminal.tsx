@@ -54,25 +54,11 @@ type PayTabMode = 'send' | 'receive';
 
 // Define the 4 primary tokens displayed in the 2x2 grid
 const PRIMARY_GRID_TOKENS = [
-  { id: 'usdt', symbol: 'USDT', name: 'Tether USD' },
+  { id: 'usdt', symbol: 'USDT', name: 'Tether' },
   { id: 'usdc', symbol: 'USDC', name: 'USD Coin' },
-  { id: 'pol', symbol: 'POL', name: 'Polygon (POL / MATIC)' },
-  { id: 'verse', symbol: 'VERSE', name: 'Verse Token' },
+  { id: 'pol', symbol: 'POL', name: 'Polygon' },
+  { id: 'verse', symbol: 'VERSE', name: 'Verse' },
 ];
-
-/**
- * Safely parse units without throwing when input has excess decimal places
- */
-function parseUnitsSafe(value: string, decimals: number): bigint {
-  const trimmed = value.trim();
-  const [intPart, fracPart] = trimmed.split('.');
-  if (!fracPart) {
-    return parseUnits(trimmed, decimals);
-  }
-  const safeFrac = fracPart.slice(0, decimals);
-  const safeValue = safeFrac.length > 0 ? `${intPart}.${safeFrac}` : intPart;
-  return parseUnits(safeValue, decimals);
-}
 
 interface PaySystemTerminalProps {
   onNavigateTab?: (tab: NavTab) => void;
@@ -154,10 +140,8 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
       }
 
       if (data.tokenSymbol) {
-        const sym = data.tokenSymbol.toLowerCase();
-        const normalizedSym = sym === 'matic' ? 'pol' : sym;
         const found = SUPPORTED_PAY_TOKENS.find(
-          (t) => t.symbol.toLowerCase() === normalizedSym || t.id.toLowerCase() === normalizedSym
+          (t) => t.symbol.toLowerCase() === data.tokenSymbol?.toLowerCase()
         );
         if (found) {
           setSelectedTokenId(found.id);
@@ -243,14 +227,11 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
   const getTokenBalance = useCallback(
     (symbol: string) => {
       if (!address) return '0.00';
-      const cleanSym = symbol.toLowerCase();
-      const found = balances.find((b) => {
-        if (b.chainId !== selectedChainId) return false;
-        const bSym = b.symbol.toLowerCase();
-        if (bSym === cleanSym) return true;
-        if ((cleanSym === 'matic' && bSym === 'pol') || (cleanSym === 'pol' && bSym === 'matic')) return true;
-        return false;
-      });
+      const found = balances.find(
+        (b) =>
+          b.symbol.toLowerCase() === symbol.toLowerCase() &&
+          b.chainId === selectedChainId
+      );
       return found ? found.balance : '0.00';
     },
     [balances, selectedChainId, address]
@@ -291,19 +272,17 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
       return;
     }
 
-    const targetRecipient = recipientAddress.trim();
-    if (!targetRecipient || !isAddress(targetRecipient)) {
+    if (!recipientAddress || !isAddress(recipientAddress)) {
       setSendError('Please enter or scan a valid recipient address (0x...)');
       return;
     }
 
-    if (targetRecipient.toLowerCase() === address.toLowerCase()) {
+    if (recipientAddress.toLowerCase() === address.toLowerCase()) {
       setSendError('Recipient address cannot be your own connected wallet address.');
       return;
     }
 
-    const cleanAmount = sendAmount.trim();
-    const parsedAmount = parseFloat(cleanAmount);
+    const parsedAmount = parseFloat(sendAmount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       setSendError('Please enter a valid transfer amount greater than 0.');
       return;
@@ -319,7 +298,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           const parsed = parseRpcError(switchErr, {
             chainId: selectedChainId,
             tokenSymbol: currentToken?.symbol,
-            amount: cleanAmount,
+            amount: sendAmount,
           });
           setSendError(`Please switch your wallet to ${targetName} (Chain ID ${selectedChainId}) to continue. ${parsed.message}`);
           return;
@@ -335,24 +314,12 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
     const cleanTokenBalance = parseFloat(currentTokenBalance.replace(/,/g, ''));
     if (!isNaN(cleanTokenBalance) && parsedAmount > cleanTokenBalance) {
       setSendError(
-        `Insufficient ${currentToken?.symbol || 'token'} balance: You have ${currentTokenBalance} ${currentToken?.symbol || ''}, which is less than the entered amount (${cleanAmount} ${currentToken?.symbol || ''}).`
+        `Insufficient ${currentToken?.symbol || 'token'} balance: You have ${currentTokenBalance} ${currentToken?.symbol || ''}, which is less than the entered amount (${sendAmount} ${currentToken?.symbol || ''}).`
       );
       return;
     }
 
-    if (currentNetworkConfig?.isNative) {
-      // Native POL transfer: check that user leaves enough for gas
-      const polBalanceStr = getTokenBalance('POL').replace(/,/g, '');
-      const polBalanceNum = parseFloat(polBalanceStr);
-      const estGasBuffer = 0.01;
-      if (!isNaN(polBalanceNum) && (parsedAmount + estGasBuffer) > polBalanceNum) {
-        setSendError(
-          `Insufficient POL for transfer + gas: You entered ${cleanAmount} POL, but you must reserve at least ~0.01 POL for Polygon transaction fees. Maximum sendable: ${Math.max(0, polBalanceNum - estGasBuffer).toFixed(4)} POL.`
-        );
-        return;
-      }
-    } else if (selectedChainId === POLYGON_CHAIN_ID) {
-      // ERC-20 transfer on Polygon: check that wallet has native POL for gas
+    if (selectedChainId === POLYGON_CHAIN_ID && !currentNetworkConfig?.isNative) {
       const polBalanceStr = getTokenBalance('POL').replace(/,/g, '');
       const polBalanceNum = parseFloat(polBalanceStr);
       if (!isNaN(polBalanceNum) && polBalanceNum < 0.001) {
@@ -367,18 +334,17 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
       setTxStep('awaiting_signature');
 
       if (currentNetworkConfig?.isNative) {
-        const valueInWei = parseUnitsSafe(cleanAmount, 18);
+        const valueInWei = parseUnits(sendAmount, 18);
         const txHash = await sendTransactionAsync({
           chainId: selectedChainId as 137 | 1,
-          to: targetRecipient as Address,
+          to: recipientAddress as Address,
           value: valueInWei,
-          gas: 21000n, // Explicit standard native transfer gas prevents RPC pre-flight aborts
         });
         setActiveTxHash(txHash);
         setTxStep('broadcasting');
       } else {
         const decimals = currentNetworkConfig?.decimals || 18;
-        const amountInUnits = parseUnitsSafe(cleanAmount, decimals);
+        const amountInUnits = parseUnits(sendAmount, decimals);
         const contractAddr = currentNetworkConfig?.address as Address;
 
         const txHash = await writeContractAsync({
@@ -386,7 +352,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           address: contractAddr,
           abi: ERC20_ABI,
           functionName: 'transfer',
-          args: [targetRecipient as Address, amountInUnits],
+          args: [recipientAddress as Address, amountInUnits],
         });
         setActiveTxHash(txHash);
         setTxStep('broadcasting');
@@ -397,7 +363,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
       const parsed = parseRpcError(err, {
         tokenSymbol: currentToken?.symbol,
         networkName: currentNetworkConfig?.networkName,
-        amount: cleanAmount,
+        amount: sendAmount,
         chainId: selectedChainId,
         userBalance: currentTokenBalance,
         nativeBalance: getTokenBalance('POL'),
@@ -933,14 +899,9 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                 onClick={() => {
                   const bal = parseFloat(currentTokenBalance.replace(/,/g, ''));
                   if (!isNaN(bal) && bal > 0) {
-                    if (currentNetworkConfig?.isNative) {
-                      const maxNative = Math.max(0, bal - 0.015);
-                      setSendAmount(maxNative > 0 ? maxNative.toFixed(4) : '0.00');
-                    } else {
-                      setSendAmount(bal.toString());
-                    }
+                    setSendAmount(bal.toString());
                   } else {
-                    setSendAmount('10.00');
+                    setSendAmount('100.00');
                   }
                   setSendError(null);
                 }}
@@ -959,27 +920,10 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
             </div>
           )}
 
-          {/* Native Token Direct Transfer Guidance */}
-          {currentNetworkConfig?.isNative && (
-            <div className="p-3.5 rounded-xl bg-blue-950/40 border border-blue-500/30 text-blue-200 text-xs flex items-start gap-2.5 mb-4">
-              <ShieldCheck className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <strong className="text-white font-semibold">Direct Native Transfer: </strong>
-                <span>
-                  Polygon (POL / MATIC) is the native gas coin of the network, which means it transfers directly with <strong>zero token approval needed</strong>. When your wallet pops up, click <strong>"Confirm"</strong> (or "Send") to authorize the transaction.
-                </span>
-              </div>
-            </div>
-          )}
-
           {/* Transaction Steps & Confirmation */}
           {txStep === 'awaiting_signature' && (
             <div className="p-4 rounded-xl bg-zinc-900 border border-[#FACC15]/60 text-[#FACC15] mb-4 animate-pulse">
-              <div className="text-xs font-bold">
-                {currentNetworkConfig?.isNative
-                  ? 'Please click "Confirm" in your wallet to send Polygon (POL / MATIC)...'
-                  : 'Please confirm the transfer in your wallet...'}
-              </div>
+              <div className="text-xs font-bold">Please approve the transaction in your wallet...</div>
             </div>
           )}
 
