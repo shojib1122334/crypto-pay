@@ -54,11 +54,25 @@ type PayTabMode = 'send' | 'receive';
 
 // Define the 4 primary tokens displayed in the 2x2 grid
 const PRIMARY_GRID_TOKENS = [
-  { id: 'usdt', symbol: 'USDT', name: 'Tether' },
+  { id: 'usdt', symbol: 'USDT', name: 'Tether USD' },
   { id: 'usdc', symbol: 'USDC', name: 'USD Coin' },
-  { id: 'pol', symbol: 'POL', name: 'Polygon' },
-  { id: 'verse', symbol: 'VERSE', name: 'Verse' },
+  { id: 'pol', symbol: 'POL', name: 'Polygon (POL / MATIC)' },
+  { id: 'verse', symbol: 'VERSE', name: 'Verse Token' },
 ];
+
+/**
+ * Safely parse units without throwing when input has excess decimal places
+ */
+function parseUnitsSafe(value: string, decimals: number): bigint {
+  const trimmed = value.trim();
+  const [intPart, fracPart] = trimmed.split('.');
+  if (!fracPart) {
+    return parseUnits(trimmed, decimals);
+  }
+  const safeFrac = fracPart.slice(0, decimals);
+  const safeValue = safeFrac.length > 0 ? `${intPart}.${safeFrac}` : intPart;
+  return parseUnits(safeValue, decimals);
+}
 
 interface PaySystemTerminalProps {
   onNavigateTab?: (tab: NavTab) => void;
@@ -140,8 +154,10 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
       }
 
       if (data.tokenSymbol) {
+        const sym = data.tokenSymbol.toLowerCase();
+        const normalizedSym = sym === 'matic' ? 'pol' : sym;
         const found = SUPPORTED_PAY_TOKENS.find(
-          (t) => t.symbol.toLowerCase() === data.tokenSymbol?.toLowerCase()
+          (t) => t.symbol.toLowerCase() === normalizedSym || t.id.toLowerCase() === normalizedSym
         );
         if (found) {
           setSelectedTokenId(found.id);
@@ -227,11 +243,14 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
   const getTokenBalance = useCallback(
     (symbol: string) => {
       if (!address) return '0.00';
-      const found = balances.find(
-        (b) =>
-          b.symbol.toLowerCase() === symbol.toLowerCase() &&
-          b.chainId === selectedChainId
-      );
+      const cleanSym = symbol.toLowerCase();
+      const found = balances.find((b) => {
+        if (b.chainId !== selectedChainId) return false;
+        const bSym = b.symbol.toLowerCase();
+        if (bSym === cleanSym) return true;
+        if ((cleanSym === 'matic' && bSym === 'pol') || (cleanSym === 'pol' && bSym === 'matic')) return true;
+        return false;
+      });
       return found ? found.balance : '0.00';
     },
     [balances, selectedChainId, address]
@@ -272,17 +291,19 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
       return;
     }
 
-    if (!recipientAddress || !isAddress(recipientAddress)) {
+    const targetRecipient = recipientAddress.trim();
+    if (!targetRecipient || !isAddress(targetRecipient)) {
       setSendError('Please enter or scan a valid recipient address (0x...)');
       return;
     }
 
-    if (recipientAddress.toLowerCase() === address.toLowerCase()) {
+    if (targetRecipient.toLowerCase() === address.toLowerCase()) {
       setSendError('Recipient address cannot be your own connected wallet address.');
       return;
     }
 
-    const parsedAmount = parseFloat(sendAmount);
+    const cleanAmount = sendAmount.trim();
+    const parsedAmount = parseFloat(cleanAmount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       setSendError('Please enter a valid transfer amount greater than 0.');
       return;
@@ -298,7 +319,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           const parsed = parseRpcError(switchErr, {
             chainId: selectedChainId,
             tokenSymbol: currentToken?.symbol,
-            amount: sendAmount,
+            amount: cleanAmount,
           });
           setSendError(`Please switch your wallet to ${targetName} (Chain ID ${selectedChainId}) to continue. ${parsed.message}`);
           return;
@@ -314,12 +335,24 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
     const cleanTokenBalance = parseFloat(currentTokenBalance.replace(/,/g, ''));
     if (!isNaN(cleanTokenBalance) && parsedAmount > cleanTokenBalance) {
       setSendError(
-        `Insufficient ${currentToken?.symbol || 'token'} balance: You have ${currentTokenBalance} ${currentToken?.symbol || ''}, which is less than the entered amount (${sendAmount} ${currentToken?.symbol || ''}).`
+        `Insufficient ${currentToken?.symbol || 'token'} balance: You have ${currentTokenBalance} ${currentToken?.symbol || ''}, which is less than the entered amount (${cleanAmount} ${currentToken?.symbol || ''}).`
       );
       return;
     }
 
-    if (selectedChainId === POLYGON_CHAIN_ID && !currentNetworkConfig?.isNative) {
+    if (currentNetworkConfig?.isNative) {
+      // Native POL transfer: check that user leaves enough for gas
+      const polBalanceStr = getTokenBalance('POL').replace(/,/g, '');
+      const polBalanceNum = parseFloat(polBalanceStr);
+      const estGasBuffer = 0.01;
+      if (!isNaN(polBalanceNum) && (parsedAmount + estGasBuffer) > polBalanceNum) {
+        setSendError(
+          `Insufficient POL for transfer + gas: You entered ${cleanAmount} POL, but you must reserve at least ~0.01 POL for Polygon transaction fees. Maximum sendable: ${Math.max(0, polBalanceNum - estGasBuffer).toFixed(4)} POL.`
+        );
+        return;
+      }
+    } else if (selectedChainId === POLYGON_CHAIN_ID) {
+      // ERC-20 transfer on Polygon: check that wallet has native POL for gas
       const polBalanceStr = getTokenBalance('POL').replace(/,/g, '');
       const polBalanceNum = parseFloat(polBalanceStr);
       if (!isNaN(polBalanceNum) && polBalanceNum < 0.001) {
@@ -334,17 +367,17 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
       setTxStep('awaiting_signature');
 
       if (currentNetworkConfig?.isNative) {
-        const valueInWei = parseUnits(sendAmount, 18);
+        const valueInWei = parseUnitsSafe(cleanAmount, 18);
         const txHash = await sendTransactionAsync({
           chainId: selectedChainId as 137 | 1,
-          to: recipientAddress as Address,
+          to: targetRecipient as Address,
           value: valueInWei,
         });
         setActiveTxHash(txHash);
         setTxStep('broadcasting');
       } else {
         const decimals = currentNetworkConfig?.decimals || 18;
-        const amountInUnits = parseUnits(sendAmount, decimals);
+        const amountInUnits = parseUnitsSafe(cleanAmount, decimals);
         const contractAddr = currentNetworkConfig?.address as Address;
 
         const txHash = await writeContractAsync({
@@ -352,7 +385,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           address: contractAddr,
           abi: ERC20_ABI,
           functionName: 'transfer',
-          args: [recipientAddress as Address, amountInUnits],
+          args: [targetRecipient as Address, amountInUnits],
         });
         setActiveTxHash(txHash);
         setTxStep('broadcasting');
@@ -363,7 +396,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
       const parsed = parseRpcError(err, {
         tokenSymbol: currentToken?.symbol,
         networkName: currentNetworkConfig?.networkName,
-        amount: sendAmount,
+        amount: cleanAmount,
         chainId: selectedChainId,
         userBalance: currentTokenBalance,
         nativeBalance: getTokenBalance('POL'),
@@ -899,9 +932,14 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                 onClick={() => {
                   const bal = parseFloat(currentTokenBalance.replace(/,/g, ''));
                   if (!isNaN(bal) && bal > 0) {
-                    setSendAmount(bal.toString());
+                    if (currentNetworkConfig?.isNative) {
+                      const maxNative = Math.max(0, bal - 0.015);
+                      setSendAmount(maxNative > 0 ? maxNative.toFixed(4) : '0.00');
+                    } else {
+                      setSendAmount(bal.toString());
+                    }
                   } else {
-                    setSendAmount('100.00');
+                    setSendAmount('10.00');
                   }
                   setSendError(null);
                 }}
