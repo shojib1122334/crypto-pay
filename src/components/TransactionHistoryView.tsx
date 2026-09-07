@@ -233,6 +233,7 @@ export const TransactionHistoryView: React.FC = () => {
         const q = searchQuery.toLowerCase();
         const matchesId = inv.id.toLowerCase().includes(q);
         const matchesStore = inv.storeName.toLowerCase().includes(q);
+        const matchesCustomer = inv.customerName?.toLowerCase().includes(q) || false;
         const matchesProduct = inv.productName.toLowerCase().includes(q);
         const matchesAmount = inv.amount.includes(q);
         const matchesReceiver = inv.receiverAddress.toLowerCase().includes(q);
@@ -240,6 +241,7 @@ export const TransactionHistoryView: React.FC = () => {
         if (
           !matchesId &&
           !matchesStore &&
+          !matchesCustomer &&
           !matchesProduct &&
           !matchesAmount &&
           !matchesReceiver &&
@@ -640,6 +642,12 @@ export const TransactionHistoryView: React.FC = () => {
                           <span className="font-semibold text-zinc-200">{inv.productName}</span>
                           <span className="text-zinc-700">•</span>
                           <span className="text-zinc-400">{inv.storeName}</span>
+                          {inv.customerName && (
+                            <>
+                              <span className="text-zinc-700">•</span>
+                              <span className="text-blue-400">Customer: {inv.customerName}</span>
+                            </>
+                          )}
                           <span className="text-zinc-700">•</span>
                           <span className="text-zinc-400">{inv.network}</span>
                           <span className="text-zinc-700">•</span>
@@ -829,7 +837,13 @@ export const TransactionHistoryView: React.FC = () => {
                   />
                 )}
                 <h4 className="text-lg font-bold text-white">{selectedInvoice.productName}</h4>
-                <p className="text-xs text-zinc-400 mb-3">{selectedInvoice.storeName}</p>
+                <p className="text-xs text-zinc-400 mb-1">{selectedInvoice.storeName}</p>
+                {selectedInvoice.customerName && (
+                  <p className="text-xs text-blue-400 font-semibold mb-3">
+                    Customer: {selectedInvoice.customerName}
+                  </p>
+                )}
+                {!selectedInvoice.customerName && <div className="mb-3" />}
 
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <TokenIcon

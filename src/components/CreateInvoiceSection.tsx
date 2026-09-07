@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   Store,
+  User,
   Package,
   Camera,
   Upload,
@@ -81,6 +82,9 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
   const [isEditingStore, setIsEditingStore] = useState(false);
   const [storeNameInput, setStoreNameInput] = useState(storeName);
+
+  // Customer Name
+  const [customerName, setCustomerName] = useState<string>('');
 
   // 2. Product Name
   const [productName, setProductName] = useState<string>('');
@@ -347,6 +351,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
     const newInvoice: CryptoPayInvoiceData = {
       id: `INV-${Date.now().toString().slice(-6)}`,
       storeName: storeName.trim() || 'CryptoPay Official Store',
+      customerName: customerName.trim() || undefined,
       productName: productName.trim(),
       productImage,
       network,
@@ -526,6 +531,21 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     </span>
                   </div>
                 )}
+              </div>
+
+              {/* 👤 Customer Name */}
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                  <User className="w-4 h-4 text-blue-600" />
+                  <span>👤 Customer Name</span>
+                </label>
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Enter Customer Name (e.g. John Doe, Alice Smith)"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                />
               </div>
 
               {/* 📦 Product Name */}
@@ -796,6 +816,16 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                       </span>
                     </div>
 
+                    {/* Customer: Customer name (if provided) */}
+                    {createdInvoice.customerName && (
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                        <span className="text-slate-500 font-medium">Customer:</span>
+                        <span className="text-slate-900 font-bold text-right truncate max-w-[200px]">
+                          {createdInvoice.customerName}
+                        </span>
+                      </div>
+                    )}
+
                     {/* Item: Item name */}
                     <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
                       <span className="text-slate-500 font-medium">Item:</span>
@@ -887,7 +917,8 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     </span>
                   </div>
                   <p className="text-xs text-slate-500">
-                    {createdInvoice.storeName} • {createdInvoice.productName}
+                    {createdInvoice.storeName}
+                    {createdInvoice.customerName ? ` • ${createdInvoice.customerName}` : ''} • {createdInvoice.productName}
                   </p>
                 </div>
               </div>
