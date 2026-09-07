@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Wallet, Download, LayoutDashboard, Layers, FileText, ArrowLeftRight, Activity, Settings, Menu, X } from 'lucide-react';
+import { Wallet, Download, Layers, FileText, ArrowLeftRight, Activity, Settings, Menu, X } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 import { usePWA } from '@/hooks/usePWA';
 import type { NavTab } from '@/types/navigation';
@@ -10,7 +10,7 @@ interface HeaderProps {
   onNavigateTab?: (tab: NavTab) => void;
 }
 
-export default function Header({ activeTab = 'dashboard', onNavigateTab }: HeaderProps) {
+export default function Header({ activeTab = 'pay-system', onNavigateTab }: HeaderProps) {
   const { isInstalled, isInstallable, installApp } = usePWA();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -32,7 +32,7 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
           {/* Left Side: Brand Logo + "Crypto pay" + Tagline */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
             <button
-              onClick={() => handleNav('dashboard')}
+              onClick={() => handleNav('pay-system')}
               className="flex items-center gap-2.5 sm:gap-3 group text-left focus:outline-none cursor-pointer"
               aria-label="CryptoPay Home"
             >
@@ -60,18 +60,6 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
 
           {/* Center: Full Desktop & Tablet Navigation Bar */}
           <nav className="hidden md:flex items-center gap-1 lg:gap-1.5 flex-shrink-1">
-            <button
-              onClick={() => handleNav('dashboard')}
-              className={`text-xs lg:text-sm font-semibold transition-all cursor-pointer py-2 px-2.5 lg:px-3 rounded-xl flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'dashboard'
-                  ? 'text-slate-900 bg-slate-100 border border-slate-300 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4 text-slate-600" />
-              <span>Dashboard</span>
-            </button>
-
             <button
               onClick={() => handleNav('pay-system')}
               className={`text-xs lg:text-sm font-semibold transition-all cursor-pointer py-2 px-2.5 lg:px-3 rounded-xl flex items-center gap-1.5 whitespace-nowrap ${
@@ -249,18 +237,6 @@ export default function Header({ activeTab = 'dashboard', onNavigateTab }: Heade
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-              <button
-                onClick={() => handleNav('dashboard')}
-                className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${
-                  activeTab === 'dashboard'
-                    ? 'bg-slate-100 text-slate-900 border border-slate-300 shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
-                }`}
-              >
-                <LayoutDashboard className="w-4 h-4 text-slate-600" />
-                <span>Dashboard</span>
-              </button>
-
               <button
                 onClick={() => handleNav('pay-system')}
                 className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${

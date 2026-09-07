@@ -353,23 +353,22 @@ export default function HowItWorksSection() {
             Start Accepting Web3 Payments Today
           </h3>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1 font-medium max-w-xl">
-            Connect your Polygon wallet on the Dashboard tab, generate customized EIP-681 invoices, and receive stablecoin payments instantly.
+            Connect your Polygon wallet on the Pay system tab, send and receive crypto, and settle stablecoin transactions instantly.
           </p>
         </div>
 
         <div className="flex-shrink-0 w-full sm:w-auto">
           <a
-            href="#cryptopay-merchant-dashboard"
+            href="#pay-system"
             onClick={(e) => {
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: 'smooth' });
-              // Trigger tab switch to dashboard if parent supports it
-              const dashBtn = document.querySelector('[data-nav-tab="dashboard"]') as HTMLButtonElement;
-              if (dashBtn) dashBtn.click();
+              const payBtn = document.querySelector('#nav-tab-pay-system') as HTMLButtonElement;
+              if (payBtn) payBtn.click();
             }}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white font-extrabold text-sm shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-95 transition cursor-pointer"
           >
-            <span>Go to Dashboard</span>
+            <span>Go to Pay system</span>
             <ArrowRight className="w-4 h-4 text-white" />
           </a>
         </div>

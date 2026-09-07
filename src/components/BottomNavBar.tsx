@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Layers, FileText, ArrowLeftRight, Activity, Settings } from 'lucide-react';
+import { Layers, FileText, ArrowLeftRight, Activity, Settings } from 'lucide-react';
 import { motion } from 'motion/react';
 import type { NavTab } from '@/types/navigation';
 
@@ -15,11 +15,6 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  {
-    id: 'dashboard',
-    label: 'Dashboard',
-    icon: LayoutDashboard,
-  },
   {
     id: 'pay-system',
     label: 'Pay system',

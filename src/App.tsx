@@ -67,8 +67,8 @@ const queryClient = new QueryClient({
 
 function parseTabFromHash(hashStr: string): NavTab {
   const clean = hashStr.replace('#', '').toLowerCase();
-  if (clean === 'pay-system' || clean === 'pay' || clean === 'how-it-works') {
-    return 'pay-system';
+  if (clean === 'dashboard') {
+    return 'dashboard';
   }
   if (clean === 'create-invoice' || clean === 'invoice' || clean === 'credit-invoice') {
     return 'create-invoice';
@@ -82,14 +82,21 @@ function parseTabFromHash(hashStr: string): NavTab {
   if (clean === 'settings') {
     return 'settings';
   }
-  return 'dashboard';
+  return 'pay-system';
 }
 
 function getInitialTab(): NavTab {
   if (typeof window !== 'undefined') {
-    return parseTabFromHash(window.location.hash);
+    if (window.location.hash) {
+      return parseTabFromHash(window.location.hash);
+    }
+    const paymentParams = getCurrentPaymentParams();
+    if (paymentParams) {
+      return 'dashboard';
+    }
+    return 'pay-system';
   }
-  return 'dashboard';
+  return 'pay-system';
 }
 
 function AppContent() {
@@ -113,7 +120,7 @@ function AppContent() {
   const handleTabChange = (tab: NavTab) => {
     setActiveTab(tab);
     if (typeof window !== 'undefined') {
-      if (tab === 'dashboard') {
+      if (tab === 'pay-system') {
         if (window.location.hash && window.location.hash !== '') {
           window.history.pushState(null, '', window.location.pathname + window.location.search);
         }
