@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import {
   Store,
   User,
+  MapPin,
   Package,
   Camera,
   Upload,
@@ -85,6 +86,9 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
   // Customer Name
   const [customerName, setCustomerName] = useState<string>('');
+
+  // Customer Address (Optional)
+  const [customerAddress, setCustomerAddress] = useState<string>('');
 
   // 2. Product Name
   const [productName, setProductName] = useState<string>('');
@@ -352,6 +356,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
       id: `INV-${Date.now().toString().slice(-6)}`,
       storeName: storeName.trim() || 'CryptoPay Official Store',
       customerName: customerName.trim() || undefined,
+      customerAddress: customerAddress.trim() || undefined,
       productName: productName.trim(),
       productImage,
       network,
@@ -481,12 +486,12 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
             {/* SECTION 1: INVOICE GENERATION FORM */}
             <form onSubmit={handleCreateInvoice} className="space-y-6">
               
-              {/* 🏪 Store Name */}
+              {/* 🏪 Store Name / Company Name */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
                     <Store className="w-4 h-4 text-blue-700" />
-                    <span>🏪 Store Name</span>
+                    <span>🏪 Store Name / Company Name</span>
                   </label>
                   <button
                     type="button"
@@ -510,7 +515,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                       type="text"
                       value={storeNameInput}
                       onChange={(e) => setStoreNameInput(e.target.value)}
-                      placeholder="Enter Store Name"
+                      placeholder="Enter Store Name or Company Name"
                       className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                       autoFocus
                     />
@@ -545,6 +550,21 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="Enter Customer Name (e.g. John Doe, Alice Smith)"
                   className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                />
+              </div>
+
+              {/* 📍 Customer Address (Optional) */}
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-blue-600" />
+                  <span>Customer Address (Optional)</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={customerAddress}
+                  onChange={(e) => setCustomerAddress(e.target.value)}
+                  placeholder="Enter Customer Address"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 resize-none"
                 />
               </div>
 
@@ -808,9 +828,9 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   {/* Invoice Key Details */}
                   <div className="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 space-y-3.5 text-sm">
                     
-                    {/* Store: Store name */}
+                    {/* Store: Store name / Company name */}
                     <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
-                      <span className="text-slate-500 font-medium">Store:</span>
+                      <span className="text-slate-500 font-medium">Store / Company:</span>
                       <span className="text-slate-900 font-bold text-right truncate max-w-[200px]">
                         {createdInvoice.storeName}
                       </span>
@@ -822,6 +842,16 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                         <span className="text-slate-500 font-medium">Customer:</span>
                         <span className="text-slate-900 font-bold text-right truncate max-w-[200px]">
                           {createdInvoice.customerName}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Customer Address: Only if provided */}
+                    {createdInvoice.customerAddress && (
+                      <div className="flex items-start justify-between border-b border-slate-200 pb-2.5">
+                        <span className="text-slate-500 font-medium">Customer Address:</span>
+                        <span className="text-slate-900 font-bold text-right whitespace-pre-line max-w-[200px] text-xs">
+                          {createdInvoice.customerAddress}
                         </span>
                       </div>
                     )}

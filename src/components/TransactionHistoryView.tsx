@@ -234,6 +234,7 @@ export const TransactionHistoryView: React.FC = () => {
         const matchesId = inv.id.toLowerCase().includes(q);
         const matchesStore = inv.storeName.toLowerCase().includes(q);
         const matchesCustomer = inv.customerName?.toLowerCase().includes(q) || false;
+        const matchesAddress = inv.customerAddress?.toLowerCase().includes(q) || false;
         const matchesProduct = inv.productName.toLowerCase().includes(q);
         const matchesAmount = inv.amount.includes(q);
         const matchesReceiver = inv.receiverAddress.toLowerCase().includes(q);
@@ -242,6 +243,7 @@ export const TransactionHistoryView: React.FC = () => {
           !matchesId &&
           !matchesStore &&
           !matchesCustomer &&
+          !matchesAddress &&
           !matchesProduct &&
           !matchesAmount &&
           !matchesReceiver &&
@@ -839,11 +841,17 @@ export const TransactionHistoryView: React.FC = () => {
                 <h4 className="text-lg font-bold text-white">{selectedInvoice.productName}</h4>
                 <p className="text-xs text-zinc-400 mb-1">{selectedInvoice.storeName}</p>
                 {selectedInvoice.customerName && (
-                  <p className="text-xs text-blue-400 font-semibold mb-3">
+                  <p className="text-xs text-blue-400 font-semibold mb-1">
                     Customer: {selectedInvoice.customerName}
                   </p>
                 )}
-                {!selectedInvoice.customerName && <div className="mb-3" />}
+                {selectedInvoice.customerAddress && (
+                  <p className="text-xs text-zinc-300 font-medium mb-2 whitespace-pre-line">
+                    Address: {selectedInvoice.customerAddress}
+                  </p>
+                )}
+                {!selectedInvoice.customerName && !selectedInvoice.customerAddress && <div className="mb-3" />}
+                {(selectedInvoice.customerName || selectedInvoice.customerAddress) && <div className="mb-2" />}
 
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <TokenIcon
@@ -1004,6 +1012,22 @@ export const TransactionHistoryView: React.FC = () => {
 
               {/* Data Specifications Table */}
               <div className="space-y-2 text-xs">
+                {selectedInvoice.customerName && (
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+                    <span className="text-zinc-400 font-semibold">Customer Name</span>
+                    <span className="font-bold text-white">{selectedInvoice.customerName}</span>
+                  </div>
+                )}
+
+                {selectedInvoice.customerAddress && (
+                  <div className="flex items-start justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+                    <span className="text-zinc-400 font-semibold">Customer Address</span>
+                    <span className="font-medium text-white text-right whitespace-pre-line max-w-[240px]">
+                      {selectedInvoice.customerAddress}
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
                   <span className="text-zinc-400 font-semibold">Settlement Network</span>
                   <span className="font-bold text-white">
