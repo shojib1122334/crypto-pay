@@ -61,7 +61,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         <div className="flex flex-col">
           <span className={`font-black tracking-tight text-lg leading-tight flex items-center gap-1.5 ${textClassName || ''}`}>
             <span className="text-slate-900">
-              Crypto<span className="bg-gradient-to-r from-[#8B5CF6] to-[#2563EB] bg-clip-text text-transparent">Pay</span>
+              𝑪𝑹𝒀𝑷𝑻𝑶 𝑷𝑨𝒀
             </span>
             {badgeText && (
               <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 bg-zinc-900 text-[#00E676] rounded-md border border-[#00E676]/30">

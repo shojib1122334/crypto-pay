@@ -44,11 +44,8 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
               {/* Title & Tagline matching reference picture */}
               <div className="flex flex-col justify-center min-w-0">
                 <div className="flex items-baseline gap-1 leading-tight">
-                  <span className="font-black text-lg sm:text-xl lg:text-2xl tracking-tight text-slate-900 select-none">
-                    Crypto
-                  </span>
-                  <span className="font-black text-lg sm:text-xl lg:text-2xl tracking-tight bg-gradient-to-r from-[#8B5CF6] via-[#7C3AED] to-[#2563EB] bg-clip-text text-transparent select-none">
-                    pay
+                  <span className="font-black text-base sm:text-xl lg:text-2xl tracking-tight text-slate-900 select-none whitespace-nowrap">
+                    𝑪𝑹𝒀𝑷𝑻𝑶 𝑷𝑨𝒀
                   </span>
                 </div>
                 <p className="hidden sm:block text-[10px] lg:text-[11px] text-slate-500 font-medium tracking-normal leading-tight truncate select-none">
