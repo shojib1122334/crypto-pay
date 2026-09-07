@@ -458,6 +458,13 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
         }}
       />
 
+      {/* Tagline Hero Banner */}
+      <div className="w-full bg-[#FACC15] border border-yellow-500/80 rounded-2xl py-3.5 sm:py-4 px-4 shadow-sm flex items-center justify-center text-center">
+        <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-black tracking-tight text-slate-950 leading-tight select-none">
+          Create Invoices. Accept Crypto. Get Paid.
+        </p>
+      </div>
+
       {/* Main Container */}
       <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-7">
         {/* Real Wallet Notice Banner */}
