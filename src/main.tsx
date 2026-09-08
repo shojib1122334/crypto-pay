@@ -39,11 +39,23 @@ if (typeof window !== 'undefined') {
       lower.includes('user cancelled') ||
       lower.includes('user denied') ||
       lower.includes('modal closed') ||
+      lower.includes('user closed modal') ||
       lower.includes('already pending') ||
       lower.includes('no matching key') ||
       lower.includes('pairing already exists') ||
       lower.includes('missing or invalid')
     );
+  };
+
+  // Prevent transient wallet dismissals/resets from triggering fatal console error logs
+  const originalConsoleError = console.error;
+  console.error = (...args: unknown[]) => {
+    const isIgnorable = args.some((arg) => isIgnorableWalletNotice(arg));
+    if (isIgnorable) {
+      console.warn('Wallet interaction notice (suppressed console.error):', ...args);
+      return;
+    }
+    originalConsoleError.apply(console, args);
   };
 
   window.addEventListener(

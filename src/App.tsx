@@ -26,14 +26,32 @@ import type { NavTab } from '@/types/navigation';
 
 const isIgnorableNotice = (err: unknown): boolean => {
   if (!err) return false;
-  const anyErr = err as Record<string, unknown>;
-  const msg = `${anyErr.message || ''} ${anyErr.shortMessage || ''} ${anyErr.details || ''} ${anyErr.name || ''}`.toLowerCase();
+  let text = '';
+  if (typeof err === 'string') {
+    text = err;
+  } else if (typeof err === 'object') {
+    const anyErr = err as Record<string, unknown>;
+    text = `${anyErr.message || ''} ${anyErr.shortMessage || ''} ${anyErr.details || ''} ${anyErr.name || ''}`;
+    if (anyErr.cause) {
+      text += ` ${String(anyErr.cause)}`;
+    }
+  }
+  try {
+    text += ` ${String(err)}`;
+  } catch {
+    // ignore
+  }
+  const msg = text.toLowerCase();
   return (
     msg.includes('connection request reset') ||
     msg.includes('user rejected') ||
     msg.includes('user cancelled') ||
     msg.includes('user denied') ||
     msg.includes('modal closed') ||
+    msg.includes('user closed modal') ||
+    msg.includes('proposal expired') ||
+    msg.includes('session proposal expired') ||
+    msg.includes('pairing proposal expired') ||
     msg.includes('cross-origin-opener-policy')
   );
 };

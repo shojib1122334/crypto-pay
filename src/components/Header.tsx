@@ -149,6 +149,7 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
                   chain,
                   openAccountModal,
                   openChainModal,
+                  openConnectModal,
                   mounted,
                 }) => {
                   const ready = mounted;
@@ -168,7 +169,7 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
                         if (!connected) {
                           return (
                             <button
-                              onClick={openWalletConnect}
+                              onClick={() => openWalletConnect(openConnectModal)}
                               type="button"
                               className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 text-xs sm:text-sm font-bold active:scale-[0.98] transition-all whitespace-nowrap cursor-pointer border border-blue-400/30"
                             >
