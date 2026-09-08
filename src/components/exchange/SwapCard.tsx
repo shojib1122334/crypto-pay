@@ -10,7 +10,7 @@ import {
   Wallet,
   Check,
 } from 'lucide-react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useConnectWallet } from '../../hooks/useConnectWallet';
 import { useSwapEngine } from '../../hooks/useSwapEngine';
 import { TokenSelectModal } from './TokenSelectModal';
 import { SlippageModal } from './SlippageModal';
@@ -24,6 +24,7 @@ interface SwapCardProps {
 }
 
 export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
+  const { openWalletConnect } = useConnectWallet();
   const {
     isConnected,
     isPolygon,
@@ -378,17 +379,13 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
         {/* ======================================================== */}
         <div className="mt-4">
           {!isConnected ? (
-            <ConnectButton.Custom>
-              {({ openConnectModal }) => (
-                <button
-                  type="button"
-                  onClick={openConnectModal}
-                  className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-2xl transition-all shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2"
-                >
-                  <Wallet className="w-4 h-4" /> Connect Wallet to Swap
-                </button>
-              )}
-            </ConnectButton.Custom>
+            <button
+              type="button"
+              onClick={openWalletConnect}
+              className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-2xl transition-all shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Wallet className="w-4 h-4" /> Connect Wallet to Swap
+            </button>
           ) : !isPolygon ? (
             <button
               type="button"

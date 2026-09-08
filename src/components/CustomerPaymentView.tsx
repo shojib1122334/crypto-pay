@@ -7,7 +7,7 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from 'wagmi';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useConnectWallet } from '@/hooks/useConnectWallet';
 import {
   ArrowRight,
   Loader2,
@@ -74,7 +74,7 @@ export default function CustomerPaymentView({
   params,
 }: CustomerPaymentViewProps) {
   const { address, isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
+  const { openWalletConnect } = useConnectWallet();
   const publicClient = usePublicClient({ chainId: POLYGON_CHAIN_ID });
   const token = getToken(params.token);
   const targetChainId = token?.chainId ?? POLYGON_CHAIN_ID;
@@ -294,11 +294,7 @@ export default function CustomerPaymentView({
     }
 
     if (!isConnected || !address) {
-      if (openConnectModal) {
-        openConnectModal();
-      } else {
-        setErrorMessage('Please connect your Web3 wallet using the Connect Wallet button.');
-      }
+      openWalletConnect();
       return;
     }
 
@@ -397,7 +393,7 @@ export default function CustomerPaymentView({
     isValidMerchant,
     merchantAddress,
     nativeBalanceData,
-    openConnectModal,
+    openWalletConnect,
     params.sessionId,
     publicClient,
     requestSwitch,

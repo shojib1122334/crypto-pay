@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAccount, useSwitchChain, useWriteContract, useSendTransaction, useWaitForTransactionReceipt } from 'wagmi';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useConnectWallet } from '@/hooks/useConnectWallet';
 import { QRCodeSVG } from 'qrcode.react';
 import { isAddress, parseUnits, type Address } from 'viem';
 import {
@@ -66,7 +66,7 @@ interface PaySystemTerminalProps {
 
 export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalProps = {}) {
   const { address, isConnected, chain } = useAccount();
-  const { openConnectModal } = useConnectModal();
+  const { openWalletConnect } = useConnectWallet();
   const { switchChainAsync } = useSwitchChain();
   const { activeReceiver } = useSavedReceivers();
 
@@ -264,11 +264,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
     setParsedRpcError(null);
 
     if (!isConnected || !address) {
-      if (openConnectModal) {
-        openConnectModal();
-      } else {
-        setSendError('Please connect your Web3 wallet using the Connect Wallet button.');
-      }
+      openWalletConnect();
       return;
     }
 
@@ -1115,7 +1111,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           ) : (
             <button
               type="button"
-              onClick={openConnectModal}
+              onClick={openWalletConnect}
               className="w-full py-4 px-6 rounded-2xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 active:scale-[0.99] text-white font-bold text-base flex items-center justify-between shadow-[0_0_20px_rgba(59,130,246,0.35)] transition cursor-pointer"
             >
               <Wallet className="w-5 h-5 text-white" />

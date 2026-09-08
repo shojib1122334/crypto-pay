@@ -3,6 +3,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Wallet, Download, Layers, FileText, ArrowLeftRight, Activity, Settings, Menu, X } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 import { usePWA } from '@/hooks/usePWA';
+import { useConnectWallet } from '@/hooks/useConnectWallet';
 import type { NavTab } from '@/types/navigation';
 
 interface HeaderProps {
@@ -12,6 +13,7 @@ interface HeaderProps {
 
 export default function Header({ activeTab = 'pay-system', onNavigateTab }: HeaderProps) {
   const { isInstalled, isInstallable, installApp } = usePWA();
+  const { openWalletConnect } = useConnectWallet();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNav = (tab: NavTab) => {
@@ -147,7 +149,6 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
                   chain,
                   openAccountModal,
                   openChainModal,
-                  openConnectModal,
                   mounted,
                 }) => {
                   const ready = mounted;
@@ -167,7 +168,7 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
                         if (!connected) {
                           return (
                             <button
-                              onClick={openConnectModal}
+                              onClick={openWalletConnect}
                               type="button"
                               className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 text-xs sm:text-sm font-bold active:scale-[0.98] transition-all whitespace-nowrap cursor-pointer border border-blue-400/30"
                             >

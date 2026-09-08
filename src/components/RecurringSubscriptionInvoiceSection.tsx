@@ -21,7 +21,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { useAccount } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useConnectWallet } from '@/hooks/useConnectWallet';
 import { TokenIcon } from '@/components/TokenIcon';
 import { TOKENS, POLYGON_CHAIN_ID } from '@/lib/tokens';
 import { buildPaymentQRUri } from '@/lib/payments';
@@ -46,6 +46,7 @@ export const RecurringSubscriptionInvoiceSection: React.FC<
   RecurringSubscriptionInvoiceSectionProps
 > = ({ effectiveReceiverAddress, storeName }) => {
   const { isConnected, address: connectedAddress } = useAccount();
+  const { openWalletConnect } = useConnectWallet();
   const {
     subscription,
     isActive,
@@ -594,18 +595,14 @@ export const RecurringSubscriptionInvoiceSection: React.FC<
 
           {/* Submit Button (Wallet Aware) */}
           {!isConnected ? (
-            <ConnectButton.Custom>
-              {({ openConnectModal }) => (
-                <button
-                  type="button"
-                  onClick={openConnectModal}
-                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
-                >
-                  <Wallet className="w-5 h-5 text-amber-300" />
-                  <span>🔗 Connect Wallet to Create Recurring Invoice</span>
-                </button>
-              )}
-            </ConnectButton.Custom>
+            <button
+              type="button"
+              onClick={openWalletConnect}
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+            >
+              <Wallet className="w-5 h-5 text-amber-300" />
+              <span>🔗 Connect Wallet to Create Recurring Invoice</span>
+            </button>
           ) : (
             <button
               type="submit"

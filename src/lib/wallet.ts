@@ -3,7 +3,8 @@ import { http, fallback } from 'wagmi';
 import { polygon, mainnet } from 'wagmi/chains';
 
 const projectId =
-  import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '31fd3c9688d3fa1f2ada8d5419c90657';
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_WALLETCONNECT_PROJECT_ID) ||
+  '31fd3c9688d3fa1f2ada8d5419c90657';
 
 const originUrl =
   typeof window !== 'undefined' && window.location.origin
