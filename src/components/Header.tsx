@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Wallet, Download, Layers, FileText, ArrowLeftRight, Activity, Settings, Menu, X } from 'lucide-react';
+import { Wallet, Download, Layers, CreditCard, FileText, ArrowLeftRight, Activity, Settings, Menu, X, Lock } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 import { usePWA } from '@/hooks/usePWA';
 import { useConnectWallet } from '@/hooks/useConnectWallet';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import type { NavTab } from '@/types/navigation';
 
 interface HeaderProps {
@@ -14,6 +15,7 @@ interface HeaderProps {
 export default function Header({ activeTab = 'pay-system', onNavigateTab }: HeaderProps) {
   const { isInstalled, isInstallable, installApp } = usePWA();
   const { openWalletConnect } = useConnectWallet();
+  const { isAdmin } = useAdminAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNav = (tab: NavTab) => {
@@ -69,6 +71,24 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
             >
               <Layers className="w-4 h-4 text-blue-600" />
               <span>Pay system</span>
+            </button>
+
+            <button
+              onClick={() => handleNav('top-up')}
+              className={`text-xs lg:text-sm font-semibold transition-all cursor-pointer py-2 px-2.5 lg:px-3 rounded-xl flex items-center gap-1.5 whitespace-nowrap ${
+                activeTab === 'top-up'
+                  ? 'text-blue-700 bg-blue-50 border border-blue-300 shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
+              }`}
+            >
+              <CreditCard className="w-4 h-4 text-blue-600" />
+              <span>Top Up</span>
+              {!isAdmin && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-300 shadow-2xs">
+                  <Lock className="w-2.5 h-2.5" />
+                  <span>Locked</span>
+                </span>
+              )}
             </button>
 
             <button
@@ -246,6 +266,26 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
               >
                 <Layers className="w-4 h-4 text-blue-600" />
                 <span>Pay system</span>
+              </button>
+
+              <button
+                onClick={() => handleNav('top-up')}
+                className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-between text-left transition cursor-pointer ${
+                  activeTab === 'top-up'
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <CreditCard className="w-4 h-4 text-blue-600" />
+                  <span>Top Up</span>
+                </div>
+                {!isAdmin && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-300">
+                    <Lock className="w-2.5 h-2.5" />
+                    <span>Locked</span>
+                  </span>
+                )}
               </button>
 
               <button

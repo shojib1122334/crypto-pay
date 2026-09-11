@@ -13,6 +13,7 @@ import ComingSoonPage from '@/components/ComingSoonPage';
 import TransactionHistoryView from '@/components/TransactionHistoryView';
 import { CreateInvoiceSection } from '@/components/CreateInvoiceSection';
 import { ExchangeView } from '@/components/exchange/ExchangeView';
+import { TopUpView } from '@/components/topup/TopUpView';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemeProvider } from '@/context/ThemeContext';
@@ -87,6 +88,9 @@ function parseTabFromHash(hashStr: string): NavTab {
   const clean = hashStr.replace('#', '').toLowerCase();
   if (clean === 'dashboard') {
     return 'dashboard';
+  }
+  if (clean === 'top-up' || clean === 'topup') {
+    return 'top-up';
   }
   if (clean === 'create-invoice' || clean === 'invoice' || clean === 'credit-invoice') {
     return 'create-invoice';
@@ -197,6 +201,13 @@ function AppContent() {
           {activeTab === 'pay-system' && (
             <div id="pay-system-page">
               <PaySystemTerminal onNavigateTab={handleTabChange} />
+            </div>
+          )}
+
+          {/* Top Up Tab (Pay With Card / Top Up Card via Polygon) */}
+          {activeTab === 'top-up' && (
+            <div id="top-up-page" className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 min-h-[50vh]">
+              <TopUpView onNavigateTab={handleTabChange} />
             </div>
           )}
 

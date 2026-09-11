@@ -1,6 +1,7 @@
 import React from 'react';
-import { Layers, FileText, ArrowLeftRight, Activity, Settings } from 'lucide-react';
+import { Layers, CreditCard, FileText, ArrowLeftRight, Activity, Settings, Lock } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import type { NavTab } from '@/types/navigation';
 
 interface BottomNavBarProps {
@@ -19,6 +20,11 @@ const NAV_ITEMS: NavItem[] = [
     id: 'pay-system',
     label: 'Pay system',
     icon: Layers,
+  },
+  {
+    id: 'top-up',
+    label: 'Top Up',
+    icon: CreditCard,
   },
   {
     id: 'create-invoice',
@@ -46,6 +52,8 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   activeTab,
   onTabChange,
 }) => {
+  const { isAdmin } = useAdminAuth();
+
   return (
     <nav
       id="cryptopay-bottom-nav"
@@ -55,17 +63,18 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
         paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0px))',
       }}
     >
-      <div className="max-w-md md:max-w-xl mx-auto px-2 sm:px-6 pt-2 pb-1 flex items-center justify-around">
+      <div className="max-w-lg md:max-w-2xl mx-auto px-1 sm:px-4 pt-2 pb-1 flex items-center justify-around">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
+          const isTopUpLocked = item.id === 'top-up' && !isAdmin;
 
           return (
             <button
               key={item.id}
               id={`nav-tab-${item.id}`}
               onClick={() => onTabChange(item.id)}
-              className={`relative flex flex-col items-center justify-center flex-1 min-w-[50px] sm:min-w-[70px] py-1.5 px-1 sm:px-2 rounded-xl transition-all duration-150 group select-none cursor-pointer ${
+              className={`relative flex flex-col items-center justify-center flex-1 min-w-0 sm:min-w-[55px] py-1.5 px-0.5 sm:px-1.5 rounded-xl transition-all duration-150 group select-none cursor-pointer ${
                 isActive
                   ? 'text-slate-900'
                   : 'text-slate-500 hover:text-slate-900'
@@ -91,17 +100,25 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
 
               <div className="relative flex items-center justify-center">
                 <Icon
-                  className={`w-5 h-5 transition-transform duration-150 ${
+                  className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-150 ${
                     isActive
                       ? 'text-blue-700 scale-110'
                       : 'text-slate-500 group-hover:scale-105 group-hover:text-slate-800'
                   }`}
                   strokeWidth={isActive ? 2.3 : 1.8}
                 />
+                {isTopUpLocked && (
+                  <span
+                    className="absolute -top-1.5 -right-2 bg-amber-500 text-white rounded-full p-0.5 shadow-xs flex items-center justify-center border border-white"
+                    title="Top Up is locked for general users"
+                  >
+                    <Lock className="w-2.5 h-2.5" />
+                  </span>
+                )}
               </div>
 
               <span
-                className={`relative text-[11px] sm:text-xs tracking-tight mt-1 transition-colors ${
+                className={`relative text-[10px] sm:text-xs tracking-tight mt-1 transition-colors whitespace-nowrap flex items-center gap-0.5 ${
                   isActive
                     ? 'text-slate-900 font-bold'
                     : 'text-slate-600 font-medium group-hover:text-slate-900'

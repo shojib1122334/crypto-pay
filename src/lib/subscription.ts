@@ -82,6 +82,8 @@ const RECURRING_INVOICES_KEY = 'cryptopay_recurring_invoices';
 const FREE_TRIAL_RUNS_KEY = 'cryptopay_free_trial_runs_used';
 const ADMIN_STORAGE_KEY = 'cryptopay_admin_unlocked_session';
 
+export const ADMIN_PASSWORD = 'shojib@@@@@';
+
 // Helper: Check if admin is currently authenticated
 export function isAdminUnlocked(): boolean {
   if (typeof window === 'undefined') return false;
@@ -95,7 +97,7 @@ export function isAdminUnlocked(): boolean {
 // Helper: Unlock admin access with password
 export function unlockAdminAccess(password: string): { success: boolean; error?: string } {
   if (typeof window === 'undefined') return { success: false, error: 'Window not available' };
-  if (password === 'shojib@@@@@') {
+  if (password === ADMIN_PASSWORD) {
     try {
       localStorage.setItem(ADMIN_STORAGE_KEY, 'true');
       window.dispatchEvent(new CustomEvent('cryptopay_admin_updated', { detail: { unlocked: true } }));
