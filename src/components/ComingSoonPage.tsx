@@ -1,23 +1,43 @@
-import React from 'react';
-import { Download, CheckCircle2, ShieldCheck, Wifi, WifiOff, Globe, Layers } from 'lucide-react';
+import React, { useState } from 'react';
+import { Download, CheckCircle2, Wifi, WifiOff, Globe, Layers, Sparkles } from 'lucide-react';
 import { usePWA } from '@/hooks/usePWA';
 import { SavedReceiversSection } from '@/components/SavedReceiversSection';
 import { SubscriptionManagementCard } from '@/components/SubscriptionManagementCard';
 import { AdminPasswordSection } from '@/components/AdminPasswordSection';
+import { PWAInstallDialog } from '@/components/PWAInstallDialog';
 
 export const ComingSoonPage: React.FC = () => {
-  const { isInstalled, isInstallable, isOnline, installApp } = usePWA();
+  const { isInstalled, hasNativePrompt, isOnline, installApp } = usePWA();
+  const [isInstallDialogOpen, setIsInstallDialogOpen] = useState(false);
+  const [installSuccessToast, setInstallSuccessToast] = useState(false);
+
+  const handleTriggerInstallation = async () => {
+    if (hasNativePrompt) {
+      try {
+        const outcome = await installApp();
+        if (outcome === 'accepted') {
+          setInstallSuccessToast(true);
+          setTimeout(() => setInstallSuccessToast(false), 3500);
+          return;
+        }
+      } catch (err) {
+        console.warn('Native install prompt error:', err);
+      }
+    }
+    // Always open the interactive installation dialog to guide or complete installation
+    setIsInstallDialogOpen(true);
+  };
 
   return (
     <div
       id="settings-page"
       className="max-w-4xl mx-auto px-4 py-8 space-y-6 font-sans"
     >
-      {/* 1. Subscription Management Section (Settings -> Subscription) */}
-      <SubscriptionManagementCard />
-
-      {/* 2. Main Saved Receivers Management Section */}
+      {/* 1. Main Saved Receivers Management Section (Top) */}
       <SavedReceiversSection />
+
+      {/* 2. Upgrade Subscription Management Section (Directly Below Saved Receivers) */}
+      <SubscriptionManagementCard />
 
       {/* App & Terminal Settings Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
@@ -43,29 +63,46 @@ export const ComingSoonPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Install / Status Button */}
-        <div className="flex items-center gap-3">
-          {isInstalled ? (
-            <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-bold shadow-xs">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Installed (Standalone)</span>
-            </div>
-          ) : isInstallable ? (
-            <button
-              onClick={() => installApp()}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1D4ED8] hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition cursor-pointer"
-            >
-              <Download className="w-4 h-4" />
-              <span>Install PWA App</span>
-            </button>
-          ) : (
-            <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold">
-              <ShieldCheck className="w-4 h-4 text-blue-600" />
-              <span>PWA Ready</span>
+        {/* Setting Option: PWA ready to install my app (ALWAYS LIVE & CLICKABLE) */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {isInstalled && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-bold shadow-2xs">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>Standalone Active</span>
             </div>
           )}
+
+          <button
+            id="pwa-ready-install-option"
+            type="button"
+            onClick={handleTriggerInstallation}
+            className="inline-flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all cursor-pointer group"
+            title="Click to trigger PWA installation"
+          >
+            {/* Live pulsating badge */}
+            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-black uppercase tracking-wider text-white border border-white/30">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              LIVE
+            </span>
+            <Download className="w-4 h-4 text-white group-hover:translate-y-0.5 transition-transform" />
+            <span className="tracking-tight">PWA ready to install my app</span>
+          </button>
         </div>
       </div>
+
+      {/* Success Notification if triggered */}
+      {installSuccessToast && (
+        <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center gap-2.5 shadow-xs animate-in fade-in">
+          <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <span>CryptoPay PWA installation has been triggered successfully!</span>
+        </div>
+      )}
+
+      {/* Modal dialog when clicked */}
+      <PWAInstallDialog
+        isOpen={isInstallDialogOpen}
+        onClose={() => setIsInstallDialogOpen(false)}
+      />
 
       {/* Grid: App Capabilities & Diagnostic Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

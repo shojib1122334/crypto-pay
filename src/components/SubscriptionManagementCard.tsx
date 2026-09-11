@@ -47,51 +47,51 @@ export const SubscriptionManagementCard: React.FC = () => {
   return (
     <div
       id="settings-subscription-section"
-      className="bg-[#FFFBF8] border border-[#F2E8DF] rounded-3xl p-6 sm:p-8 shadow-xs space-y-6 font-sans text-[#212121]"
+      className="bg-[#FFFBF8] border border-[#F2E8DF] rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3.5 font-sans text-[#212121]"
     >
       {/* ========================================================================= */}
-      {/* 1. HEADER SECTION                                                         */}
+      {/* 1. COMPACT HEADER & UPGRADE BUTTON BAR                                    */}
       {/* ========================================================================= */}
-      <div className="flex items-start gap-4">
-        {/* Large Padlock Icon in circular warm background */}
-        <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs">
-          <Lock className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.2]" />
-        </div>
-
-        {/* Title & Subtitle */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Settings className="w-5 h-5 text-[#AA7752] flex-shrink-0" />
-            <h2 className="text-xl sm:text-2xl font-bold text-[#212121] tracking-tight">
-              Settings → Subscription
-            </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#F2E8DF]/70">
+        <div className="flex items-center gap-3">
+          {/* Padlock Icon in circular warm background */}
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0 shadow-2xs">
+            <Lock className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[2]" />
           </div>
-          <p className="text-xs sm:text-sm text-[#555555] font-normal leading-relaxed">
-            Manage your Subscription Payment Tools for Credit Invoice.
-          </p>
-        </div>
-      </div>
 
-      {/* ========================================================================= */}
-      {/* 2. UPGRADE SUBSCRIPTION BUTTON                                             */}
-      {/* ========================================================================= */}
-      <div>
-        <button
-          type="button"
-          onClick={() => openUpgradeModal('1_month')}
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#F16F2E] hover:bg-[#E05D1C] active:scale-[0.99] text-white text-sm font-semibold shadow-xs transition-all cursor-pointer"
-        >
-          <Sparkles className="w-4 h-4 text-white fill-white" />
-          <span>Upgrade Subscription</span>
-        </button>
+          {/* Title & Subtitle */}
+          <div>
+            <div className="flex items-center gap-1.5">
+              <Settings className="w-3.5 h-3.5 text-[#AA7752] flex-shrink-0" />
+              <h2 className="text-sm sm:text-base font-bold text-[#212121] tracking-tight">
+                Settings → Upgrade Subscription
+              </h2>
+            </div>
+            <p className="text-[11px] sm:text-xs text-[#555555] font-normal">
+              Manage your Subscription Payment Tools for Credit Invoice.
+            </p>
+          </div>
+        </div>
+
+        {/* Upgrade Subscription Button */}
+        <div className="flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => openUpgradeModal('1_month')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#F16F2E] hover:bg-[#E05D1C] active:scale-[0.99] text-white text-xs sm:text-sm font-semibold shadow-xs transition-all cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-white fill-white" />
+            <span>Upgrade Subscription</span>
+          </button>
+        </div>
       </div>
 
       {/* ========================================================================= */}
       {/* 🔒 EXPIRED STATE NOTICE (IF EXPIRED)                                      */}
       {/* ========================================================================= */}
       {isExpired && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 space-y-2 animate-in fade-in">
-          <div className="flex items-start gap-2.5">
+        <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 animate-in fade-in">
+          <div className="flex items-start gap-2">
             <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
             <div className="text-xs text-rose-800">
               <strong className="font-bold text-rose-900">Subscription Expired:</strong> Your subscription period has ended. Please upgrade or renew to continue using subscription features.
@@ -101,188 +101,189 @@ export const SubscriptionManagementCard: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* 3. MAIN INFORMATION CARD (WHITE CARD WITH 9 ROWS)                         */}
+      {/* 2. COMPACT INFORMATION GRID (9 ROWS ORGANIZED IN 2 RESPONSIVE COLUMNS)     */}
       {/* ========================================================================= */}
-      <div className="bg-white border border-[#F2E8DF]/70 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-xs space-y-4 sm:space-y-4.5">
-        {/* ROW 1: Current Plan */}
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
-              <FileText className="w-4.5 h-4.5" />
-            </div>
-            <span className="font-medium text-[#212121]">Current Plan:</span>
-          </div>
-          <span className="font-bold text-[#212121]">
-            {subscription ? subscription.planName : isActive ? 'Active Pro Plan' : 'Free Trial'}
-          </span>
-        </div>
-
-        {/* ROW 2: Free 1st Run Trial */}
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
-              <Gift className="w-4.5 h-4.5" />
-            </div>
-            <span className="font-medium text-[#212121]">Free 1st Run Trial:</span>
-          </div>
-          <div>
-            {hasFreeRun ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E2EFE7] text-[#1B4D3E] border border-[#C5E1D0] text-xs font-semibold">
-                <span>🎁 1 Free Run Available</span>
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E2EFE7] text-[#1B4D3E] border border-[#C5E1D0] text-xs font-semibold">
-                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Free Run Used (1/1)</span>
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* ROW 3: Subscription Status */}
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
-              <Lock className="w-4.5 h-4.5" />
-            </div>
-            <span className="font-medium text-[#212121]">Subscription Status:</span>
-          </div>
-          <div>
-            {isActive ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E2EFE7] text-[#1B4D3E] border border-[#C5E1D0] text-xs font-bold uppercase">
-                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>ACTIVE ({daysRemaining} DAYS)</span>
-              </span>
-            ) : isExpired ? (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold uppercase">
-                <span>EXPIRED (UPGRADE REQUIRED)</span>
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#F7EBE1] text-[#AA7752] border border-[#ECD9CA] text-xs font-bold tracking-wide uppercase">
-                <span>LOCKED (UPGRADE REQUIRED)</span>
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* ROW 4: Start Date */}
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
-              <Calendar className="w-4.5 h-4.5" />
-            </div>
-            <span className="font-medium text-[#212121]">Start Date:</span>
-          </div>
-          <span className="font-semibold text-[#212121]">
-            {subscription?.startDate || '—'}
-          </span>
-        </div>
-
-        {/* ROW 5: Expiry Date */}
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
-              <Calendar className="w-4.5 h-4.5" />
-            </div>
-            <span className="font-medium text-[#212121]">Expiry Date:</span>
-          </div>
-          <span className="font-semibold text-[#212121]">
-            {subscription?.expiryDate || '—'}
-          </span>
-        </div>
-
-        {/* ROW 6: Payment Token */}
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
-              {/* Token Circular Icon with 'T' matching reference */}
-              <div className="w-4 h-4 rounded-full border-1.5 border-[#AA7752] flex items-center justify-center text-[9px] font-black leading-none text-[#AA7752]">
-                T
+      <div className="bg-white border border-[#F2E8DF]/80 rounded-xl p-3 sm:p-4 shadow-2xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-xs sm:text-sm">
+          {/* ROW 1: Current Plan */}
+          <div className="flex items-center justify-between gap-2 py-1 border-b border-[#F2E8DF]/40 md:border-b-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-md bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
+                <FileText className="w-3.5 h-3.5" />
               </div>
+              <span className="font-medium text-[#212121] truncate">Current Plan:</span>
             </div>
-            <span className="font-medium text-[#212121]">Payment Token:</span>
-          </div>
-          <div className="font-semibold text-[#212121] flex items-center gap-1.5">
-            {subscription?.token ? (
-              <>
-                <TokenIcon token={subscription.token} size={16} />
-                <span>{subscription.token} (${subscription.usdAmount})</span>
-              </>
-            ) : (
-              <span>USDT / USDC</span>
-            )}
-          </div>
-        </div>
-
-        {/* ROW 7: Receiving Wallet */}
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
-              <Wallet className="w-4.5 h-4.5" />
-            </div>
-            <span className="font-medium text-[#212121]">Receiving Wallet:</span>
-          </div>
-          <div className="flex items-center gap-2 font-mono text-xs sm:text-sm text-[#212121]">
-            <span title={SUBSCRIPTION_RECEIVER_WALLET}>
-              {SUBSCRIPTION_RECEIVER_WALLET.slice(0, 6)}...{SUBSCRIPTION_RECEIVER_WALLET.slice(-4)}
+            <span className="font-bold text-[#212121] text-right">
+              {subscription ? subscription.planName : isActive ? 'Active Pro Plan' : 'Free Trial'}
             </span>
-            <button
-              type="button"
-              onClick={handleCopyWallet}
-              className="p-1 text-[#AA7752] hover:text-[#825433] transition cursor-pointer"
-              title="Copy Receiving Wallet"
-            >
-              {copiedWallet ? (
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
+          </div>
+
+          {/* ROW 2: Free 1st Run Trial */}
+          <div className="flex items-center justify-between gap-2 py-1 border-b border-[#F2E8DF]/40 md:border-b-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-md bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
+                <Gift className="w-3.5 h-3.5" />
+              </div>
+              <span className="font-medium text-[#212121] truncate">Free 1st Run Trial:</span>
+            </div>
+            <div>
+              {hasFreeRun ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E2EFE7] text-[#1B4D3E] border border-[#C5E1D0] text-[11px] font-semibold">
+                  <span>🎁 1 Free Run Available</span>
+                </span>
               ) : (
-                <Copy className="w-3.5 h-3.5" />
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E2EFE7] text-[#1B4D3E] border border-[#C5E1D0] text-[11px] font-semibold">
+                  <Check className="w-3 h-3 stroke-[2.5]" />
+                  <span>Free Run Used (1/1)</span>
+                </span>
               )}
-            </button>
-          </div>
-        </div>
-
-        {/* ROW 8: Transaction Hash */}
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
-              <FileText className="w-4.5 h-4.5" />
             </div>
-            <span className="font-medium text-[#212121]">Transaction Hash:</span>
           </div>
-          <div>
-            {subscription?.txHash ? (
-              <a
-                href={`https://polygonscan.com/tx/${subscription.txHash}`}
-                target="_blank"
-                rel="noreferrer"
-                className="font-mono text-[#AA7752] hover:underline text-xs sm:text-sm flex items-center gap-1 font-semibold"
+
+          {/* ROW 3: Subscription Status */}
+          <div className="flex items-center justify-between gap-2 py-1 border-b border-[#F2E8DF]/40 md:border-b-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-md bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
+                <Lock className="w-3.5 h-3.5" />
+              </div>
+              <span className="font-medium text-[#212121] truncate">Subscription Status:</span>
+            </div>
+            <div>
+              {isActive ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E2EFE7] text-[#1B4D3E] border border-[#C5E1D0] text-[11px] font-bold uppercase">
+                  <Check className="w-3 h-3 stroke-[2.5]" />
+                  <span>ACTIVE ({daysRemaining} DAYS)</span>
+                </span>
+              ) : isExpired ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold uppercase">
+                  <span>EXPIRED (UPGRADE REQUIRED)</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F7EBE1] text-[#AA7752] border border-[#ECD9CA] text-[11px] font-bold tracking-wide uppercase">
+                  <span>LOCKED (UPGRADE REQUIRED)</span>
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* ROW 4: Start Date */}
+          <div className="flex items-center justify-between gap-2 py-1 border-b border-[#F2E8DF]/40 md:border-b-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-md bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-3.5 h-3.5" />
+              </div>
+              <span className="font-medium text-[#212121] truncate">Start Date:</span>
+            </div>
+            <span className="font-semibold text-[#212121] text-right">
+              {subscription?.startDate || '—'}
+            </span>
+          </div>
+
+          {/* ROW 5: Expiry Date */}
+          <div className="flex items-center justify-between gap-2 py-1 border-b border-[#F2E8DF]/40 md:border-b-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-md bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-3.5 h-3.5" />
+              </div>
+              <span className="font-medium text-[#212121] truncate">Expiry Date:</span>
+            </div>
+            <span className="font-semibold text-[#212121] text-right">
+              {subscription?.expiryDate || '—'}
+            </span>
+          </div>
+
+          {/* ROW 6: Payment Token */}
+          <div className="flex items-center justify-between gap-2 py-1 border-b border-[#F2E8DF]/40 md:border-b-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-md bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
+                <div className="w-3.5 h-3.5 rounded-full border border-[#AA7752] flex items-center justify-center text-[8px] font-black leading-none text-[#AA7752]">
+                  T
+                </div>
+              </div>
+              <span className="font-medium text-[#212121] truncate">Payment Token:</span>
+            </div>
+            <div className="font-semibold text-[#212121] flex items-center gap-1 text-right">
+              {subscription?.token ? (
+                <>
+                  <TokenIcon token={subscription.token} size={14} />
+                  <span>{subscription.token} (${subscription.usdAmount})</span>
+                </>
+              ) : (
+                <span>USDT / USDC</span>
+              )}
+            </div>
+          </div>
+
+          {/* ROW 7: Receiving Wallet */}
+          <div className="flex items-center justify-between gap-2 py-1 border-b border-[#F2E8DF]/40 md:border-b-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-md bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
+                <Wallet className="w-3.5 h-3.5" />
+              </div>
+              <span className="font-medium text-[#212121] truncate">Receiving Wallet:</span>
+            </div>
+            <div className="flex items-center gap-1.5 font-mono text-[11px] sm:text-xs text-[#212121]">
+              <span title={SUBSCRIPTION_RECEIVER_WALLET}>
+                {SUBSCRIPTION_RECEIVER_WALLET.slice(0, 6)}...{SUBSCRIPTION_RECEIVER_WALLET.slice(-4)}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyWallet}
+                className="p-1 text-[#AA7752] hover:text-[#825433] transition cursor-pointer"
+                title="Copy Receiving Wallet"
               >
-                <span>{subscription.txHash.slice(0, 8)}...{subscription.txHash.slice(-6)}</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            ) : (
-              <span className="font-semibold text-[#212121]">—</span>
-            )}
-          </div>
-        </div>
-
-        {/* ROW 9: Payment History */}
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
-              <History className="w-4.5 h-4.5" />
+                {copiedWallet ? (
+                  <Check className="w-3 h-3 text-emerald-600" />
+                ) : (
+                  <Copy className="w-3 h-3" />
+                )}
+              </button>
             </div>
-            <span className="font-medium text-[#212121]">Payment History:</span>
           </div>
-          <div>
-            <button
-              type="button"
-              onClick={() => setIsHistoryModalOpen(true)}
-              className="font-semibold text-[#AA7752] hover:text-[#825433] hover:underline flex items-center gap-1.5 cursor-pointer text-sm"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>View ({history.length})</span>
-            </button>
+
+          {/* ROW 8: Transaction Hash */}
+          <div className="flex items-center justify-between gap-2 py-1 border-b border-[#F2E8DF]/40 md:border-b-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-md bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
+                <FileText className="w-3.5 h-3.5" />
+              </div>
+              <span className="font-medium text-[#212121] truncate">Transaction Hash:</span>
+            </div>
+            <div>
+              {subscription?.txHash ? (
+                <a
+                  href={`https://polygonscan.com/tx/${subscription.txHash}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-mono text-[#AA7752] hover:underline text-[11px] sm:text-xs flex items-center gap-1 font-semibold"
+                >
+                  <span>{subscription.txHash.slice(0, 6)}...{subscription.txHash.slice(-4)}</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              ) : (
+                <span className="font-semibold text-[#212121]">—</span>
+              )}
+            </div>
+          </div>
+
+          {/* ROW 9: Payment History */}
+          <div className="flex items-center justify-between gap-2 py-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-md bg-[#F7EBE1] text-[#AA7752] flex items-center justify-center flex-shrink-0">
+                <History className="w-3.5 h-3.5" />
+              </div>
+              <span className="font-medium text-[#212121] truncate">Payment History:</span>
+            </div>
+            <div>
+              <button
+                type="button"
+                onClick={() => setIsHistoryModalOpen(true)}
+                className="font-semibold text-[#AA7752] hover:text-[#825433] hover:underline flex items-center gap-1 cursor-pointer text-xs"
+              >
+                <ExternalLink className="w-3 h-3" />
+                <span>View ({history.length})</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

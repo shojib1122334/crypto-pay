@@ -8,6 +8,7 @@ import {
 export interface PWAState {
   isInstalled: boolean;
   isInstallable: boolean;
+  hasNativePrompt: boolean;
   isIOS: boolean;
   isOnline: boolean;
   installApp: () => Promise<'accepted' | 'dismissed' | 'unsupported'>;
@@ -100,6 +101,7 @@ export function usePWA(): PWAState {
   return {
     isInstalled,
     isInstallable,
+    hasNativePrompt: !!deferredPrompt,
     isIOS,
     isOnline,
     installApp,
