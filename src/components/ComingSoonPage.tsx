@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Download, CheckCircle2, Wifi, WifiOff, Globe, Layers, Loader2 } from 'lucide-react';
 import { usePWA } from '@/hooks/usePWA';
 import { SavedReceiversSection } from '@/components/SavedReceiversSection';
-import { SubscriptionManagementCard } from '@/components/SubscriptionManagementCard';
 import { AdminPasswordSection } from '@/components/AdminPasswordSection';
 
 export const ComingSoonPage: React.FC = () => {
@@ -46,9 +45,6 @@ export const ComingSoonPage: React.FC = () => {
     >
       {/* 1. Main Saved Receivers Management Section (Top) */}
       <SavedReceiversSection />
-
-      {/* 2. Upgrade Subscription Management Section (Directly Below Saved Receivers) */}
-      <SubscriptionManagementCard />
 
       {/* App & Terminal Settings Header */}
       <div className="web3-glass-card border border-white/80 rounded-3xl p-6 sm:p-7 shadow-xl shadow-purple-500/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
