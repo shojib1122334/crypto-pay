@@ -238,7 +238,7 @@ export class CardPayoutService {
           userId,
           asset: quote.source_asset,
           amount: quote.total_amount,
-          reason: payout.failure_reason,
+          reason: payout.failure_reason || 'Payment execution failed',
         });
       } catch (rollbackErr: any) {
         console.error('Critical ledger rollback error:', rollbackErr);

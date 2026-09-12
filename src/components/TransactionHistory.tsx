@@ -315,7 +315,7 @@ export const TransactionHistory: React.FC = () => {
                     >
                       <div className="flex justify-between">
                         <span className="text-slate-300 font-bold">{ptx.provider}</span>
-                        <span className="text-emerald-400">{ptx.status}</span>
+                        <span className="text-emerald-400">{ptx.provider_status}</span>
                       </div>
                       <div className="text-slate-500 text-[11px] truncate">Tx ID: {ptx.provider_transaction_id}</div>
                     </div>

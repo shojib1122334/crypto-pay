@@ -9,7 +9,7 @@ import {
   getAddress,
 } from 'viem';
 import { polygon } from 'viem/chains';
-import { SwapQuote, WhitelistedToken, SwapRouteHop } from '../types/swap';
+import { SwapQuote, WhitelistedToken, SwapRouteHop, SwapPrepareResponse } from '../types/swap';
 import { SWAP_TOKENS, POLYGON_CHAIN_ID } from '../components/exchange/tokenData';
 
 export const WMATIC_ADDRESS: `0x${string}` = '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270';
@@ -312,7 +312,7 @@ export async function fetchDirectDEXQuote(params: {
     route: {
       protocol: selectedProtocol,
       description: routeDescription,
-      path: routePath as `0x${string}`[] as unknown as SwapRouteHop[],
+      path: routePath as `0x${string}`[],
       routerAddress,
       hops,
     },
@@ -331,16 +331,7 @@ export async function fetchDirectDEXQuote(params: {
 export async function prepareDirectSwapTransaction(params: {
   quote: SwapQuote;
   walletAddress: string;
-}): Promise<{
-  quoteId: string;
-  chainId: 137;
-  to: `0x${string}`;
-  data: `0x${string}`;
-  value: `0x${string}`;
-  gasLimit: string;
-  deadline: number;
-  minimumOutputAmountRaw: string;
-}> {
+}): Promise<SwapPrepareResponse> {
   const { quote, walletAddress } = params;
   const normalizedWallet = getAddress(walletAddress);
   const deadline = Math.floor(Date.now() / 1000) + 20 * 60; // 20 mins

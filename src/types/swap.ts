@@ -1,5 +1,5 @@
 export interface WhitelistedToken {
-  symbol: 'USDT' | 'USDC' | 'VERSE' | 'MATIC';
+  symbol: 'USDT' | 'USDC' | 'VERSE' | 'MATIC' | 'POL' | string;
   name: string;
   address: `0x${string}`;
   decimals: number;
@@ -61,6 +61,7 @@ export interface SwapQuote {
     description: string;
     hops: SwapRouteHop[];
     routerAddress: `0x${string}`;
+    path?: `0x${string}`[];
   };
   kyberRouteSummary?: unknown;
   transactionValue?: string;    // Raw wei transaction value provided by Aggregator API

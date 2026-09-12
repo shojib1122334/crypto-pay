@@ -9,6 +9,27 @@ export interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+// Global cached prompt event in case beforeinstallprompt fires before React hydration
+let cachedDeferredPrompt: BeforeInstallPromptEvent | null = null;
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (e: Event) => {
+    e.preventDefault();
+    cachedDeferredPrompt = e as BeforeInstallPromptEvent;
+  });
+  window.addEventListener('appinstalled', () => {
+    cachedDeferredPrompt = null;
+  });
+}
+
+export function getCachedDeferredPrompt(): BeforeInstallPromptEvent | null {
+  return cachedDeferredPrompt;
+}
+
+export function clearCachedDeferredPrompt(): void {
+  cachedDeferredPrompt = null;
+}
+
 // Check if running in standalone PWA / TWA / Installed mode
 export function isRunningInStandaloneMode(): boolean {
   if (typeof window === 'undefined') return false;
@@ -37,10 +58,9 @@ export function registerServiceWorker(): void {
     return;
   }
 
-  // Never register SW in development mode or inside an iframe
-  const isDev = import.meta.env.DEV;
+  // Never register SW inside an embedded preview iframe
   const isIframe = window.self !== window.top;
-  if (isDev || isIframe) {
+  if (isIframe) {
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       for (const reg of registrations) {
         reg.unregister();

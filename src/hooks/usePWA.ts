@@ -3,6 +3,8 @@ import {
   type BeforeInstallPromptEvent,
   isRunningInStandaloneMode,
   isIOSDevice,
+  getCachedDeferredPrompt,
+  clearCachedDeferredPrompt,
 } from '@/lib/pwa';
 
 export interface PWAState {
@@ -17,7 +19,9 @@ export interface PWAState {
 }
 
 export function usePWA(): PWAState {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(
+    () => getCachedDeferredPrompt()
+  );
   const [isInstalled, setIsInstalled] = useState(() => isRunningInStandaloneMode());
   const [isOnline, setIsOnline] = useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
   const [dismissed, setDismissed] = useState(() => {
@@ -54,6 +58,7 @@ export function usePWA(): PWAState {
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
+      clearCachedDeferredPrompt();
       console.log('[CryptoPay PWA] Application successfully installed.');
     };
 
@@ -70,16 +75,18 @@ export function usePWA(): PWAState {
   }, []);
 
   const installApp = useCallback(async (): Promise<'accepted' | 'dismissed' | 'unsupported'> => {
-    if (!deferredPrompt) {
+    const promptEvent = deferredPrompt || getCachedDeferredPrompt();
+    if (!promptEvent) {
       return 'unsupported';
     }
 
     try {
-      await deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
+      await promptEvent.prompt();
+      const choice = await promptEvent.userChoice;
       if (choice.outcome === 'accepted') {
         setIsInstalled(true);
         setDeferredPrompt(null);
+        clearCachedDeferredPrompt();
       }
       return choice.outcome;
     } catch (err) {

@@ -207,7 +207,7 @@ function AppContent() {
           {/* Top Up Tab (Pay With Card / Top Up Card via Polygon) */}
           {activeTab === 'top-up' && (
             <div id="top-up-page" className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 min-h-[50vh]">
-              <TopUpView onNavigateTab={handleTabChange} />
+              <TopUpView onNavigateTab={(tab) => handleTabChange(tab as NavTab)} />
             </div>
           )}
 

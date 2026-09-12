@@ -255,21 +255,22 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
         setIsVerifyingTx(false);
 
         if (result.success && result.record) {
-          setVerifiedRecord(result.record);
+          const rec = result.record;
+          setVerifiedRecord(rec);
           setCreatedInvoice((prev) => {
             if (!prev) return null;
             const updated: CryptoPayInvoiceData = {
               ...prev,
               status: 'Paid',
               txHash: targetHash,
-              paidAt: result.record.timestamp,
-              verifiedBlock: result.record.blockNumber,
+              paidAt: rec.timestamp,
+              verifiedBlock: rec.blockNumber,
             };
             saveInvoiceRecord(updated);
             return updated;
           });
           if (createdInvoice?.id) {
-            markInvoiceAsPaid(createdInvoice.id, targetHash, result.record.blockNumber);
+            markInvoiceAsPaid(createdInvoice.id, targetHash, rec.blockNumber);
           }
           setVerifyTxHashInput(targetHash);
         } else {
@@ -479,7 +480,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
             </div>
             <button
               type="button"
-              onClick={openWalletConnect}
+              onClick={() => openWalletConnect()}
               className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold whitespace-nowrap transition cursor-pointer"
             >
               Connect Now
@@ -775,7 +776,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
               {!isConnected ? (
                 <button
                   type="button"
-                  onClick={openWalletConnect}
+                  onClick={() => openWalletConnect()}
                   className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
                 >
                   <Wallet className="w-5 h-5 text-amber-300" />
@@ -1076,7 +1077,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     <div className="bg-white rounded-lg p-2 font-mono text-[11px] text-slate-600 border border-slate-200 flex items-center justify-between">
                       <span>Tx: {verifiedRecord.txHash.slice(0, 8)}...{verifiedRecord.txHash.slice(-6)}</span>
                       <a
-                        href={verifiedRecord.explorerUrl}
+                        href={`https://polygonscan.com/tx/${verifiedRecord.txHash}`}
                         target="_blank"
                         rel="noreferrer noopener"
                         className="text-blue-700 hover:underline flex items-center gap-1"

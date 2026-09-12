@@ -381,7 +381,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
           {!isConnected ? (
             <button
               type="button"
-              onClick={openWalletConnect}
+              onClick={() => openWalletConnect()}
               className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-2xl transition-all shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Wallet className="w-4 h-4" /> Connect Wallet to Swap

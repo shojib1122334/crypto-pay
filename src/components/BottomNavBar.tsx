@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, CreditCard, FileText, ArrowLeftRight, Activity, Settings, Lock } from 'lucide-react';
+import { Layers, CreditCard, FileText, ArrowLeftRight, Activity, Settings, Lock, type LucideIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import type { NavTab } from '@/types/navigation';
@@ -12,7 +12,7 @@ interface BottomNavBarProps {
 interface NavItem {
   id: NavTab;
   label: string;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  icon: LucideIcon;
 }
 
 const NAV_ITEMS: NavItem[] = [

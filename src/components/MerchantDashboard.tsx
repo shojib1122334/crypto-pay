@@ -29,6 +29,7 @@ import {
 } from '@/lib/payments';
 import { TOKEN_LIST, type TokenSymbol } from '@/lib/tokens';
 import type { PaymentSession, PaymentStatus } from '@/lib/supabase';
+import type { NavTab } from '@/types/navigation';
 import { TokenIcon } from '@/components/TokenIcon';
 import {
   verifyOnChainPayment,
@@ -77,7 +78,11 @@ const STEP_INDEX: Record<PaymentStatus, number> = {
   failed: 1,
 };
 
-export default function MerchantDashboard() {
+interface MerchantDashboardProps {
+  onNavigateTab?: (tab: NavTab) => void;
+}
+
+export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: MerchantDashboardProps = {}) {
   const { address, isConnected, isConnecting } = useAccount();
   const [amount, setAmount] = useState('10.00');
   const [selectedToken, setSelectedToken] = useState<TokenSymbol>('usdt');

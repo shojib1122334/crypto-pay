@@ -19,6 +19,7 @@ import {
   User,
   ShieldCheck,
   Wallet,
+  ExternalLink,
 } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { useConnectWallet } from '@/hooks/useConnectWallet';
@@ -597,7 +598,7 @@ export const RecurringSubscriptionInvoiceSection: React.FC<
           {!isConnected ? (
             <button
               type="button"
-              onClick={openWalletConnect}
+              onClick={() => openWalletConnect()}
               className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
             >
               <Wallet className="w-5 h-5 text-amber-300" />

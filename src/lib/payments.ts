@@ -292,7 +292,9 @@ export function subscribeToPaymentSession(
         .subscribe();
 
       supabaseUnsub = () => {
-        supabase.removeChannel(channel);
+        if (supabase) {
+          supabase.removeChannel(channel);
+        }
       };
     } catch (err) {
       console.warn('Supabase realtime subscribe error:', err);

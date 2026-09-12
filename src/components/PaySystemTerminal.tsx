@@ -1111,7 +1111,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           ) : (
             <button
               type="button"
-              onClick={openWalletConnect}
+              onClick={() => openWalletConnect()}
               className="w-full py-4 px-6 rounded-2xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 active:scale-[0.99] text-white font-bold text-base flex items-center justify-between shadow-[0_0_20px_rgba(59,130,246,0.35)] transition cursor-pointer"
             >
               <Wallet className="w-5 h-5 text-white" />

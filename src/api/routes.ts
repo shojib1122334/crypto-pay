@@ -157,7 +157,7 @@ apiRouter.get('/payouts', async (req: Request, res: Response) => {
 apiRouter.get('/payouts/:id', async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    const payout = await payoutService.getPayout(req.params.id, user.id);
+    const payout = await payoutService.getPayout(req.params.id as string, user.id);
     const ledger = await db.getLedgerEntriesForPayout(payout.id);
     const providerTxs = await db.getProviderTransactions(payout.id);
 
