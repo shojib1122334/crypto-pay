@@ -470,7 +470,7 @@ export const TransactionHistoryView: React.FC = () => {
               Credit Invoices
             </span>
             <div className="flex items-center gap-2 mt-1.5">
-              <span className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              <span className="text-xl sm:text-2xl font-black text-black !text-black tracking-tight">
                 {invoices.length}
               </span>
               <span className="text-[11px] font-black text-[#00E676] px-2 py-0.5 rounded-md bg-emerald-950/80 border border-[#00E676]/60">
@@ -488,7 +488,7 @@ export const TransactionHistoryView: React.FC = () => {
             <span className="text-xs font-black text-zinc-300 uppercase tracking-wider block">
               Settled On-Chain
             </span>
-            <span className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1.5 block">
+            <span className="text-xl sm:text-2xl font-black text-black !text-black tracking-tight mt-1.5 block">
               {transactions.length}
             </span>
           </div>

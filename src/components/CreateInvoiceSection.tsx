@@ -465,13 +465,6 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
         }}
       />
 
-      {/* Tagline Hero Banner */}
-      <div className="w-full bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl py-3 sm:py-4 px-3 sm:px-4 shadow-xs flex items-center justify-center text-center">
-        <p className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black tracking-tight text-amber-500 leading-tight select-none">
-          Create Invoices. Accept Crypto. Get Paid.
-        </p>
-      </div>
-
       {/* Main Container */}
       <div className="w-full web3-glass-card rounded-2xl sm:rounded-3xl p-3.5 sm:p-8 shadow-xl shadow-purple-500/5 space-y-5 sm:space-y-7 relative overflow-hidden">
         {/* Top gradient highlight */}
