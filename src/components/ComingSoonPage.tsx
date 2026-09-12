@@ -41,13 +41,13 @@ export const ComingSoonPage: React.FC = () => {
   return (
     <div
       id="settings-page"
-      className="max-w-4xl mx-auto px-4 py-8 space-y-6 font-sans"
+      className="w-full sm:max-w-4xl mx-auto px-3.5 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6 font-sans"
     >
       {/* 1. Main Saved Receivers Management Section (Top) */}
       <SavedReceiversSection />
 
       {/* App & Terminal Settings Header */}
-      <div className="web3-glass-card border border-white/80 rounded-3xl p-6 sm:p-7 shadow-xl shadow-purple-500/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
+      <div className="web3-glass-card border border-white/80 rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 shadow-xl shadow-purple-500/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
         <div className="absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#F0F4FF] border border-blue-200 flex items-center justify-center font-black shadow-xs flex-shrink-0">
@@ -123,7 +123,7 @@ export const ComingSoonPage: React.FC = () => {
       {/* Grid: App Capabilities & Diagnostic Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Network & Offline Status */}
-        <div className="web3-glass-card border border-white/80 rounded-3xl p-5 shadow-xl shadow-blue-500/5 space-y-4">
+        <div className="web3-glass-card border border-white/80 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-xl shadow-blue-500/5 space-y-3.5 sm:space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-[#101B5C] flex items-center gap-2">
               <Globe className="w-4 h-4 text-blue-600" />
@@ -140,7 +140,7 @@ export const ComingSoonPage: React.FC = () => {
             )}
           </div>
 
-          <div className="text-xs space-y-2.5 text-[#5367A5] bg-[#F8FAFF] p-4 rounded-2xl border border-[#D6E0F5]">
+          <div className="text-xs space-y-2.5 text-[#5367A5] bg-[#F8FAFF] p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-[#D6E0F5]">
             <div className="flex justify-between items-center">
               <span>Target Chain:</span>
               <span className="text-[#101B5C] font-mono font-bold">Polygon Mainnet (137)</span>
@@ -161,7 +161,7 @@ export const ComingSoonPage: React.FC = () => {
         </div>
 
         {/* Android TWA / APK Readiness */}
-        <div className="web3-glass-card border border-white/80 rounded-3xl p-5 shadow-xl shadow-purple-500/5 space-y-4">
+        <div className="web3-glass-card border border-white/80 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-xl shadow-purple-500/5 space-y-3.5 sm:space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-[#101B5C] flex items-center gap-2">
               <Layers className="w-4 h-4 text-purple-600" />
@@ -172,7 +172,7 @@ export const ComingSoonPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="text-xs space-y-2.5 text-[#5367A5] bg-[#F8FAFF] p-4 rounded-2xl border border-[#D6E0F5]">
+          <div className="text-xs space-y-2.5 text-[#5367A5] bg-[#F8FAFF] p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-[#D6E0F5]">
             <div className="flex justify-between items-center">
               <span>Package ID:</span>
               <span className="text-[#101B5C] font-mono font-bold">app.cryptopay.pos</span>
@@ -194,7 +194,7 @@ export const ComingSoonPage: React.FC = () => {
       </div>
 
       {/* Feature Roadmap & Under Development Notice */}
-      <div className="web3-glass-card border border-white/80 rounded-3xl p-8 text-center space-y-4 shadow-xl shadow-purple-500/5">
+      <div className="web3-glass-card border border-white/80 rounded-2xl sm:rounded-3xl p-4 sm:p-8 text-center space-y-4 shadow-xl shadow-purple-500/5">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-xs font-bold text-blue-700">
           <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
           <span>Advanced Merchant Features</span>

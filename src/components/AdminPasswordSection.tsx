@@ -45,7 +45,7 @@ export const AdminPasswordSection: React.FC = () => {
   return (
     <div
       id="settings-admin-password-section"
-      className="web3-glass-card border border-white/80 rounded-3xl p-6 sm:p-7 shadow-xl shadow-purple-500/5 space-y-5 transition-all relative overflow-hidden"
+      className="web3-glass-card border border-white/80 rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 shadow-xl shadow-purple-500/5 space-y-4 sm:space-y-5 transition-all relative overflow-hidden"
     >
       <div className="absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
       {/* Header */}

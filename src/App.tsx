@@ -207,7 +207,7 @@ function AppContent() {
 
           {/* Top Up Tab (Pay With Card / Top Up Card via Polygon) */}
           {activeTab === 'top-up' && (
-            <div id="top-up-page" className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 min-h-[50vh]">
+            <div id="top-up-page" className="w-full max-w-7xl mx-auto py-2 sm:py-6 min-h-[50vh]">
               <TopUpView onNavigateTab={(tab) => handleTabChange(tab as NavTab)} />
             </div>
           )}
@@ -221,7 +221,7 @@ function AppContent() {
 
           {/* Exchange Tab (Polygon Mainnet Swap for USDT, USDC, and VERSE) */}
           {activeTab === 'exchange' && (
-            <div id="exchange-page" className="w-full max-w-7xl mx-auto px-4 py-6 min-h-[50vh]">
+            <div id="exchange-page" className="w-full max-w-7xl mx-auto px-3.5 sm:px-6 py-3 sm:py-6 min-h-[50vh]">
               <ExchangeView />
             </div>
           )}

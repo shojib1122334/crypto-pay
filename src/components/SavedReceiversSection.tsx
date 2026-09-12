@@ -130,7 +130,7 @@ export const SavedReceiversSection: React.FC = () => {
   return (
     <div
       id="saved-receivers-management"
-      className="web3-glass-card rounded-3xl border border-white/80 p-6 sm:p-7 shadow-xl shadow-purple-500/5 space-y-6 relative overflow-hidden"
+      className="web3-glass-card rounded-2xl sm:rounded-3xl border border-white/80 p-3.5 sm:p-7 shadow-xl shadow-purple-500/5 space-y-5 sm:space-y-6 relative overflow-hidden"
     >
       <div className="absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
 
@@ -178,7 +178,7 @@ export const SavedReceiversSection: React.FC = () => {
       </div>
 
       {/* 2. Active Receiver Banner */}
-      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-300 rounded-2xl p-4 sm:p-5 shadow-xs">
+      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-300 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
             <div className="flex items-center gap-2">

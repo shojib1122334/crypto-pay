@@ -414,10 +414,10 @@ export const TransactionHistoryView: React.FC = () => {
   return (
     <div
       id="cryptopay-activity-view"
-      className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-20 sm:pb-28 text-white"
+      className="w-full sm:max-w-5xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-3 sm:pt-8 pb-20 sm:pb-28 text-white"
     >
       {/* Activity Top Header */}
-      <div className="relative overflow-hidden bg-zinc-950 rounded-3xl border-2 border-zinc-700 shadow-2xl p-6 sm:p-8 mb-6">
+      <div className="relative overflow-hidden bg-zinc-950 rounded-2xl sm:rounded-3xl border-2 border-zinc-700 shadow-2xl p-4 sm:p-8 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-zinc-900 border-2 border-[#3B82F6] text-[#3B82F6] text-xs font-black uppercase tracking-wider mb-3 shadow-[0_0_12px_rgba(59,130,246,0.3)]">

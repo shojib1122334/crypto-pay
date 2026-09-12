@@ -315,10 +315,10 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
     : null;
 
   return (
-    <div id="merchant-dashboard" className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-20 sm:pb-28">
+    <div id="merchant-dashboard" className="w-full sm:max-w-4xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-3 sm:pt-8 pb-20 sm:pb-28">
       
       {/* Dashboard Welcome & Overview Hero Banner */}
-      <div className="relative overflow-hidden bg-zinc-950 rounded-3xl border border-zinc-800 shadow-2xl mb-6 sm:mb-8 transition-all">
+      <div className="relative overflow-hidden bg-zinc-950 rounded-2xl sm:rounded-3xl border border-zinc-800 shadow-2xl mb-6 sm:mb-8 transition-all">
         <div
           className="absolute top-0 right-0 bottom-0 w-1/3 sm:w-2/5 md:w-1/2 bg-cover bg-right bg-no-repeat pointer-events-none opacity-20"
           style={{
@@ -328,7 +328,7 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
           }}
         />
 
-        <div className="relative z-10 p-6 sm:p-8 max-w-2xl">
+        <div className="relative z-10 p-4 sm:p-8 max-w-2xl">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-[#3B82F6]/40 text-[#3B82F6] text-xs font-bold uppercase tracking-wider mb-3 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
             <Zap className="w-3.5 h-3.5 text-[#FACC15] fill-[#FACC15]" />
             DIRECT POLYGON GATEWAY
@@ -355,7 +355,7 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
         <div className="lg:col-span-7 space-y-6">
           
           {/* Connected Wallet Card */}
-          <div className="bg-zinc-950 rounded-2xl p-5 sm:p-6 border border-zinc-800 shadow-xl">
+          <div className="bg-zinc-950 rounded-2xl p-3.5 sm:p-6 border border-zinc-800 shadow-xl">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-black uppercase tracking-wider text-zinc-300">
                 YOUR MERCHANT WALLET
@@ -406,7 +406,7 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
           </div>
 
           {/* Payment Creation Card */}
-          <div className="bg-zinc-950 rounded-2xl p-5 sm:p-6 border-2 border-zinc-800 shadow-xl">
+          <div className="bg-zinc-950 rounded-2xl p-3.5 sm:p-6 border-2 border-zinc-800 shadow-xl">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-black text-[#FFFFFF]">
                 Create Payment
@@ -577,7 +577,7 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                 </div>
               </div>
 
-              <div className="p-6 flex flex-col items-center">
+              <div className="p-3.5 sm:p-6 flex flex-col items-center">
                 {/* Big Amount Badge */}
                 <div className="text-center mb-5">
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">

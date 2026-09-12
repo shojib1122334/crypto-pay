@@ -416,8 +416,8 @@ export default function CustomerPaymentView({
   // Success screen
   if (payState === 'success') {
     return (
-      <div className="w-full max-w-lg mx-auto px-4 sm:px-6 py-12 sm:py-20 flex flex-col items-center">
-        <div className="w-full web3-glass-card rounded-3xl border border-white/80 shadow-2xl shadow-purple-500/10 p-8 sm:p-10 text-center relative overflow-hidden">
+      <div className="w-full sm:max-w-lg mx-auto px-3.5 sm:px-6 py-6 sm:py-20 flex flex-col items-center">
+        <div className="w-full web3-glass-card rounded-2xl sm:rounded-3xl border border-white/80 shadow-2xl shadow-purple-500/10 p-4 sm:p-10 text-center relative overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
 
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-300 flex items-center justify-center text-emerald-600 mx-auto mb-6 shadow-md shadow-emerald-500/15">
@@ -522,7 +522,7 @@ export default function CustomerPaymentView({
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto px-4 sm:px-6 py-10 sm:py-16">
+    <div className="w-full sm:max-w-lg mx-auto px-3.5 sm:px-6 py-6 sm:py-16">
       
       {/* Customer Header */}
       <div className="text-center mb-8">
@@ -539,11 +539,11 @@ export default function CustomerPaymentView({
       </div>
 
       {/* Payment Summary Card */}
-      <div className="web3-glass-card rounded-3xl border border-white/80 shadow-2xl shadow-purple-500/10 overflow-hidden mb-6 relative">
+      <div className="web3-glass-card rounded-2xl sm:rounded-3xl border border-white/80 shadow-2xl shadow-purple-500/10 overflow-hidden mb-6 relative">
         <div className="absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
         
         {/* Terminal top bar */}
-        <div className="bg-[#F6F8FE] px-6 py-4 flex items-center justify-between border-b border-[#D6E0F5]">
+        <div className="bg-[#F6F8FE] px-3.5 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between border-b border-[#D6E0F5]">
           <span className="text-xs font-bold uppercase tracking-wider text-[#5367A5]">
             Payment Invoice
           </span>
@@ -553,7 +553,7 @@ export default function CustomerPaymentView({
           </span>
         </div>
 
-        <div className="p-6">
+        <div className="p-3.5 sm:p-6">
           
           {/* Amount Due Big Display */}
           <div className="flex items-center justify-between pb-5 border-b border-[#D6E0F5]">

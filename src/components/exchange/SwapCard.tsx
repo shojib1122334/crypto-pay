@@ -143,8 +143,8 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto">
-      <div className="web3-glass-card rounded-3xl p-5 sm:p-6 shadow-xl shadow-purple-500/5 relative overflow-hidden">
+    <div className="w-full sm:max-w-lg mx-auto">
+      <div className="web3-glass-card rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-xl shadow-purple-500/5 relative overflow-hidden">
         {/* Top gradient highlight */}
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
 

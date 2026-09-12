@@ -60,7 +60,7 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
 
   if (!walletAddress) {
     return (
-      <div className="w-full max-w-lg mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 text-center shadow-sm">
+      <div className="w-full sm:max-w-lg mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-8 text-center shadow-sm">
         <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
           <Layers className="w-6 h-6" />
         </div>
@@ -82,7 +82,7 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-6 shadow-sm">
+    <div className="w-full sm:max-w-2xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-sm">
       {/* Responsive Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
         <div className="min-w-0">

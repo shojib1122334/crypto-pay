@@ -443,7 +443,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+    <div className="w-full sm:max-w-4xl mx-auto px-3.5 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
       {/* Hidden File Inputs */}
       <input
         type="file"
@@ -466,20 +466,20 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
       />
 
       {/* Tagline Hero Banner */}
-      <div className="w-full bg-white border border-slate-200/90 rounded-2xl py-3.5 sm:py-4 px-4 shadow-xs flex items-center justify-center text-center">
-        <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-black tracking-tight text-amber-500 leading-tight select-none">
+      <div className="w-full bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl py-3 sm:py-4 px-3 sm:px-4 shadow-xs flex items-center justify-center text-center">
+        <p className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black tracking-tight text-amber-500 leading-tight select-none">
           Create Invoices. Accept Crypto. Get Paid.
         </p>
       </div>
 
       {/* Main Container */}
-      <div className="web3-glass-card rounded-3xl p-6 sm:p-8 shadow-xl shadow-purple-500/5 space-y-7 relative overflow-hidden">
+      <div className="w-full web3-glass-card rounded-2xl sm:rounded-3xl p-3.5 sm:p-8 shadow-xl shadow-purple-500/5 space-y-5 sm:space-y-7 relative overflow-hidden">
         {/* Top gradient highlight */}
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
 
         {/* Real Wallet Notice Banner */}
         {!isConnected && (
-          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900">
+          <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-amber-50 border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900">
             <div className="flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
               <span>
@@ -497,16 +497,16 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
         )}
 
             {/* SECTION 1: INVOICE GENERATION FORM */}
-            <form onSubmit={handleCreateInvoice} className="space-y-6">
+            <form onSubmit={handleCreateInvoice} className="space-y-4 sm:space-y-6">
               
-              {/* Store Name / Company Name → Blue + Purple gradient */}
-              <div className="p-4 rounded-2xl bg-white border border-[#D6E0F5] shadow-xs space-y-2">
+              {/* Store Name / Company Name */}
+              <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-[#D6E0F5] shadow-xs space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center shadow-xs shadow-blue-500/30">
                       <Store className="w-4 h-4 text-white" />
                     </div>
-                    <span className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                    <span className="font-extrabold text-base text-[#101B5C]">
                       Store Name / Company Name
                     </span>
                   </label>
@@ -555,13 +555,13 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 )}
               </div>
 
-              {/* Customer Name → Blue + Cyan gradient */}
+              {/* Customer Name */}
               <div className="space-y-2">
                 <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center shadow-xs shadow-cyan-500/30">
                     <User className="w-4 h-4 text-white" />
                   </div>
-                  <span className="bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                  <span className="font-extrabold text-base text-[#101B5C]">
                     Customer Name
                   </span>
                 </label>
@@ -574,13 +574,13 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 />
               </div>
 
-              {/* Customer Address (Optional) → Green + Cyan gradient */}
+              {/* Customer Address (Optional) */}
               <div className="space-y-2">
                 <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-xs shadow-emerald-500/30">
                     <MapPin className="w-4 h-4 text-white" />
                   </div>
-                  <span className="bg-gradient-to-r from-emerald-700 to-teal-600 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                  <span className="font-extrabold text-base text-[#101B5C]">
                     Customer Address (Optional)
                   </span>
                 </label>
@@ -593,13 +593,13 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 />
               </div>
 
-              {/* Customer Company Name → Orange + Pink gradient */}
+              {/* Customer Company Name */}
               <div className="space-y-2">
                 <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 text-white flex items-center justify-center shadow-xs shadow-orange-500/30">
                     <Building2 className="w-4 h-4 text-white" />
                   </div>
-                  <span className="bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                  <span className="font-extrabold text-base text-[#101B5C]">
                     Customer Company Name
                   </span>
                 </label>
@@ -612,13 +612,13 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 />
               </div>
 
-              {/* Product Name → Pink + Purple gradient */}
+              {/* Product Name */}
               <div className="space-y-2">
                 <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 text-white flex items-center justify-center shadow-xs shadow-pink-500/30">
                     <Package className="w-4 h-4 text-white" />
                   </div>
-                  <span className="bg-gradient-to-r from-pink-600 to-purple-700 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                  <span className="font-extrabold text-base text-[#101B5C]">
                     Product Name
                   </span>
                   <span className="text-xs text-red-500 font-bold">*</span>
@@ -635,19 +635,20 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 />
               </div>
 
-              {/* Product Image: Take Photo | Upload Image → Purple + Blue gradient */}
+              {/* Product Image: Take Photo | Upload Image (Matches UI Screenshot) */}
               <div className="space-y-3">
                 <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-purple-600 to-blue-500 text-white flex items-center justify-center shadow-xs shadow-purple-500/30">
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-sky-400 to-blue-500 text-white flex items-center justify-center shadow-xs shadow-sky-500/30">
                     <Camera className="w-4 h-4 text-white" />
                   </div>
-                  <span className="bg-gradient-to-r from-purple-700 to-blue-600 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                  <span className="font-extrabold text-base text-[#101B5C]">
                     Product Image
                   </span>
                 </label>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Take Photo Button */}
+                {/* Stacked Full-Width Buttons matching screenshot */}
+                <div className="space-y-2.5 sm:space-y-3">
+                  {/* Take Photo Card */}
                   <button
                     type="button"
                     onClick={() => {
@@ -657,31 +658,35 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                         startLiveCamera();
                       }
                     }}
-                    className="flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:from-purple-500 hover:to-indigo-600 text-white font-black text-sm transition-all duration-200 active:scale-[0.98] cursor-pointer shadow-md shadow-purple-600/30 border-2 border-purple-400 group"
+                    className="w-full py-3.5 sm:py-5 px-4 sm:px-6 rounded-xl sm:rounded-2xl bg-[#FAF8FF] hover:bg-purple-50/50 border-2 border-[#D1BBFC] hover:border-purple-400 transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2.5 sm:gap-3 shadow-xs group"
                   >
-                    <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center text-white flex-shrink-0 group-hover:scale-110 transition-transform">
-                      <Camera className="w-4 h-4 text-white stroke-[2.5]" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-100 flex items-center justify-center text-[#7C3AED] group-hover:scale-110 transition-transform">
+                      <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-[#7C3AED] stroke-[2.2]" />
                     </div>
-                    <span className="text-white drop-shadow-xs font-black tracking-wide">Take Photo</span>
+                    <span className="text-[#101B5C] font-extrabold text-sm sm:text-lg">
+                      Take Photo
+                    </span>
                   </button>
 
-                  {/* Upload Image Button */}
+                  {/* Upload Image Card */}
                   <button
                     type="button"
                     onClick={() => uploadInputRef.current?.click()}
-                    className="flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-700 hover:from-blue-500 hover:to-cyan-600 text-white font-black text-sm transition-all duration-200 active:scale-[0.98] cursor-pointer shadow-md shadow-blue-600/30 border-2 border-cyan-400 group"
+                    className="w-full py-3.5 sm:py-5 px-4 sm:px-6 rounded-xl sm:rounded-2xl bg-[#EFF6FE] hover:bg-blue-50/70 border-2 border-[#B4D8FB] hover:border-blue-400 transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2.5 sm:gap-3 shadow-xs group"
                   >
-                    <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center text-white flex-shrink-0 group-hover:scale-110 transition-transform">
-                      <Upload className="w-4 h-4 text-white stroke-[2.5]" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#2563EB] group-hover:scale-110 transition-transform">
+                      <Upload className="w-4 h-4 sm:w-5 sm:h-5 text-[#2563EB] stroke-[2.2]" />
                     </div>
-                    <span className="text-white drop-shadow-xs font-black tracking-wide">Upload Image</span>
+                    <span className="text-[#101B5C] font-extrabold text-sm sm:text-lg">
+                      Upload Image
+                    </span>
                   </button>
                 </div>
 
                 {/* Product Image Preview */}
                 {productImage && (
                   <div className="relative inline-block mt-2">
-                    <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-2 border-purple-500 bg-white shadow-md">
+                    <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden border-2 border-purple-500 bg-white shadow-md">
                       <img
                         src={productImage}
                         alt="Product preview"
@@ -700,92 +705,147 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 )}
               </div>
 
-              {/* 🌐 Network: Polygon | Ethereum → Cyan + Blue gradient */}
+              {/* 🌐 Network: Polygon 137 | Ethereum 1 (Matches UI Screenshot) */}
               <div className="space-y-2">
                 <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow-xs shadow-cyan-500/30">
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 text-white flex items-center justify-center shadow-xs shadow-cyan-500/30">
                     <Globe className="w-4 h-4 text-white" />
                   </div>
-                  <span className="bg-gradient-to-r from-cyan-600 to-blue-700 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                  <span className="font-extrabold text-base text-[#101B5C]">
                     Network
                   </span>
                 </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Polygon */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                  {/* Polygon 137 */}
                   <button
                     type="button"
                     onClick={() => setNetwork('Polygon')}
-                    className={`py-3 px-4 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
+                    className={`py-3 sm:py-3.5 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl text-xs sm:text-base font-extrabold flex items-center justify-between transition cursor-pointer border-2 ${
                       network === 'Polygon'
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent shadow-md shadow-purple-500/25'
-                        : 'bg-white text-slate-900 border-[#D6E0F5] hover:border-purple-400 hover:text-purple-700'
+                        ? 'bg-[#EEEDFD] border-[#8457F7] shadow-sm shadow-purple-500/15'
+                        : 'bg-white border-[#D6E0F5] hover:border-purple-300 hover:bg-purple-50/20'
                     }`}
                   >
-                    <TokenIcon token="POL" size={22} />
-                    <span>Polygon</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono font-bold ${network === 'Polygon' ? 'bg-white/25 text-white' : 'bg-purple-100 text-purple-900 border border-purple-200'}`}>137</span>
+                    <div className="flex items-center gap-1.5 sm:gap-2.5">
+                      <TokenIcon token="POL" size={22} className="sm:w-6 sm:h-6" />
+                      <span className={network === 'Polygon' ? 'text-[#101B5C] font-extrabold' : 'text-slate-700 font-bold'}>
+                        Polygon
+                      </span>
+                    </div>
+                    <span
+                      className={`text-[11px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg font-mono font-bold ${
+                        network === 'Polygon'
+                          ? 'bg-[#E6DFFD] text-[#8457F7] border border-[#D5C8FA]'
+                          : 'bg-slate-100 text-slate-500 border border-slate-200'
+                      }`}
+                    >
+                      137
+                    </span>
                   </button>
 
-                  {/* Ethereum */}
+                  {/* Ethereum 1 */}
                   <button
                     type="button"
                     onClick={() => setNetwork('Ethereum')}
-                    className={`py-3 px-4 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
+                    className={`py-3 sm:py-3.5 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl text-xs sm:text-base font-extrabold flex items-center justify-between transition cursor-pointer border-2 ${
                       network === 'Ethereum'
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent shadow-md shadow-purple-500/25'
-                        : 'bg-white text-slate-900 border-[#D6E0F5] hover:border-blue-400 hover:text-blue-700'
+                        ? 'bg-[#EFF6FE] border-[#3B82F6] shadow-sm shadow-blue-500/15'
+                        : 'bg-white border-[#D6E0F5] hover:border-blue-300 hover:bg-blue-50/20'
                     }`}
                   >
-                    <TokenIcon token="ETH" size={22} />
-                    <span>Ethereum</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono font-bold ${network === 'Ethereum' ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-900 border border-blue-200'}`}>1</span>
+                    <div className="flex items-center gap-1.5 sm:gap-2.5">
+                      <TokenIcon token="ETH" size={22} className="sm:w-6 sm:h-6" />
+                      <span className={network === 'Ethereum' ? 'text-[#101B5C] font-extrabold' : 'text-slate-700 font-bold'}>
+                        Ethereum
+                      </span>
+                    </div>
+                    <span
+                      className={`text-[11px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg font-mono font-bold ${
+                        network === 'Ethereum'
+                          ? 'bg-[#E2EFFD] text-[#2563EB] border border-[#BFDBFE]'
+                          : 'bg-slate-100 text-slate-500 border border-slate-200'
+                      }`}
+                    >
+                      1
+                    </span>
                   </button>
                 </div>
               </div>
 
-              {/* 💰 Payment Method: USDT | USDC | VERSE → Purple + Pink gradient */}
+              {/* 💰 Payment Method: USDT | USDC | VERSE (Matches UI Screenshot) */}
               <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-bold flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 text-white flex items-center justify-center shadow-xs shadow-purple-500/30">
+                    <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-rose-400 to-pink-500 text-white flex items-center justify-center shadow-xs shadow-rose-500/30">
                       <Coins className="w-4 h-4 text-white" />
                     </div>
-                    <span className="bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                    <span className="font-extrabold text-base text-[#101B5C]">
                       Payment Method
                     </span>
                   </span>
-                  <span className="text-[11px] text-purple-700 font-extrabold">Official Web3 Tokens</span>
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {(['USDT', 'USDC', 'VERSE'] as const).map((method) => {
-                    const isSelected = paymentMethod === method;
-                    return (
-                      <button
-                        key={method}
-                        type="button"
-                        onClick={() => setPaymentMethod(method)}
-                        className={`py-3.5 px-3 rounded-xl text-xs sm:text-sm font-extrabold flex flex-col sm:flex-row items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
-                          isSelected
-                            ? 'bg-gradient-to-r from-purple-600 to-pink-500 text-white border-transparent shadow-md shadow-purple-500/25'
-                            : 'bg-white text-slate-900 border-[#D6E0F5] hover:border-purple-400 hover:text-purple-700'
-                        }`}
-                      >
-                        <TokenIcon token={method} size={24} />
-                        <span>{method}</span>
-                      </button>
-                    );
-                  })}
+                  <span className="text-[11px] sm:text-sm font-extrabold text-white bg-[#4E3DF7] px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-full shadow-xs">
+                    Official Web3 Tokens
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-4">
+                  {/* USDT */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('USDT')}
+                    className={`py-3 sm:py-4 px-1.5 sm:px-3 rounded-xl sm:rounded-2xl text-xs sm:text-base font-extrabold flex items-center justify-center gap-1 sm:gap-2.5 transition cursor-pointer border-2 ${
+                      paymentMethod === 'USDT'
+                        ? 'bg-[#EAF9F4] border-[#10B981] shadow-sm shadow-emerald-500/15'
+                        : 'bg-white border-[#D6E0F5] hover:border-emerald-300 hover:bg-emerald-50/20'
+                    }`}
+                  >
+                    <TokenIcon token="USDT" size={22} className="sm:w-[26px] sm:h-[26px]" />
+                    <span className={paymentMethod === 'USDT' ? 'text-[#101B5C] font-extrabold' : 'text-slate-700 font-bold'}>
+                      USDT
+                    </span>
+                  </button>
+
+                  {/* USDC */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('USDC')}
+                    className={`py-3 sm:py-4 px-1.5 sm:px-3 rounded-xl sm:rounded-2xl text-xs sm:text-base font-extrabold flex items-center justify-center gap-1 sm:gap-2.5 transition cursor-pointer border-2 ${
+                      paymentMethod === 'USDC'
+                        ? 'bg-[#EFF6FE] border-[#2563EB] shadow-sm shadow-blue-500/15'
+                        : 'bg-white border-[#D6E0F5] hover:border-blue-300 hover:bg-blue-50/20'
+                    }`}
+                  >
+                    <TokenIcon token="USDC" size={22} className="sm:w-[26px] sm:h-[26px]" />
+                    <span className={paymentMethod === 'USDC' ? 'text-[#101B5C] font-extrabold' : 'text-slate-700 font-bold'}>
+                      USDC
+                    </span>
+                  </button>
+
+                  {/* VERSE */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('VERSE')}
+                    className={`py-3 sm:py-4 px-1.5 sm:px-3 rounded-xl sm:rounded-2xl text-xs sm:text-base font-extrabold flex items-center justify-center gap-1 sm:gap-2.5 transition cursor-pointer border-2 ${
+                      paymentMethod === 'VERSE'
+                        ? 'bg-[#FAF5FF] border-[#8B5CF6] shadow-sm shadow-purple-500/15'
+                        : 'bg-white border-[#D6E0F5] hover:border-purple-300 hover:bg-purple-50/20'
+                    }`}
+                  >
+                    <TokenIcon token="VERSE" size={22} className="sm:w-[26px] sm:h-[26px]" />
+                    <span className={paymentMethod === 'VERSE' ? 'text-[#101B5C] font-extrabold' : 'text-slate-700 font-bold'}>
+                      VERSE
+                    </span>
+                  </button>
                 </div>
               </div>
 
-              {/* 💵 Amount / Transaction → Blue + Violet gradient */}
+              {/* 💵 Amount / Transaction */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white flex items-center justify-center shadow-xs shadow-blue-500/30">
                       <DollarSign className="w-4 h-4 text-white" />
                     </div>
-                    <span className="bg-gradient-to-r from-blue-700 to-violet-700 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                    <span className="font-extrabold text-base text-[#101B5C]">
                       Transaction Amount
                     </span>
                     <span className="text-xs text-red-500 font-bold">*</span>
@@ -803,7 +863,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                       setFormError(null);
                     }}
                     placeholder="e.g., 25.00"
-                    className="w-full bg-white border border-[#D6E0F5] rounded-xl px-4 py-3.5 text-base sm:text-lg font-bold text-[#101B5C] placeholder:text-[#8A9BC7] focus:outline-none focus:border-purple-500 focus:ring-3 focus:ring-purple-400/20 pr-24 shadow-xs transition-all"
+                    className="w-full bg-white border border-[#D6E0F5] rounded-xl px-3.5 sm:px-4 py-3 sm:py-3.5 text-base sm:text-lg font-bold text-[#101B5C] placeholder:text-[#8A9BC7] focus:outline-none focus:border-purple-500 focus:ring-3 focus:ring-purple-400/20 pr-24 shadow-xs transition-all"
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F0F4FF] border border-[#D6E0F5] text-xs font-bold text-[#101B5C]">
                     <TokenIcon token={paymentMethod} size={16} />
@@ -812,7 +872,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 </div>
 
                 {/* Quick Amount Suggestion Chips */}
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-1.5 sm:gap-2 pt-1 flex-wrap">
                   <span className="text-[11px] text-[#5367A5] font-semibold">Quick:</span>
                   {['10.00', '25.00', '50.00', '100.00'].map((preset) => (
                     <button
@@ -829,7 +889,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
               {/* Form Error Notice */}
               {formError && (
-                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+                <div className="p-3 sm:p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
                   <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
                   <span>{formError}</span>
                 </div>
@@ -840,17 +900,17 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 <button
                   type="button"
                   onClick={() => openWalletConnect()}
-                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all cursor-pointer border border-white/20"
+                  className="w-full py-3.5 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 active:scale-[0.99] text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all cursor-pointer border border-white/20"
                 >
-                  <Wallet className="w-5 h-5 text-white stroke-[2.2]" />
+                  <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-white stroke-[2.2]" />
                   <span className="text-white">Connect Wallet to Create Invoice</span>
                 </button>
               ) : (
                 <button
                   type="submit"
-                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all cursor-pointer border border-white/20"
+                  className="w-full py-3.5 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 active:scale-[0.99] text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all cursor-pointer border border-white/20"
                 >
-                  <Sparkles className="w-5 h-5 text-white" />
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   <span className="text-white">Create Credit Invoice</span>
                 </button>
               )}
@@ -858,8 +918,8 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
             {/* SECTION 2: GENERATED CRYPTOPAY INVOICE CARD WITH "CLAIM" BUTTON */}
             {createdInvoice && (
-              <div className="pt-8 border-t border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <div className="max-w-md mx-auto web3-glass-card border-2 border-purple-400/50 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-purple-500/10 space-y-6 relative overflow-hidden">
+              <div className="pt-6 sm:pt-8 border-t border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="w-full sm:max-w-md mx-auto web3-glass-card border-2 border-purple-400/50 rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 shadow-2xl shadow-purple-500/10 space-y-4 sm:space-y-6 relative overflow-hidden">
                   
                   {/* Background ambient badge */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/50 blur-2xl pointer-events-none rounded-full" />
@@ -890,21 +950,21 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   )}
 
                   {/* Invoice Key Details */}
-                  <div className="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 space-y-3.5 text-sm">
+                  <div className="bg-slate-50 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 border border-slate-200 space-y-3 sm:space-y-3.5 text-xs sm:text-sm">
                     
                     {/* Store: Store name / Company name */}
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2 sm:pb-2.5">
                       <span className="text-slate-500 font-medium">Store / Company:</span>
-                      <span className="text-slate-900 font-bold text-right truncate max-w-[200px]">
+                      <span className="text-slate-900 font-bold text-right truncate max-w-[180px] sm:max-w-[200px]">
                         {createdInvoice.storeName}
                       </span>
                     </div>
 
                     {/* Customer: Customer name (if provided) */}
                     {createdInvoice.customerName && (
-                      <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-2 sm:pb-2.5">
                         <span className="text-slate-500 font-medium">Customer:</span>
-                        <span className="text-slate-900 font-bold text-right truncate max-w-[200px]">
+                        <span className="text-slate-900 font-bold text-right truncate max-w-[180px] sm:max-w-[200px]">
                           {createdInvoice.customerName}
                         </span>
                       </div>
@@ -912,9 +972,9 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
                     {/* Customer Address: Only if provided */}
                     {createdInvoice.customerAddress && (
-                      <div className="flex items-start justify-between border-b border-slate-200 pb-2.5">
+                      <div className="flex items-start justify-between border-b border-slate-200 pb-2 sm:pb-2.5">
                         <span className="text-slate-500 font-medium">Customer Address:</span>
-                        <span className="text-slate-900 font-bold text-right whitespace-pre-line max-w-[200px] text-xs">
+                        <span className="text-slate-900 font-bold text-right whitespace-pre-line max-w-[180px] sm:max-w-[200px] text-[11px] sm:text-xs">
                           {createdInvoice.customerAddress}
                         </span>
                       </div>
@@ -922,26 +982,26 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
                     {/* Customer Company Name: Only if provided */}
                     {createdInvoice.customerCompanyName && (
-                      <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-2 sm:pb-2.5">
                         <span className="text-slate-500 font-medium">Customer Company:</span>
-                        <span className="text-slate-900 font-bold text-right truncate max-w-[200px]">
+                        <span className="text-slate-900 font-bold text-right truncate max-w-[180px] sm:max-w-[200px]">
                           {createdInvoice.customerCompanyName}
                         </span>
                       </div>
                     )}
 
                     {/* Item: Item name */}
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2 sm:pb-2.5">
                       <span className="text-slate-500 font-medium">Item:</span>
-                      <span className="text-slate-900 font-bold text-right truncate max-w-[200px]">
+                      <span className="text-slate-900 font-bold text-right truncate max-w-[180px] sm:max-w-[200px]">
                         {createdInvoice.productName}
                       </span>
                     </div>
 
                     {/* Amount: Amount value + Official Token Logo */}
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2 sm:pb-2.5">
                       <span className="text-slate-500 font-medium">Amount:</span>
-                      <div className="flex items-center gap-1.5 text-right font-black text-emerald-700 text-base">
+                      <div className="flex items-center gap-1.5 text-right font-black text-emerald-700 text-sm sm:text-base">
                         <TokenIcon token={createdInvoice.paymentMethod} size={18} />
                         <span>{createdInvoice.amount}</span>
                         <span>{createdInvoice.paymentMethod}</span>
@@ -949,7 +1009,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     </div>
 
                     {/* Network: Polygon / Ethereum with Official Network Logo */}
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2 sm:pb-2.5">
                       <span className="text-slate-500 font-medium">Network:</span>
                       <span className="text-slate-900 font-semibold flex items-center gap-1.5">
                         <TokenIcon
@@ -961,9 +1021,9 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     </div>
 
                     {/* Settlement Wallet */}
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2 sm:pb-2.5">
                       <span className="text-slate-500 font-medium">Receiver:</span>
-                      <span className="font-mono text-xs text-slate-800 font-semibold truncate max-w-[170px]" title={createdInvoice.receiverAddress}>
+                      <span className="font-mono text-xs text-slate-800 font-semibold truncate max-w-[150px] sm:max-w-[170px]" title={createdInvoice.receiverAddress}>
                         {createdInvoice.receiverAddress.slice(0, 6)}...{createdInvoice.receiverAddress.slice(-4)}
                       </span>
                     </div>
@@ -971,7 +1031,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     {/* Status: Pending */}
                     <div className="flex items-center justify-between">
                       <span className="text-slate-500 font-medium">Status:</span>
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold uppercase flex items-center gap-1.5 ${
+                      <span className={`px-2.5 py-0.5 sm:py-1 rounded-full text-xs font-extrabold uppercase flex items-center gap-1.5 ${
                         createdInvoice.status === 'Paid'
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
                           : 'bg-amber-50 text-amber-700 border border-amber-300'
@@ -986,9 +1046,9 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   <button
                     type="button"
                     onClick={() => setIsClaimModalOpen(true)}
-                    className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 active:scale-[0.99] text-white font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all cursor-pointer border border-white/20"
+                    className="w-full py-3.5 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 active:scale-[0.99] text-white font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all cursor-pointer border border-white/20"
                   >
-                    <QrCode className="w-5 h-5 text-white" />
+                    <QrCode className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     <span className="text-white">Claim Invoice</span>
                     <ArrowRight className="w-4 h-4 text-white stroke-[2.5]" />
                   </button>
@@ -1004,8 +1064,8 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
       {/* genuinely on-chain.                                                      */}
       {/* ========================================================================= */}
       {isClaimModalOpen && createdInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl max-w-lg w-full p-4 sm:p-8 shadow-2xl space-y-4 sm:space-y-6 relative max-h-[92vh] overflow-y-auto">
             
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-200">
@@ -1333,8 +1393,8 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
       {/* 4. LIVE CAMERA MODAL (For desktop / web camera capture)                   */}
       {/* ========================================================================= */}
       {isLiveCameraOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-md animate-in fade-in">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/90 backdrop-blur-md animate-in fade-in">
+          <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl max-w-md w-full p-4 sm:p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <Camera className="w-4 h-4 text-purple-600" />

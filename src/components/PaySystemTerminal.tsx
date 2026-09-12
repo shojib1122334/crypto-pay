@@ -555,7 +555,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
   };
 
   return (
-    <div id="cryptopay-terminal-container" className="py-6 sm:py-10 px-3 sm:px-6 lg:px-8 max-w-5xl mx-auto font-sans">
+    <div id="cryptopay-terminal-container" className="w-full sm:max-w-5xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-10 font-sans">
       
       {/* Top Navigation Tabs */}
       <div className="bg-white rounded-2xl p-2 border-2 border-slate-300 shadow-sm grid grid-cols-2 gap-2 mb-6">
@@ -590,7 +590,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
       {/* SECTION 1: SEND CRYPTO */}
       {/* ========================================================================= */}
       {activeTab === 'send' && (
-        <div className="web3-glass-card rounded-3xl p-6 sm:p-8 border-2 border-slate-200 shadow-xl shadow-purple-500/5 relative overflow-hidden">
+        <div className="web3-glass-card rounded-2xl sm:rounded-3xl p-3.5 sm:p-8 border-2 border-slate-200 shadow-xl shadow-purple-500/5 relative overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
           
           {/* A. Network Selection Section */}
@@ -1181,7 +1181,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
             {/* ----------------- LEFT PANEL: Form Configuration (7 cols) ----------------- */}
-            <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xl space-y-6">
+            <div className="lg:col-span-7 bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 border border-slate-200 shadow-xl space-y-5 sm:space-y-6">
               
               {/* 01 Receiver Address */}
               <div>
@@ -1497,7 +1497,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
             </div>
 
             {/* ----------------- RIGHT PANEL: Payment QR Display (5 cols) ----------------- */}
-            <div id="payment-qr-display-panel" className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xl flex flex-col justify-between space-y-5">
+            <div id="payment-qr-display-panel" className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 border border-slate-200 shadow-xl flex flex-col justify-between space-y-5">
               
               {/* Header with LIVE badge */}
               <div className="flex items-center justify-between">

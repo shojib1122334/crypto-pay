@@ -423,7 +423,7 @@ export function TopUpView({ onNavigateTab: _onNavigateTab }: TopUpViewProps = {}
   });
 
   return (
-    <div className="w-full max-w-xl mx-auto px-3 sm:px-6 py-3 sm:py-6 space-y-6 animate-in fade-in duration-200">
+    <div className="w-full sm:max-w-xl mx-auto px-3.5 sm:px-6 py-3 sm:py-6 space-y-4 sm:space-y-6 animate-in fade-in duration-200">
       {/* Header Area with 3D Graphic & Quick Action Controls */}
       <div className="relative pt-2 pb-1 flex items-center justify-between gap-3">
         <div className="space-y-1.5 z-10 min-w-0 flex-1">
@@ -462,7 +462,7 @@ export function TopUpView({ onNavigateTab: _onNavigateTab }: TopUpViewProps = {}
       </div>
 
       {/* Connected Wallet & Polygon Network Bar */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-2 shadow-xs">
+      <div className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-2 shadow-xs">
         <div className="flex items-center space-x-2.5 min-w-0">
           <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 border border-purple-200">
             <WalletIcon className="w-5 h-5" />
@@ -550,9 +550,9 @@ export function TopUpView({ onNavigateTab: _onNavigateTab }: TopUpViewProps = {}
       )}
 
       {/* Main Top-Up / Pay With Card Form */}
-      <form onSubmit={handleTopUpSubmit} className="space-y-6">
+      <form onSubmit={handleTopUpSubmit} className="space-y-4 sm:space-y-6">
         {/* SECTION 1: SELECT TOKEN & AMOUNT */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+        <div className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-xs space-y-3.5 sm:space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 border border-purple-200">
@@ -717,7 +717,7 @@ export function TopUpView({ onNavigateTab: _onNavigateTab }: TopUpViewProps = {}
         </div>
 
         {/* SECTION 2: DESTINATION CARD DETAILS */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+        <div className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-xs space-y-3.5 sm:space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center border border-purple-200">
@@ -908,7 +908,7 @@ export function TopUpView({ onNavigateTab: _onNavigateTab }: TopUpViewProps = {}
             type="button"
             id="topup-connect-btn"
             onClick={() => openWalletConnect()}
-            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white font-bold text-base shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all flex items-center justify-center space-x-2 cursor-pointer border border-white/20"
+            className="w-full py-3.5 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white font-bold text-sm sm:text-base shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all flex items-center justify-center space-x-2 cursor-pointer border border-white/20"
           >
             <WalletIcon className="w-5 h-5 text-white" />
             <span className="text-white">Connect Polygon Wallet</span>
@@ -918,7 +918,7 @@ export function TopUpView({ onNavigateTab: _onNavigateTab }: TopUpViewProps = {}
             type="button"
             id="topup-switch-network-btn"
             onClick={handleSwitchToPolygon}
-            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold text-base shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
+            className="w-full py-3.5 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold text-sm sm:text-base shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
           >
             <span>Please Switch to Polygon PoS</span>
           </button>
@@ -927,7 +927,7 @@ export function TopUpView({ onNavigateTab: _onNavigateTab }: TopUpViewProps = {}
             id="topup-submit-btn"
             type="submit"
             disabled={submitting || isZeroBalance || isInsufficientGas || Boolean(cardUsdCheck && !cardUsdCheck.supportsUsd)}
-            className={`w-full py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center space-x-3 shadow-lg transition-all ${
+            className={`w-full py-3.5 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center space-x-3 shadow-lg transition-all ${
               cardUsdCheck && !cardUsdCheck.supportsUsd
                 ? 'bg-rose-100 text-rose-800 border border-rose-300 cursor-not-allowed'
                 : isZeroBalance || isInsufficientGas
