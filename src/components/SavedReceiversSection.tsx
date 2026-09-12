@@ -372,10 +372,10 @@ export const SavedReceiversSection: React.FC = () => {
             return (
               <div
                 key={receiver.id}
-                className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                className={`p-4 sm:p-5 rounded-2xl border-2 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
                   isActive
-                    ? 'bg-white border-emerald-400 shadow-md shadow-emerald-500/10 ring-2 ring-emerald-400/30'
-                    : 'bg-white/80 border-[#D6E0F5] hover:border-purple-300 hover:bg-white shadow-2xs'
+                    ? 'bg-gradient-to-r from-emerald-50/80 to-teal-50/60 border-emerald-500 shadow-md shadow-emerald-500/15 ring-2 ring-emerald-500/30'
+                    : 'bg-white border-slate-300 hover:border-purple-400 hover:bg-purple-50/10 shadow-xs'
                 }`}
               >
                 {/* Left: Details */}
@@ -385,35 +385,35 @@ export const SavedReceiversSection: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => toggleFavorite(receiver.id)}
-                      className={`p-1 rounded-lg transition cursor-pointer ${
+                      className={`p-1.5 rounded-lg border transition cursor-pointer ${
                         receiver.isFavorite
-                          ? 'text-amber-500 hover:text-amber-600'
-                          : 'text-slate-300 hover:text-slate-500'
+                          ? 'border-amber-400 bg-amber-50 text-amber-600 shadow-2xs'
+                          : 'border-slate-300 bg-slate-50 text-slate-400 hover:text-slate-700 hover:border-slate-400'
                       }`}
                       title={receiver.isFavorite ? 'Unfavorite' : 'Mark as Favorite'}
                     >
                       <Star
                         className={`w-4 h-4 ${
-                          receiver.isFavorite ? 'fill-amber-400 text-amber-500' : 'fill-none'
+                          receiver.isFavorite ? 'fill-amber-400 text-amber-600 stroke-[2.5]' : 'fill-none stroke-[2]'
                         }`}
                       />
                     </button>
 
                     {/* Telegram Username */}
-                    <span className="text-sm font-bold text-[#101B5C] flex items-center gap-1.5">
-                      <span className="text-purple-600 font-extrabold">Telegram:</span>
-                      <span>{receiver.telegramUsername}</span>
+                    <span className="text-sm font-black text-slate-950 flex items-center gap-1.5">
+                      <span className="text-purple-700 font-black">Telegram:</span>
+                      <span className="text-slate-950 font-black">{receiver.telegramUsername}</span>
                     </span>
 
                     {/* Active Status Badge */}
                     {isActive && (
-                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-950 border-2 border-emerald-400 shadow-2xs">
                         Active Receiver
                       </span>
                     )}
 
                     {receiver.isFavorite && !isActive && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                      <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-950 border border-amber-300">
                         ★ Favorite
                       </span>
                     )}
@@ -421,20 +421,20 @@ export const SavedReceiversSection: React.FC = () => {
 
                   {/* Wallet Address */}
                   <div className="flex items-center gap-2 pt-0.5">
-                    <span className="text-xs font-mono font-semibold text-[#101B5C] bg-[#F0F4FF] px-2.5 py-1 rounded-lg border border-[#D6E0F5] truncate max-w-full sm:max-w-md">
+                    <span className="text-xs font-mono font-bold text-slate-950 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-300 truncate max-w-full sm:max-w-md">
                       {receiver.address}
                     </span>
 
                     <button
                       type="button"
                       onClick={() => handleCopy(receiver.address, receiver.id)}
-                      className="p-1 text-[#5367A5] hover:text-[#101B5C] transition cursor-pointer"
+                      className="p-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:text-slate-950 hover:border-slate-400 transition cursor-pointer shadow-2xs"
                       title="Copy Address"
                     >
                       {copiedId === receiver.id ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />
                       ) : (
-                        <Copy className="w-3.5 h-3.5" />
+                        <Copy className="w-3.5 h-3.5 stroke-[2.5]" />
                       )}
                     </button>
 
@@ -442,10 +442,10 @@ export const SavedReceiversSection: React.FC = () => {
                       href={`https://polygonscan.com/address/${receiver.address}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1 text-[#5367A5] hover:text-blue-600 transition"
+                      className="p-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:text-blue-600 hover:border-blue-400 transition cursor-pointer shadow-2xs"
                       title="View on Polygonscan"
                     >
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <ExternalLink className="w-3.5 h-3.5 stroke-[2.5]" />
                     </a>
                   </div>
                 </div>
@@ -456,16 +456,16 @@ export const SavedReceiversSection: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setActiveReceiverId(isActive ? null : receiver.id)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                    className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer ${
                       isActive
-                        ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20 hover:bg-emerald-600'
-                        : 'bg-white hover:bg-slate-50 text-[#101B5C] border border-[#D6E0F5] hover:border-purple-300 shadow-2xs'
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/25'
+                        : 'bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 text-slate-950 border-2 border-slate-300 hover:border-purple-500 hover:text-purple-700 shadow-xs'
                     }`}
                     title={isActive ? 'Click to deselect' : 'Click to set as Active Receiver'}
                   >
                     {isActive ? (
                       <>
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        <Check className="w-4 h-4 stroke-[3]" />
                         <span>Active (Selected)</span>
                       </>
                     ) : (
@@ -477,20 +477,20 @@ export const SavedReceiversSection: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleOpenEditForm(receiver)}
-                    className="p-2 rounded-xl bg-white hover:bg-purple-50 text-[#5367A5] hover:text-[#101B5C] border border-[#D6E0F5] hover:border-purple-300 transition cursor-pointer shadow-2xs"
+                    className="p-2.5 rounded-xl bg-white hover:bg-purple-50 text-purple-700 hover:text-purple-900 border-2 border-slate-300 hover:border-purple-500 transition cursor-pointer shadow-xs"
                     title="Edit Receiver"
                   >
-                    <Edit2 className="w-3.5 h-3.5" />
+                    <Edit2 className="w-4 h-4 stroke-[2.5]" />
                   </button>
 
                   {/* Delete Button */}
                   <button
                     type="button"
                     onClick={() => setReceiverToDelete(receiver)}
-                    className="p-2 rounded-xl bg-white hover:bg-rose-50 text-[#5367A5] hover:text-rose-600 border border-[#D6E0F5] hover:border-rose-300 transition cursor-pointer shadow-2xs"
+                    className="p-2.5 rounded-xl bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-800 border-2 border-slate-300 hover:border-rose-500 transition cursor-pointer shadow-xs"
                     title="Delete Receiver"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4 stroke-[2.5]" />
                   </button>
                 </div>
               </div>

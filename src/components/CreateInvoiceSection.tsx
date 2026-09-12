@@ -657,20 +657,24 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                         startLiveCamera();
                       }
                     }}
-                    className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border border-purple-200/80 text-sm font-bold text-purple-900 transition active:scale-[0.98] cursor-pointer shadow-xs"
+                    className="flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:from-purple-500 hover:to-indigo-600 text-white font-black text-sm transition-all duration-200 active:scale-[0.98] cursor-pointer shadow-md shadow-purple-600/30 border-2 border-purple-400 group"
                   >
-                    <Camera className="w-4 h-4 text-purple-600" />
-                    <span>Take Photo</span>
+                    <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center text-white flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <Camera className="w-4 h-4 text-white stroke-[2.5]" />
+                    </div>
+                    <span className="text-white drop-shadow-xs font-black tracking-wide">Take Photo</span>
                   </button>
 
                   {/* Upload Image Button */}
                   <button
                     type="button"
                     onClick={() => uploadInputRef.current?.click()}
-                    className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-gradient-to-r from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100 border border-blue-200/80 text-sm font-bold text-blue-900 transition active:scale-[0.98] cursor-pointer shadow-xs"
+                    className="flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-700 hover:from-blue-500 hover:to-cyan-600 text-white font-black text-sm transition-all duration-200 active:scale-[0.98] cursor-pointer shadow-md shadow-blue-600/30 border-2 border-cyan-400 group"
                   >
-                    <Upload className="w-4 h-4 text-blue-600" />
-                    <span>Upload Image</span>
+                    <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center text-white flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <Upload className="w-4 h-4 text-white stroke-[2.5]" />
+                    </div>
+                    <span className="text-white drop-shadow-xs font-black tracking-wide">Upload Image</span>
                   </button>
                 </div>
 
@@ -711,30 +715,30 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   <button
                     type="button"
                     onClick={() => setNetwork('Polygon')}
-                    className={`py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
+                    className={`py-3 px-4 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
                       network === 'Polygon'
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent shadow-md shadow-purple-500/25'
-                        : 'bg-white text-[#5367A5] border-[#D6E0F5] hover:border-purple-300'
+                        : 'bg-white text-slate-900 border-[#D6E0F5] hover:border-purple-400 hover:text-purple-700'
                     }`}
                   >
                     <TokenIcon token="POL" size={22} />
                     <span>Polygon</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${network === 'Polygon' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>137</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono font-bold ${network === 'Polygon' ? 'bg-white/25 text-white' : 'bg-purple-100 text-purple-900 border border-purple-200'}`}>137</span>
                   </button>
 
                   {/* Ethereum */}
                   <button
                     type="button"
                     onClick={() => setNetwork('Ethereum')}
-                    className={`py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
+                    className={`py-3 px-4 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
                       network === 'Ethereum'
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent shadow-md shadow-purple-500/25'
-                        : 'bg-white text-[#5367A5] border-[#D6E0F5] hover:border-blue-300'
+                        : 'bg-white text-slate-900 border-[#D6E0F5] hover:border-blue-400 hover:text-blue-700'
                     }`}
                   >
                     <TokenIcon token="ETH" size={22} />
                     <span>Ethereum</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${network === 'Ethereum' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>1</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono font-bold ${network === 'Ethereum' ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-900 border border-blue-200'}`}>1</span>
                   </button>
                 </div>
               </div>
@@ -750,7 +754,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                       Payment Method
                     </span>
                   </span>
-                  <span className="text-[11px] text-purple-600 font-bold">Official Web3 Tokens</span>
+                  <span className="text-[11px] text-purple-700 font-extrabold">Official Web3 Tokens</span>
                 </label>
                 <div className="grid grid-cols-3 gap-3">
                   {(['USDT', 'USDC', 'VERSE'] as const).map((method) => {
@@ -760,10 +764,10 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                         key={method}
                         type="button"
                         onClick={() => setPaymentMethod(method)}
-                        className={`py-3.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex flex-col sm:flex-row items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
+                        className={`py-3.5 px-3 rounded-xl text-xs sm:text-sm font-extrabold flex flex-col sm:flex-row items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
                           isSelected
                             ? 'bg-gradient-to-r from-purple-600 to-pink-500 text-white border-transparent shadow-md shadow-purple-500/25'
-                            : 'bg-white text-[#5367A5] border-[#D6E0F5] hover:border-purple-300'
+                            : 'bg-white text-slate-900 border-[#D6E0F5] hover:border-purple-400 hover:text-purple-700'
                         }`}
                       >
                         <TokenIcon token={method} size={24} />

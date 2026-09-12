@@ -110,17 +110,18 @@ html.light h3,
 html.light h4,
 html.light h5,
 html.light h6 {
-  color: #101B5C !important;
-  font-weight: 700;
+  color: #0A1140 !important;
+  font-weight: 800;
 }
 
-/* Secondary body text: Blue-gray / indigo-gray */
+/* Secondary body text: High Contrast Slate */
 html.light p {
-  color: #5367A5;
+  color: #1E293B;
 }
 
 html.light label {
-  color: #172A7A;
+  color: #0A1140;
+  font-weight: 700;
 }
 
 /* Primary High Contrast Text */
@@ -128,19 +129,23 @@ html.light .text-zinc-100,
 html.light .text-zinc-200,
 html.light .text-slate-900,
 html.light .text-zinc-900 {
-  color: #101B5C !important;
+  color: #0A1140 !important;
 }
 
-/* Maintain true white text for gradient backgrounds, buttons, chips, and forced white text */
-.text-white,
+/* Maintain true white text ONLY for solid gradient buttons, pills, chips, and forced white text */
 .text-white-force,
-[class*="bg-gradient-"] .text-white,
-[class*="bg-gradient-"] span,
-[class*="bg-gradient-"] p,
-[class*="bg-gradient-"] div,
-[class*="bg-gradient-"] svg,
 .btn-gradient-primary,
-.btn-gradient-primary * {
+.btn-gradient-primary *,
+button.bg-gradient-to-r:not([class*="/10"]):not([class*="/5"]):not([class*="/20"]),
+button.bg-gradient-to-br:not([class*="/10"]):not([class*="/5"]):not([class*="/20"]) {
+  color: #FFFFFF !important;
+}
+
+/* Targeted white text for solid gradient controls */
+button.bg-gradient-to-r:not([class*="/10"]):not([class*="/5"]):not([class*="/20"]) span,
+button.bg-gradient-to-r:not([class*="/10"]):not([class*="/5"]):not([class*="/20"]) svg,
+button.bg-gradient-to-br:not([class*="/10"]):not([class*="/5"]):not([class*="/20"]) span,
+button.bg-gradient-to-br:not([class*="/10"]):not([class*="/5"]):not([class*="/20"]) svg {
   color: #FFFFFF !important;
 }
 
@@ -242,47 +247,87 @@ html.light .text-zinc-900 {
   outline: none !important;
 }
 
-/* Secondary High Contrast Text - Blue-gray / indigo-gray */
+/* Secondary High Contrast Text - Rich Deep Slate / Navy */
 html.light .text-zinc-300,
 html.light .text-zinc-400 {
-  color: #5367A5 !important;
-  font-weight: 500;
+  color: #1E293B !important;
+  font-weight: 600;
 }
 
-/* Tertiary Text / Labels / Timestamps - Soft Indigo Slate */
+/* Tertiary Text / Labels / Timestamps - High Contrast Dark Slate */
 html.light .text-zinc-500,
 html.light .text-zinc-600,
 html.light .text-slate-500,
 html.light .text-slate-600 {
-  color: #6475A8 !important;
+  color: #334155 !important;
+  font-weight: 500;
+}
+
+/* High Contrast Dedicated Option Styling Across Website */
+.web3-option-card {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.web3-option-title {
+  font-weight: 800 !important;
+  color: #0A1140 !important;
+  letter-spacing: -0.01em;
+}
+
+.web3-option-subtitle {
+  font-weight: 600 !important;
+  color: #334155 !important;
+}
+
+.web3-option-badge-active {
+  background-color: #EDE9FE !important;
+  color: #6D28D9 !important;
+  border: 1px solid #DDD6FE !important;
+  font-weight: 700 !important;
+}
+
+.web3-option-badge-inactive {
+  background-color: #F1F5F9 !important;
+  color: #334155 !important;
+  border: 1px solid #E2E8F0 !important;
+  font-weight: 700 !important;
+}
+
+.web3-option-balance-badge {
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+  border: 1px solid #FCD34D !important;
+  font-weight: 800 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
 }
 
 /* Accent Colors - Tuned for AAA contrast against white */
 html.light .text-\[\#00E676\],
 html.light .text-emerald-400,
 html.light .text-green-400 {
-  color: #059669 !important; /* Emerald */
-  font-weight: 600;
+  color: #047857 !important; /* Emerald 700 */
+  font-weight: 700;
 }
 
 html.light .text-\[\#3B82F6\],
 html.light .text-blue-400 {
-  color: #2563EB !important; /* Royal Blue */
-  font-weight: 600;
+  color: #1D4ED8 !important; /* Royal Blue 700 */
+  font-weight: 700;
 }
 
 html.light .text-\[\#FACC15\],
 html.light .text-yellow-400,
 html.light .text-amber-400 {
-  color: #D97706 !important; /* Amber */
-  font-weight: 600;
+  color: #B45309 !important; /* Amber 700 */
+  font-weight: 700;
 }
 
 html.light .text-\[\#EF4444\],
 html.light .text-red-400,
 html.light .text-rose-400 {
-  color: #DC2626 !important; /* Crimson */
-  font-weight: 600;
+  color: #B91C1C !important; /* Crimson 700 */
+  font-weight: 700;
 }
 
 /* Containers and Cards */

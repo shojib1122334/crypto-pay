@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Wallet, Download, Layers, CreditCard, FileText, ArrowLeftRight, Activity, Settings, Menu, X } from 'lucide-react';
-import { motion } from 'motion/react';
 import { BrandLogo } from '@/components/BrandLogo';
 import { usePWA } from '@/hooks/usePWA';
 import { useConnectWallet } from '@/hooks/useConnectWallet';
@@ -84,21 +83,19 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
                 <button
                   key={item.id}
                   onClick={() => handleNav(item.id)}
-                  className={`relative text-xs lg:text-sm font-semibold transition-colors duration-200 cursor-pointer py-2 px-3 lg:px-3.5 rounded-xl flex items-center gap-1.5 whitespace-nowrap select-none ${
+                  className={`relative text-xs lg:text-sm font-semibold cursor-pointer py-2 px-3 lg:px-3.5 rounded-xl flex items-center gap-1.5 whitespace-nowrap select-none ${
                     isActive ? 'text-white' : 'text-slate-600 hover:text-slate-950'
                   }`}
                 >
-                  {/* Active Sliding Gradient Background Pill: Blue → Purple → Pink */}
+                  {/* Active Static Gradient Pill - No Animation */}
                   {isActive && (
-                    <motion.div
-                      layoutId="active-desktop-nav-pill"
-                      transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                    <div
                       className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 shadow-md shadow-purple-500/30"
                     />
                   )}
 
                   <Icon
-                    className={`w-4 h-4 relative z-10 transition-colors duration-200 ${
+                    className={`w-4 h-4 relative z-10 ${
                       isActive ? 'text-white stroke-[2.2]' : item.accentColor
                     }`}
                   />

@@ -417,26 +417,26 @@ export const TransactionHistoryView: React.FC = () => {
       className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-20 sm:pb-28 text-white"
     >
       {/* Activity Top Header */}
-      <div className="relative overflow-hidden bg-zinc-950 rounded-3xl border border-zinc-800 shadow-2xl p-6 sm:p-8 mb-6">
+      <div className="relative overflow-hidden bg-zinc-950 rounded-3xl border-2 border-zinc-700 shadow-2xl p-6 sm:p-8 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-[#3B82F6]/40 text-[#3B82F6] text-xs font-bold uppercase tracking-wider mb-2.5 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
-              <History className="w-3.5 h-3.5 text-[#3B82F6]" />
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-zinc-900 border-2 border-[#3B82F6] text-[#3B82F6] text-xs font-black uppercase tracking-wider mb-3 shadow-[0_0_12px_rgba(59,130,246,0.3)]">
+              <History className="w-4 h-4 text-[#3B82F6] stroke-[2.5]" />
               Real-Time Ledger & Invoices
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#FFFFFF] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               Transaction History & Invoices
             </h1>
-            <p className="text-sm text-zinc-400 mt-1">
+            <p className="text-sm text-zinc-200 mt-1.5 font-medium leading-relaxed">
               Complete audit trail of generated Credit Invoices, QR payments, on-chain hash verifications, and downloadable receipts.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
             {(transactions.length > 0 || invoices.length > 0) && (
               <button
                 onClick={handleClearHistory}
-                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-[#EF4444]/40 bg-zinc-900 hover:bg-zinc-800 text-[#EF4444] text-xs font-bold shadow-xs active:scale-95 transition cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border-2 border-[#EF4444]/60 bg-zinc-900 hover:bg-zinc-800 text-[#EF4444] text-xs font-black shadow-xs active:scale-95 transition cursor-pointer"
                 title="Clear local record list"
               >
                 <Trash2 className="w-3.5 h-3.5 text-[#EF4444]" />
@@ -446,75 +446,75 @@ export const TransactionHistoryView: React.FC = () => {
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-[#FFFFFF] text-xs font-bold shadow-xs active:scale-95 transition disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-zinc-300 bg-white hover:bg-zinc-100 text-black text-xs font-black shadow-xs active:scale-95 transition disabled:opacity-50 cursor-pointer"
             >
-              <RefreshCw className={`w-4 h-4 text-[#3B82F6] ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
+              <RefreshCw className={`w-4 h-4 text-black ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="text-black font-black">Refresh</span>
             </button>
           </div>
         </div>
 
         {/* Metrics Summary Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-zinc-800">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3.5">
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t-2 border-zinc-800">
+          <div className="bg-zinc-900 border-2 border-zinc-700 rounded-2xl p-4 shadow-sm">
+            <span className="text-xs font-black text-zinc-300 uppercase tracking-wider block">
               Settled Volume
             </span>
-            <span className="text-xl sm:text-2xl font-extrabold text-[#00E676] tracking-tight mt-1 block">
+            <span className="text-xl sm:text-2xl font-black text-[#00E676] tracking-tight mt-1.5 block">
               ${totalVolume}
             </span>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3.5">
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
+          <div className="bg-zinc-900 border-2 border-zinc-700 rounded-2xl p-4 shadow-sm">
+            <span className="text-xs font-black text-zinc-300 uppercase tracking-wider block">
               Credit Invoices
             </span>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="text-xl sm:text-2xl font-black text-white tracking-tight">
                 {invoices.length}
               </span>
-              <span className="text-[10px] font-semibold text-[#00E676] px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-800">
+              <span className="text-[11px] font-black text-[#00E676] px-2 py-0.5 rounded-md bg-emerald-950/80 border border-[#00E676]/60">
                 {paidInvoicesCount} Paid
               </span>
               {pendingInvoicesCount > 0 && (
-                <span className="text-[10px] font-semibold text-amber-400 px-1.5 py-0.5 rounded bg-amber-950/60 border border-amber-800">
+                <span className="text-[11px] font-black text-amber-300 px-2 py-0.5 rounded-md bg-amber-950/80 border border-amber-500/60">
                   {pendingInvoicesCount} Pend
                 </span>
               )}
             </div>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3.5">
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
+          <div className="bg-zinc-900 border-2 border-zinc-700 rounded-2xl p-4 shadow-sm">
+            <span className="text-xs font-black text-zinc-300 uppercase tracking-wider block">
               Settled On-Chain
             </span>
-            <span className="text-xl sm:text-2xl font-extrabold text-[#FFFFFF] tracking-tight mt-1 block">
+            <span className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1.5 block">
               {transactions.length}
             </span>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3.5">
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
+          <div className="bg-zinc-900 border-2 border-zinc-700 rounded-2xl p-4 shadow-sm">
+            <span className="text-xs font-black text-zinc-300 uppercase tracking-wider block">
               Networks & Assets
             </span>
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="flex items-center gap-1.5 mt-1.5">
               <Coins className="w-4 h-4 text-[#FACC15]" />
-              <span className="text-xs font-bold text-[#FACC15]">Polygon & Ethereum</span>
+              <span className="text-xs font-black text-[#FACC15]">Polygon & Ethereum</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Manual Quick Verification Bar */}
-      <div className="bg-zinc-950 rounded-2xl border border-zinc-800 shadow-xl p-4 sm:p-5 mb-6">
+      <div className="bg-zinc-950 rounded-2xl border-2 border-zinc-700 shadow-xl p-4 sm:p-5 mb-6">
         <div className="flex items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[#00E676]" />
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[#FFFFFF]">
+            <h2 className="text-xs font-black uppercase tracking-wider text-white">
               Verify Any Blockchain Transaction Hash
             </h2>
           </div>
-          <span className="text-[11px] text-zinc-400 font-medium hidden sm:inline">
+          <span className="text-xs text-zinc-300 font-semibold hidden sm:inline">
             Fetches on-chain receipt, updates invoices & generates PDF receipt
           </span>
         </div>
@@ -529,12 +529,12 @@ export const TransactionHistoryView: React.FC = () => {
               setManualError(null);
               setManualSuccess(null);
             }}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-xs sm:text-sm font-mono text-[#FFFFFF] placeholder:text-zinc-500 placeholder:font-sans focus:outline-none focus:border-[#3B82F6] transition"
+            className="flex-1 px-4 py-2.5 rounded-xl border-2 border-zinc-700 bg-zinc-900 text-xs sm:text-sm font-mono text-white placeholder:text-zinc-400 placeholder:font-sans focus:outline-none focus:border-[#3B82F6] transition font-semibold"
           />
           <button
             type="submit"
             disabled={verifyingManual || !manualHash.trim()}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white text-xs font-bold shadow-lg shadow-purple-500/25 active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 cursor-pointer border border-white/20"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white text-xs font-black shadow-lg shadow-purple-500/25 active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 cursor-pointer border border-white/30"
           >
             {verifyingManual ? (
               <>
@@ -551,13 +551,13 @@ export const TransactionHistoryView: React.FC = () => {
         </form>
 
         {manualError && (
-          <p className="text-xs font-semibold text-[#EF4444] mt-2.5 bg-zinc-900 border border-[#EF4444]/40 rounded-xl p-2.5">
+          <p className="text-xs font-bold text-[#EF4444] mt-2.5 bg-zinc-900 border-2 border-[#EF4444]/50 rounded-xl p-2.5">
             {manualError}
           </p>
         )}
 
         {manualSuccess && (
-          <p className="text-xs font-semibold text-[#00E676] mt-2.5 bg-zinc-900 border border-[#00E676]/40 rounded-xl p-2.5 flex items-center gap-1.5">
+          <p className="text-xs font-bold text-[#00E676] mt-2.5 bg-zinc-900 border-2 border-[#00E676]/50 rounded-xl p-2.5 flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4 text-[#00E676] flex-shrink-0" />
             {manualSuccess}
           </p>
@@ -566,19 +566,21 @@ export const TransactionHistoryView: React.FC = () => {
 
       {/* Subtab Segmented Control: All / Invoices / On-Chain TXs / Payout History */}
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-        <div className="flex items-center gap-1.5 p-1 bg-zinc-950 border border-zinc-800 rounded-2xl flex-wrap">
+        <div className="flex items-center gap-2 p-1.5 bg-zinc-950 border-2 border-zinc-700 rounded-2xl flex-wrap">
           <button
             type="button"
             id="activity-subtab-all"
             onClick={() => setActiveSubTab('all')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
               activeSubTab === 'all'
-                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25'
-                : 'text-zinc-400 hover:text-white'
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25 scale-[1.02]'
+                : 'bg-zinc-900 border border-zinc-700 text-zinc-100 hover:text-white hover:border-zinc-500 hover:bg-zinc-800 shadow-2xs'
             }`}
           >
             <span>All Records</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/40">
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+              activeSubTab === 'all' ? 'bg-black/40 text-white' : 'bg-zinc-800 text-zinc-100 border border-zinc-600'
+            }`}>
               {invoices.length + transactions.length + payouts.length}
             </span>
           </button>
@@ -587,15 +589,17 @@ export const TransactionHistoryView: React.FC = () => {
             type="button"
             id="activity-subtab-invoices"
             onClick={() => setActiveSubTab('invoices')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
               activeSubTab === 'invoices'
-                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25'
-                : 'text-zinc-400 hover:text-white'
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25 scale-[1.02]'
+                : 'bg-zinc-900 border border-zinc-700 text-zinc-100 hover:text-white hover:border-zinc-500 hover:bg-zinc-800 shadow-2xs'
             }`}
           >
-            <Receipt className="w-3.5 h-3.5" />
+            <Receipt className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>Credit Invoices</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/40">
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+              activeSubTab === 'invoices' ? 'bg-black/40 text-white' : 'bg-zinc-800 text-zinc-100 border border-zinc-600'
+            }`}>
               {invoices.length}
             </span>
           </button>
@@ -604,15 +608,17 @@ export const TransactionHistoryView: React.FC = () => {
             type="button"
             id="activity-subtab-transactions"
             onClick={() => setActiveSubTab('transactions')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
               activeSubTab === 'transactions'
-                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25'
-                : 'text-zinc-400 hover:text-white'
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25 scale-[1.02]'
+                : 'bg-zinc-900 border border-zinc-700 text-zinc-100 hover:text-white hover:border-zinc-500 hover:bg-zinc-800 shadow-2xs'
             }`}
           >
-            <ShieldCheck className="w-3.5 h-3.5" />
+            <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>On-Chain Settlements</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/40">
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+              activeSubTab === 'transactions' ? 'bg-black/40 text-white' : 'bg-zinc-800 text-zinc-100 border border-zinc-600'
+            }`}>
               {transactions.length}
             </span>
           </button>
@@ -621,15 +627,17 @@ export const TransactionHistoryView: React.FC = () => {
             type="button"
             id="activity-subtab-payouts"
             onClick={() => setActiveSubTab('payouts')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
               activeSubTab === 'payouts'
-                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25'
-                : 'text-zinc-400 hover:text-white'
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25 scale-[1.02]'
+                : 'bg-zinc-900 border border-zinc-700 text-zinc-100 hover:text-white hover:border-zinc-500 hover:bg-zinc-800 shadow-2xs'
             }`}
           >
-            <CreditCard className="w-3.5 h-3.5" />
+            <CreditCard className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>Payout History</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/40">
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+              activeSubTab === 'payouts' ? 'bg-black/40 text-white' : 'bg-zinc-800 text-zinc-100 border border-zinc-600'
+            }`}>
               {payouts.length}
             </span>
           </button>
@@ -637,18 +645,18 @@ export const TransactionHistoryView: React.FC = () => {
 
         {/* Token Filter & Connected Wallet */}
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-800 bg-zinc-900 text-xs font-semibold text-[#FFFFFF]">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-zinc-700 bg-zinc-900 text-xs font-black text-white shadow-2xs">
             <Filter className="w-3.5 h-3.5 text-[#3B82F6]" />
             <select
               value={selectedTokenFilter}
               onChange={(e) => setSelectedTokenFilter(e.target.value)}
-              className="bg-transparent font-bold text-[#FFFFFF] focus:outline-none cursor-pointer text-xs"
+              className="bg-transparent font-black text-white focus:outline-none cursor-pointer text-xs"
             >
-              <option value="all" className="bg-zinc-900 text-white">
+              <option value="all" className="bg-zinc-900 text-white font-bold">
                 All Tokens
               </option>
               {TOKEN_LIST.map((t) => (
-                <option key={t.symbol} value={t.symbol} className="bg-zinc-900 text-white">
+                <option key={t.symbol} value={t.symbol} className="bg-zinc-900 text-white font-bold">
                   {t.label}
                 </option>
               ))}
@@ -658,10 +666,10 @@ export const TransactionHistoryView: React.FC = () => {
           {address && (
             <button
               onClick={() => setFilterMyWalletOnly((prev) => !prev)}
-              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition border cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black transition border-2 cursor-pointer ${
                 filterMyWalletOnly
-                  ? 'bg-[#3B82F6] text-white border-[#3B82F6] shadow-[0_0_10px_rgba(59,130,246,0.3)]'
-                  : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-800'
+                  ? 'bg-[#3B82F6] text-white border-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
+                  : 'bg-zinc-900 text-zinc-200 border-zinc-700 hover:bg-zinc-800 hover:text-white hover:border-zinc-500 shadow-2xs'
               }`}
             >
               <span>My Wallet</span>
@@ -672,20 +680,20 @@ export const TransactionHistoryView: React.FC = () => {
 
       {/* Search Input Bar */}
       {(transactions.length > 0 || invoices.length > 0 || payouts.length > 0) && (
-        <div className="bg-zinc-950 rounded-2xl border border-zinc-800 shadow-xl p-3 mb-6">
+        <div className="bg-zinc-950 rounded-2xl border-2 border-zinc-700 shadow-xl p-3 mb-6">
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
             <input
               type="text"
               placeholder="Search by invoice ID, card digits, store, product, transaction hash, address, amount..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-zinc-800 bg-zinc-900 text-xs sm:text-sm font-medium text-[#FFFFFF] placeholder:text-zinc-500 focus:outline-none focus:border-[#3B82F6] transition"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-zinc-700 bg-zinc-900 text-xs sm:text-sm font-medium text-white placeholder:text-zinc-400 focus:outline-none focus:border-[#3B82F6] transition"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-1 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-300 hover:text-white p-1 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -696,32 +704,32 @@ export const TransactionHistoryView: React.FC = () => {
 
       {/* SECTION 1: INVOICES LIST (Rendered if activeSubTab is 'all' or 'invoices') */}
       {(activeSubTab === 'all' || activeSubTab === 'invoices') && (
-        <div className="bg-zinc-950 rounded-2xl border border-zinc-800 shadow-xl overflow-hidden mb-6">
-          <div className="px-5 py-4 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-2">
+        <div className="bg-zinc-950 rounded-2xl border-2 border-zinc-700 shadow-xl overflow-hidden mb-6">
+          <div className="px-5 py-4 bg-zinc-900 border-b-2 border-zinc-700 flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <Receipt className="w-4 h-4 text-[#3B82F6]" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-[#FFFFFF]">
+              <h2 className="text-xs font-black uppercase tracking-wider text-white">
                 Credit Invoices ({filteredInvoices.length})
               </h2>
             </div>
-            <span className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
               Complete invoice records with QR payment & hash verification
             </span>
           </div>
 
           {invoices.length === 0 ? (
             <div className="p-10 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[#3B82F6] mx-auto mb-3">
+              <div className="w-14 h-14 rounded-2xl bg-zinc-900 border-2 border-zinc-700 flex items-center justify-center text-[#3B82F6] mx-auto mb-3 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
                 <Receipt className="w-6 h-6 text-[#3B82F6]" />
               </div>
-              <h3 className="text-sm font-bold text-[#FFFFFF] mb-1">No Credit Invoices Created Yet</h3>
-              <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
+              <h3 className="text-base font-bold text-white mb-1.5">No Credit Invoices Created Yet</h3>
+              <p className="text-xs sm:text-sm text-zinc-300 max-w-md mx-auto leading-relaxed font-normal">
                 When you create a Credit Invoice (Store, Product, Amount, Network, Payment Method), a permanent record is maintained here.
               </p>
             </div>
           ) : filteredInvoices.length === 0 ? (
             <div className="p-6 text-center">
-              <p className="text-xs font-medium text-zinc-400">No invoices match your search filters.</p>
+              <p className="text-sm font-semibold text-zinc-300">No invoices match your search filters.</p>
             </div>
           ) : (
             <div className="divide-y divide-zinc-800">
@@ -732,7 +740,7 @@ export const TransactionHistoryView: React.FC = () => {
                 return (
                   <div
                     key={inv.id}
-                    className="p-4 sm:p-5 hover:bg-zinc-900/60 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                    className="p-4 sm:p-5 hover:bg-zinc-900/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
                   >
                     {/* Left: Product Photo & Details */}
                     <div
@@ -744,10 +752,10 @@ export const TransactionHistoryView: React.FC = () => {
                           <img
                             src={inv.productImage}
                             alt={inv.productName}
-                            className="w-11 h-11 rounded-xl object-cover border border-zinc-700 shadow-xs"
+                            className="w-12 h-12 rounded-xl object-cover border-2 border-zinc-600 shadow-sm"
                           />
                         ) : (
-                          <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-xl bg-zinc-900 border-2 border-zinc-700 flex items-center justify-center">
                             <TokenIcon token={tokenSymbol} size={32} />
                           </div>
                         )}
@@ -762,55 +770,57 @@ export const TransactionHistoryView: React.FC = () => {
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-extrabold text-sm text-white group-hover:underline">
+                          <span className="font-black text-sm sm:text-base text-white group-hover:underline">
                             {inv.amount} {inv.paymentMethod}
                           </span>
                           <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black border ${
                               isPaid
-                                ? 'bg-emerald-950/60 text-[#00E676] border-[#00E676]/40'
-                                : 'bg-amber-950/60 text-amber-400 border-amber-500/40'
+                                ? 'bg-emerald-950/80 text-[#00E676] border-[#00E676]/60'
+                                : 'bg-amber-950/80 text-amber-300 border-amber-500/60'
                             }`}
                           >
                             {isPaid ? (
                               <>
-                                <CheckCircle2 className="w-3 h-3 text-[#00E676]" />
+                                <CheckCircle2 className="w-3.5 h-3.5 text-[#00E676]" />
                                 Paid / Verified
                               </>
                             ) : (
                               <>
-                                <Clock className="w-3 h-3 text-amber-400" />
+                                <Clock className="w-3.5 h-3.5 text-amber-300" />
                                 Payment Pending
                               </>
                             )}
                           </span>
-                          <span className="text-[11px] font-mono text-zinc-400">#{inv.id}</span>
+                          <span className="text-xs font-mono font-bold bg-zinc-800 text-zinc-200 border border-zinc-600 px-2 py-0.5 rounded">
+                            #{inv.id}
+                          </span>
                         </div>
 
-                        <div className="flex items-center gap-2 sm:gap-3 text-xs text-zinc-400 mt-1 flex-wrap font-medium">
-                          <span className="font-semibold text-zinc-200">{inv.productName}</span>
-                          <span className="text-zinc-700">•</span>
-                          <span className="text-zinc-400">{inv.storeName}</span>
+                        <div className="flex items-center gap-2 sm:gap-3 text-xs text-zinc-300 mt-1.5 flex-wrap font-medium">
+                          <span className="font-bold text-white">{inv.productName}</span>
+                          <span className="text-zinc-600 font-bold">•</span>
+                          <span className="text-zinc-300">{inv.storeName}</span>
                           {inv.customerName && (
                             <>
-                              <span className="text-zinc-700">•</span>
-                              <span className="text-blue-400">Customer: {inv.customerName}</span>
+                              <span className="text-zinc-600 font-bold">•</span>
+                              <span className="text-blue-400 font-bold">Customer: {inv.customerName}</span>
                             </>
                           )}
-                          <span className="text-zinc-700">•</span>
-                          <span className="text-zinc-400">{inv.network}</span>
-                          <span className="text-zinc-700">•</span>
-                          <span className="text-zinc-400">{new Date(inv.createdAt).toLocaleString()}</span>
+                          <span className="text-zinc-600 font-bold">•</span>
+                          <span className="text-zinc-300">{inv.network}</span>
+                          <span className="text-zinc-600 font-bold">•</span>
+                          <span className="text-zinc-300">{new Date(inv.createdAt).toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Right: Actions (Download Invoice, Pay/Verify QR, Details) */}
-                    <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-800 flex-wrap">
+                    <div className="flex items-center justify-between sm:justify-end gap-2.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-800 flex-wrap">
                       <button
                         type="button"
                         onClick={() => generateInvoicePdf(inv)}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs border border-zinc-700 transition cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs border border-zinc-600 transition cursor-pointer shadow-xs"
                         title="Download Invoice PDF"
                       >
                         <Download className="w-3.5 h-3.5 text-[#3B82F6]" />
@@ -823,7 +833,7 @@ export const TransactionHistoryView: React.FC = () => {
                           onClick={() => {
                             setSelectedInvoice(inv);
                           }}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#3B82F6] hover:bg-blue-600 text-white font-bold text-xs shadow-sm transition cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#3B82F6] hover:bg-blue-600 text-white font-black text-xs shadow-md transition cursor-pointer"
                         >
                           <QrCode className="w-3.5 h-3.5" />
                           <span>Pay & Verify</span>
@@ -833,7 +843,7 @@ export const TransactionHistoryView: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setSelectedInvoice(inv)}
-                        className="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl text-[#3B82F6] hover:text-white hover:bg-zinc-900 text-xs font-semibold transition cursor-pointer"
+                        className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-[#3B82F6] hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-bold transition cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>View Details</span>
@@ -849,15 +859,15 @@ export const TransactionHistoryView: React.FC = () => {
 
       {/* SECTION 2: VERIFIED ON-CHAIN SETTLEMENTS (Rendered if activeSubTab is 'all' or 'transactions') */}
       {(activeSubTab === 'all' || activeSubTab === 'transactions') && (
-        <div className="bg-zinc-950 rounded-2xl border border-zinc-800 shadow-xl overflow-hidden">
-          <div className="px-5 py-4 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between">
+        <div className="bg-zinc-950 rounded-2xl border-2 border-zinc-700 shadow-xl overflow-hidden mb-6">
+          <div className="px-5 py-4 bg-zinc-900 border-b-2 border-zinc-700 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#00E676]" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-[#FFFFFF]">
+              <h2 className="text-xs font-black uppercase tracking-wider text-white">
                 On-Chain Verified Transactions ({filteredTransactions.length})
               </h2>
             </div>
-            <span className="text-[11px] font-semibold text-[#00E676] flex items-center gap-1.5">
+            <span className="text-xs font-bold text-[#00E676] flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
               Live Blockchain Settlement Records
             </span>
@@ -865,17 +875,17 @@ export const TransactionHistoryView: React.FC = () => {
 
           {transactions.length === 0 ? (
             <div className="p-10 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[#3B82F6] mx-auto mb-3 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+              <div className="w-14 h-14 rounded-2xl bg-zinc-900 border-2 border-zinc-700 flex items-center justify-center text-[#3B82F6] mx-auto mb-3 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
                 <History className="w-6 h-6 text-[#3B82F6]" />
               </div>
-              <h3 className="text-sm font-bold text-[#FFFFFF] mb-1">No On-Chain Transactions Recorded Yet</h3>
-              <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
+              <h3 className="text-base font-bold text-white mb-1.5">No On-Chain Transactions Recorded Yet</h3>
+              <p className="text-xs sm:text-sm text-zinc-300 max-w-md mx-auto leading-relaxed font-normal">
                 When payments are completed via QR code or verified using a Transaction Hash, real blockchain receipts appear here automatically.
               </p>
             </div>
           ) : filteredTransactions.length === 0 ? (
             <div className="p-6 text-center">
-              <p className="text-xs font-medium text-zinc-400">No transactions match your search filters.</p>
+              <p className="text-sm font-semibold text-zinc-300">No transactions match your search filters.</p>
             </div>
           ) : (
             <div className="divide-y divide-zinc-800">
@@ -885,7 +895,7 @@ export const TransactionHistoryView: React.FC = () => {
                 return (
                   <div
                     key={tx.id}
-                    className="p-4 sm:p-5 hover:bg-zinc-900/60 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                    className="p-4 sm:p-5 hover:bg-zinc-900/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
                   >
                     {/* Left: Direction Icon & Token Details */}
                     <div
@@ -901,23 +911,23 @@ export const TransactionHistoryView: React.FC = () => {
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-sm text-[#00E676] group-hover:underline transition-colors">
+                          <span className="font-black text-sm sm:text-base text-[#00E676] group-hover:underline transition-colors">
                             +{tx.amount} {tx.tokenLabel}
                           </span>
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-900 text-[#00E676] border border-[#00E676]/40">
-                            <CheckCircle2 className="w-3 h-3 text-[#00E676]" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-zinc-900 text-[#00E676] border border-[#00E676]/60">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#00E676]" />
                             Confirmed On-Chain
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-2 sm:gap-3 text-xs text-zinc-400 mt-1 flex-wrap font-medium">
-                          <span className="font-mono text-zinc-200">
+                        <div className="flex items-center gap-2 sm:gap-3 text-xs text-zinc-300 mt-1.5 flex-wrap font-medium">
+                          <span className="font-mono text-zinc-100 font-semibold">
                             From: {tx.senderAddress.slice(0, 6)}...{tx.senderAddress.slice(-4)}
                           </span>
-                          <span className="text-zinc-700">•</span>
-                          <span className="text-zinc-400">{tx.formattedDate || new Date(tx.timestamp).toLocaleString()}</span>
-                          <span className="text-zinc-700 hidden sm:inline">•</span>
-                          <span className="font-mono hidden sm:inline text-zinc-400">{tx.network} Block #{tx.blockNumber}</span>
+                          <span className="text-zinc-600 font-bold">•</span>
+                          <span className="text-zinc-300">{tx.formattedDate || new Date(tx.timestamp).toLocaleString()}</span>
+                          <span className="text-zinc-600 font-bold hidden sm:inline">•</span>
+                          <span className="font-mono hidden sm:inline text-zinc-300">{tx.network} Block #{tx.blockNumber}</span>
                         </div>
                       </div>
                     </div>
@@ -926,7 +936,7 @@ export const TransactionHistoryView: React.FC = () => {
                     <div className="flex items-center justify-between sm:justify-end gap-2.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-800">
                       <button
                         onClick={() => generatePaymentReceiptPdf(tx)}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#00E676] hover:bg-[#00E676]/90 text-zinc-950 font-bold text-xs shadow-[0_0_10px_rgba(0,230,118,0.25)] transition active:scale-95 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#00E676] hover:bg-[#00E676]/90 text-zinc-950 font-black text-xs shadow-[0_0_10px_rgba(0,230,118,0.25)] transition active:scale-95 cursor-pointer"
                         title="Download PDF Receipt"
                       >
                         <Download className="w-3.5 h-3.5 text-zinc-950" />
@@ -935,7 +945,7 @@ export const TransactionHistoryView: React.FC = () => {
 
                       <button
                         onClick={() => setSelectedTx(tx)}
-                        className="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl text-[#3B82F6] hover:text-white hover:bg-zinc-900 text-xs font-semibold transition cursor-pointer"
+                        className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-[#3B82F6] hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-bold transition cursor-pointer"
                       >
                         <span>Details</span>
                         <ChevronRight className="w-3.5 h-3.5 text-[#3B82F6]" />
@@ -951,15 +961,15 @@ export const TransactionHistoryView: React.FC = () => {
 
       {/* SECTION 3: CARD PAYOUT HISTORY (Rendered if activeSubTab is 'all' or 'payouts') */}
       {(activeSubTab === 'all' || activeSubTab === 'payouts') && (
-        <div className="bg-zinc-950 rounded-2xl border border-zinc-800 shadow-xl overflow-hidden mb-6">
-          <div className="px-5 py-4 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-2">
+        <div className="bg-zinc-950 rounded-2xl border-2 border-zinc-700 shadow-xl overflow-hidden mb-6">
+          <div className="px-5 py-4 bg-zinc-900 border-b-2 border-zinc-700 flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-[#3B82F6]" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-[#FFFFFF]">
+              <h2 className="text-xs font-black uppercase tracking-wider text-white">
                 Card Payout History ({filteredPayouts.length})
               </h2>
             </div>
-            <span className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5">
+            <span className="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#3B82F6] animate-pulse" />
               Visa & Mastercard Direct Off-Ramp Disbursals
             </span>
@@ -967,17 +977,17 @@ export const TransactionHistoryView: React.FC = () => {
 
           {payouts.length === 0 ? (
             <div className="p-10 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[#3B82F6] mx-auto mb-3 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+              <div className="w-14 h-14 rounded-2xl bg-zinc-900 border-2 border-zinc-700 flex items-center justify-center text-[#3B82F6] mx-auto mb-3 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
                 <CreditCard className="w-6 h-6 text-[#3B82F6]" />
               </div>
-              <h3 className="text-sm font-bold text-[#FFFFFF] mb-1">No Card Payouts Recorded Yet</h3>
-              <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
+              <h3 className="text-base font-bold text-white mb-1.5">No Card Payouts Recorded Yet</h3>
+              <p className="text-xs sm:text-sm text-zinc-300 max-w-md mx-auto leading-relaxed font-normal">
                 When you execute crypto-to-card disbursals or top up your card via Polygon PoS, full settlement records with card masks and transaction proofs will be tracked here.
               </p>
             </div>
           ) : filteredPayouts.length === 0 ? (
             <div className="p-6 text-center">
-              <p className="text-xs font-medium text-zinc-400">No card payouts match your search filters.</p>
+              <p className="text-sm font-semibold text-zinc-300">No card payouts match your search filters.</p>
             </div>
           ) : (
             <div className="divide-y divide-zinc-800">
@@ -989,7 +999,7 @@ export const TransactionHistoryView: React.FC = () => {
                 return (
                   <div
                     key={payout.id}
-                    className="p-4 sm:p-5 hover:bg-zinc-900/60 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                    className="p-4 sm:p-5 hover:bg-zinc-900/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
                   >
                     {/* Left: Token & Card Details */}
                     <div
@@ -997,7 +1007,7 @@ export const TransactionHistoryView: React.FC = () => {
                       className="flex items-center gap-3 sm:gap-4 min-w-0 cursor-pointer flex-1"
                     >
                       <div className="relative flex-shrink-0">
-                        <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-xl bg-zinc-900 border-2 border-zinc-700 flex items-center justify-center">
                           <TokenIcon token={tokenSymbol} size={32} />
                         </div>
                         <div
@@ -1021,30 +1031,30 @@ export const TransactionHistoryView: React.FC = () => {
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-extrabold text-sm text-white group-hover:underline">
+                          <span className="font-black text-sm sm:text-base text-white group-hover:underline">
                             {payout.amount} {payout.token}
                           </span>
-                          <span className="text-zinc-500">→</span>
-                          <span className="font-extrabold text-sm text-[#00E676]">
+                          <span className="text-zinc-500 font-bold">→</span>
+                          <span className="font-black text-sm sm:text-base text-[#00E676]">
                             ${(payout.fiatAmount ?? payout.amount).toFixed(2)} {payout.fiatCurrency || 'USD'}
                           </span>
                           <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black border ${
                               isCompleted
-                                ? 'bg-emerald-950/60 text-[#00E676] border-[#00E676]/40'
+                                ? 'bg-emerald-950/80 text-[#00E676] border-[#00E676]/60'
                                 : isFailed
-                                ? 'bg-rose-950/60 text-rose-400 border-rose-500/40'
-                                : 'bg-amber-950/60 text-amber-400 border-amber-500/40'
+                                ? 'bg-rose-950/80 text-rose-300 border-rose-500/60'
+                                : 'bg-amber-950/80 text-amber-300 border-amber-500/60'
                             }`}
                           >
                             {isCompleted ? (
                               <>
-                                <CheckCircle2 className="w-3 h-3 text-[#00E676]" />
+                                <CheckCircle2 className="w-3.5 h-3.5 text-[#00E676]" />
                                 Settled / Dispatched
                               </>
                             ) : isFailed ? (
                               <>
-                                <AlertTriangle className="w-3 h-3 text-rose-400" />
+                                <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
                                 Failed
                               </>
                             ) : (
@@ -1054,18 +1064,20 @@ export const TransactionHistoryView: React.FC = () => {
                               </>
                             )}
                           </span>
-                          <span className="text-[11px] font-mono text-zinc-500">#{payout.id.slice(0, 14)}</span>
+                          <span className="text-xs font-mono font-bold bg-zinc-800 text-zinc-200 border border-zinc-600 px-2 py-0.5 rounded">
+                            #{payout.id.slice(0, 14)}
+                          </span>
                         </div>
 
-                        <div className="flex items-center gap-2 sm:gap-3 text-xs text-zinc-400 mt-1 flex-wrap font-medium">
-                          <span className="inline-flex items-center gap-1 font-semibold text-zinc-200">
-                            <CreditCard className="w-3.5 h-3.5 text-zinc-400" />
+                        <div className="flex items-center gap-2 sm:gap-3 text-xs text-zinc-300 mt-1.5 flex-wrap font-medium">
+                          <span className="inline-flex items-center gap-1.5 font-bold text-zinc-100">
+                            <CreditCard className="w-3.5 h-3.5 text-blue-400" />
                             {payout.cardBrand || 'Card'} •••• {payout.cardLast4 || '4242'}
                           </span>
-                          <span className="text-zinc-700">•</span>
-                          <span>{payout.cardholderName || 'Cardholder'}</span>
-                          <span className="text-zinc-700">•</span>
-                          <span>{new Date(payout.createdAt).toLocaleString()}</span>
+                          <span className="text-zinc-600 font-bold">•</span>
+                          <span className="text-zinc-200 font-semibold">{payout.cardholderName || 'Cardholder'}</span>
+                          <span className="text-zinc-600 font-bold">•</span>
+                          <span className="text-zinc-300">{new Date(payout.createdAt).toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
@@ -1077,7 +1089,7 @@ export const TransactionHistoryView: React.FC = () => {
                           href={`https://polygonscan.com/tx/${payout.txHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold transition"
+                          className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border-2 border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 hover:text-white text-xs font-bold transition"
                           title="View on Polygonscan"
                         >
                           <span>Explorer</span>
@@ -1087,7 +1099,7 @@ export const TransactionHistoryView: React.FC = () => {
 
                       <button
                         onClick={() => setSelectedPayout(payout)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white text-xs font-bold shadow-xs active:scale-95 transition cursor-pointer"
+                        className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-[#3B82F6] hover:bg-blue-600 text-white text-xs font-black shadow-xs active:scale-95 transition cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5 text-white" />
                         <span>Inspect</span>
@@ -1106,9 +1118,9 @@ export const TransactionHistoryView: React.FC = () => {
       {/* ========================================================================= */}
       {selectedInvoice && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-zinc-950 rounded-3xl border border-zinc-800 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150 text-white">
+          <div className="bg-zinc-950 rounded-3xl border-2 border-zinc-700 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150 text-white">
             {/* Modal Header */}
-            <div className="px-6 py-4 bg-zinc-900 border-b border-zinc-800 text-white flex items-center justify-between sticky top-0 z-10">
+            <div className="px-6 py-4 bg-zinc-900 border-b-2 border-zinc-700 text-white flex items-center justify-between sticky top-0 z-10">
               <div className="flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-[#3B82F6]" />
                 <h3 className="text-sm font-bold text-[#FFFFFF] tracking-wide">
@@ -1121,7 +1133,7 @@ export const TransactionHistoryView: React.FC = () => {
                   setInvoiceVerifyError(null);
                   setInvoiceVerifySuccess(null);
                 }}
-                className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1129,23 +1141,23 @@ export const TransactionHistoryView: React.FC = () => {
 
             <div className="p-6 space-y-5">
               {/* Product & Store Header */}
-              <div className="text-center pb-4 border-b border-zinc-800">
+              <div className="text-center pb-4 border-b-2 border-zinc-800">
                 {selectedInvoice.productImage && (
                   <img
                     src={selectedInvoice.productImage}
                     alt={selectedInvoice.productName}
-                    className="w-20 h-20 rounded-2xl object-cover mx-auto mb-3 border border-zinc-700 shadow-md"
+                    className="w-20 h-20 rounded-2xl object-cover mx-auto mb-3 border-2 border-zinc-600 shadow-md"
                   />
                 )}
-                <h4 className="text-lg font-bold text-white">{selectedInvoice.productName}</h4>
-                <p className="text-xs text-zinc-400 mb-1">{selectedInvoice.storeName}</p>
+                <h4 className="text-xl font-black text-white">{selectedInvoice.productName}</h4>
+                <p className="text-xs text-zinc-300 font-medium mb-1">{selectedInvoice.storeName}</p>
                 {selectedInvoice.customerName && (
-                  <p className="text-xs text-blue-400 font-semibold mb-1">
+                  <p className="text-xs text-blue-400 font-bold mb-1">
                     Customer: {selectedInvoice.customerName}
                   </p>
                 )}
                 {selectedInvoice.customerCompanyName && (
-                  <p className="text-xs text-indigo-400 font-semibold mb-1">
+                  <p className="text-xs text-indigo-400 font-bold mb-1">
                     Company: {selectedInvoice.customerCompanyName}
                   </p>
                 )}
@@ -1162,19 +1174,19 @@ export const TransactionHistoryView: React.FC = () => {
                     token={(selectedInvoice.paymentMethod.toLowerCase() as TokenSymbol) || 'usdt'}
                     size={32}
                   />
-                  <span className="text-3xl font-extrabold text-white">
+                  <span className="text-3xl font-black text-white">
                     {selectedInvoice.amount}
                   </span>
-                  <span className="text-xl font-bold text-[#3B82F6]">
+                  <span className="text-xl font-black text-[#3B82F6]">
                     {selectedInvoice.paymentMethod}
                   </span>
                 </div>
 
                 <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border ${
                     selectedInvoice.status === 'Paid'
-                      ? 'bg-emerald-950/60 text-[#00E676] border-[#00E676]/40'
-                      : 'bg-amber-950/60 text-amber-400 border-amber-500/40'
+                      ? 'bg-emerald-950/80 text-[#00E676] border-[#00E676]/60'
+                      : 'bg-amber-950/80 text-amber-300 border-amber-500/60'
                   }`}
                 >
                   {selectedInvoice.status === 'Paid' ? (
@@ -1184,7 +1196,7 @@ export const TransactionHistoryView: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <Clock className="w-3.5 h-3.5 text-amber-400" />
+                      <Clock className="w-3.5 h-3.5 text-amber-300" />
                       Pending Payment & Verification
                     </>
                   )}
@@ -1193,11 +1205,11 @@ export const TransactionHistoryView: React.FC = () => {
 
               {/* QR Code Section (if Pending) */}
               {selectedInvoice.status === 'Pending' && (
-                <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-center space-y-3">
-                  <span className="text-xs font-bold text-zinc-300 block">
+                <div className="p-4 bg-zinc-900 border-2 border-zinc-700 rounded-2xl text-center space-y-3">
+                  <span className="text-xs font-bold text-white block">
                     Scan with any Web3 Wallet to Pay
                   </span>
-                  <div className="inline-block p-3 bg-white rounded-2xl shadow-lg">
+                  <div className="inline-block p-3 bg-white rounded-2xl shadow-lg border-2 border-zinc-700">
                     <QRCodeSVG
                       value={buildPaymentQRUri(
                         selectedInvoice.receiverAddress,
@@ -1215,17 +1227,17 @@ export const TransactionHistoryView: React.FC = () => {
                       includeMargin={false}
                     />
                   </div>
-                  <p className="text-[11px] text-zinc-400 font-mono break-all">
+                  <p className="text-xs text-zinc-300 font-mono break-all font-semibold bg-zinc-950 p-2.5 rounded-xl border border-zinc-700">
                     Pay to: {selectedInvoice.receiverAddress}
                   </p>
                 </div>
               )}
 
               {/* Verify Transaction Hash Form for this Invoice */}
-              <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-3">
+              <div className="p-4 bg-zinc-900 border-2 border-zinc-700 rounded-2xl space-y-3">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-[#3B82F6]" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                  <span className="text-xs font-black text-white uppercase tracking-wider">
                     {selectedInvoice.status === 'Paid'
                       ? 'Verified Settlement Details'
                       : 'Verify Transaction Hash for this Invoice'}
@@ -1235,27 +1247,27 @@ export const TransactionHistoryView: React.FC = () => {
                 {selectedInvoice.status === 'Paid' ? (
                   <div className="space-y-2 text-xs">
                     {selectedInvoice.txHash && (
-                      <div className="p-2.5 rounded-xl bg-black/40 border border-zinc-800">
+                      <div className="p-2.5 rounded-xl bg-black/60 border border-zinc-700">
                         <span className="text-zinc-400 block text-[10px] uppercase font-bold">
                           Transaction Hash
                         </span>
-                        <span className="font-mono text-[#3B82F6] break-all font-semibold select-all">
+                        <span className="font-mono text-[#3B82F6] break-all font-bold select-all">
                           {selectedInvoice.txHash}
                         </span>
                       </div>
                     )}
                     {selectedInvoice.paidAt && (
-                      <div className="flex items-center justify-between text-zinc-300">
-                        <span>Paid & Verified At:</span>
-                        <span className="font-semibold text-white">
+                      <div className="flex items-center justify-between text-zinc-300 p-2 rounded-lg bg-zinc-950 border border-zinc-800">
+                        <span className="font-semibold">Paid & Verified At:</span>
+                        <span className="font-bold text-white">
                           {new Date(selectedInvoice.paidAt).toLocaleString()}
                         </span>
                       </div>
                     )}
                     {selectedInvoice.verifiedBlock && (
-                      <div className="flex items-center justify-between text-zinc-300">
-                        <span>Confirmation Block:</span>
-                        <span className="font-mono font-semibold text-white">
+                      <div className="flex items-center justify-between text-zinc-300 p-2 rounded-lg bg-zinc-950 border border-zinc-800">
+                        <span className="font-semibold">Confirmation Block:</span>
+                        <span className="font-mono font-bold text-white">
                           #{selectedInvoice.verifiedBlock}
                         </span>
                       </div>
@@ -1263,8 +1275,8 @@ export const TransactionHistoryView: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-2.5">
-                    <p className="text-xs text-zinc-400 leading-relaxed">
-                      After broadcasting your payment on-chain via QR scan or wallet, enter the transaction hash to verify and mark this invoice as <strong className="text-white">Paid / Verified</strong>.
+                    <p className="text-xs text-zinc-300 leading-relaxed font-medium">
+                      After broadcasting your payment on-chain via QR scan or wallet, enter the transaction hash to verify and mark this invoice as <strong className="text-white font-bold">Paid / Verified</strong>.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-2">
@@ -1276,13 +1288,13 @@ export const TransactionHistoryView: React.FC = () => {
                           setInvoiceVerifyHashInput(e.target.value);
                           setInvoiceVerifyError(null);
                         }}
-                        className="flex-1 px-3.5 py-2.5 rounded-xl border border-zinc-800 bg-zinc-950 text-xs font-mono text-white placeholder:text-zinc-500 placeholder:font-sans focus:outline-none focus:border-[#3B82F6]"
+                        className="flex-1 px-3.5 py-2.5 rounded-xl border-2 border-zinc-700 bg-zinc-950 text-xs font-mono text-white placeholder:text-zinc-500 placeholder:font-sans focus:outline-none focus:border-[#3B82F6]"
                       />
                       <button
                         type="button"
                         onClick={() => handleVerifyInvoicePayment(selectedInvoice)}
                         disabled={isVerifyingInvoiceHash || !invoiceVerifyHashInput.trim()}
-                        className="px-4 py-2.5 rounded-xl bg-[#3B82F6] hover:bg-blue-600 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer flex-shrink-0"
+                        className="px-4 py-2.5 rounded-xl bg-[#3B82F6] hover:bg-blue-600 disabled:opacity-50 text-white font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer flex-shrink-0 shadow-sm"
                       >
                         {isVerifyingInvoiceHash ? (
                           <>
@@ -1299,13 +1311,13 @@ export const TransactionHistoryView: React.FC = () => {
                     </div>
 
                     {invoiceVerifyError && (
-                      <p className="text-xs font-semibold text-[#EF4444] bg-red-950/40 border border-red-500/40 rounded-xl p-2.5">
+                      <p className="text-xs font-bold text-red-400 bg-red-950/60 border border-red-500/60 rounded-xl p-2.5">
                         {invoiceVerifyError}
                       </p>
                     )}
 
                     {invoiceVerifySuccess && (
-                      <p className="text-xs font-semibold text-[#00E676] bg-emerald-950/40 border border-emerald-500/40 rounded-xl p-2.5 flex items-center gap-1.5">
+                      <p className="text-xs font-bold text-[#00E676] bg-emerald-950/60 border border-emerald-500/60 rounded-xl p-2.5 flex items-center gap-1.5">
                         <CheckCircle2 className="w-4 h-4 text-[#00E676] flex-shrink-0" />
                         {invoiceVerifySuccess}
                       </p>
@@ -1317,39 +1329,39 @@ export const TransactionHistoryView: React.FC = () => {
               {/* Data Specifications Table */}
               <div className="space-y-2 text-xs">
                 {selectedInvoice.customerName && (
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                    <span className="text-zinc-400 font-semibold">Customer Name</span>
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                    <span className="text-zinc-300 font-bold">Customer Name</span>
                     <span className="font-bold text-white">{selectedInvoice.customerName}</span>
                   </div>
                 )}
 
                 {selectedInvoice.customerCompanyName && (
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                    <span className="text-zinc-400 font-semibold">Customer Company Name</span>
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                    <span className="text-zinc-300 font-bold">Customer Company Name</span>
                     <span className="font-bold text-white">{selectedInvoice.customerCompanyName}</span>
                   </div>
                 )}
 
                 {selectedInvoice.customerAddress && (
-                  <div className="flex items-start justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                    <span className="text-zinc-400 font-semibold">Customer Address</span>
+                  <div className="flex items-start justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                    <span className="text-zinc-300 font-bold">Customer Address</span>
                     <span className="font-medium text-white text-right whitespace-pre-line max-w-[240px]">
                       {selectedInvoice.customerAddress}
                     </span>
                   </div>
                 )}
 
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                  <span className="text-zinc-400 font-semibold">Settlement Network</span>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                  <span className="text-zinc-300 font-bold">Settlement Network</span>
                   <span className="font-bold text-white">
                     {selectedInvoice.network} (Chain ID {selectedInvoice.networkChainId})
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                  <span className="text-zinc-400 font-semibold">Receiver Wallet</span>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                  <span className="text-zinc-300 font-bold">Receiver Wallet</span>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-zinc-300">
+                    <span className="font-mono text-zinc-100 font-semibold">
                       {selectedInvoice.receiverAddress.slice(0, 8)}...{selectedInvoice.receiverAddress.slice(-6)}
                     </span>
                     <button
@@ -1357,17 +1369,17 @@ export const TransactionHistoryView: React.FC = () => {
                       className="text-zinc-400 hover:text-white"
                     >
                       {copiedHash === 'invReceiver' ? (
-                        <Check className="w-3 h-3 text-[#00E676]" />
+                        <Check className="w-3.5 h-3.5 text-[#00E676]" />
                       ) : (
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-3.5 h-3.5" />
                       )}
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                  <span className="text-zinc-400 font-semibold">Generated Date</span>
-                  <span className="text-zinc-300 font-medium">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                  <span className="text-zinc-300 font-bold">Generated Date</span>
+                  <span className="text-zinc-200 font-semibold">
                     {new Date(selectedInvoice.createdAt).toLocaleString()}
                   </span>
                 </div>
@@ -1378,7 +1390,7 @@ export const TransactionHistoryView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => generateInvoicePdf(selectedInvoice)}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] hover:bg-blue-600 text-white font-bold text-xs py-3 shadow-md transition cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] hover:bg-blue-600 text-white font-black text-xs py-3 shadow-md transition cursor-pointer"
                 >
                   <Download className="w-4 h-4 text-white" />
                   <span>Download Invoice (PDF)</span>
@@ -1387,7 +1399,7 @@ export const TransactionHistoryView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedInvoice(null)}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs py-3 transition cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs py-3 border border-zinc-600 transition cursor-pointer"
                 >
                   <span>Close</span>
                 </button>
@@ -1402,9 +1414,9 @@ export const TransactionHistoryView: React.FC = () => {
       {/* ========================================================================= */}
       {selectedTx && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-zinc-950 rounded-3xl border border-zinc-800 shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-150 text-white">
+          <div className="bg-zinc-950 rounded-3xl border-2 border-zinc-700 shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-150 text-white">
             {/* Modal Header */}
-            <div className="px-6 py-4 bg-zinc-900 border-b border-zinc-800 text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-zinc-900 border-b-2 border-zinc-700 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-[#00E676]" />
                 <h3 className="text-sm font-bold text-[#FFFFFF] tracking-wide">
@@ -1413,7 +1425,7 @@ export const TransactionHistoryView: React.FC = () => {
               </div>
               <button
                 onClick={() => setSelectedTx(null)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1421,17 +1433,17 @@ export const TransactionHistoryView: React.FC = () => {
 
             <div className="p-6 space-y-5">
               {/* Big Amount Header */}
-              <div className="text-center pb-4 border-b border-zinc-800">
+              <div className="text-center pb-4 border-b-2 border-zinc-800">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <TokenIcon token={(selectedTx.token as TokenSymbol) || 'usdt'} size={36} />
-                  <span className="text-3xl font-extrabold text-[#00E676]">
+                  <span className="text-3xl font-black text-[#00E676]">
                     +{selectedTx.amount}
                   </span>
-                  <span className="text-xl font-bold text-[#FFFFFF]">
+                  <span className="text-xl font-black text-[#FFFFFF]">
                     {selectedTx.tokenLabel}
                   </span>
                 </div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-zinc-900 text-[#00E676] border border-[#00E676]/40">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-zinc-900 text-[#00E676] border border-[#00E676]/60">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#00E676]" />
                   Settled on {selectedTx.network} ({selectedTx.chainId})
                 </span>
@@ -1439,27 +1451,27 @@ export const TransactionHistoryView: React.FC = () => {
 
               {/* Data Properties */}
               <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                  <span className="text-zinc-400 font-semibold">Status</span>
-                  <span className="font-bold text-[#00E676] uppercase">Success / Finalized</span>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                  <span className="text-zinc-300 font-bold">Status</span>
+                  <span className="font-black text-[#00E676] uppercase">Success / Finalized</span>
                 </div>
 
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                  <span className="text-zinc-400 font-semibold">Exact Timestamp</span>
-                  <span className="font-semibold text-[#FFFFFF]">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                  <span className="text-zinc-300 font-bold">Exact Timestamp</span>
+                  <span className="font-bold text-white">
                     {selectedTx.formattedDate || new Date(selectedTx.timestamp).toLocaleString()}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                  <span className="text-zinc-400 font-semibold">Block Height</span>
-                  <span className="font-mono font-bold text-[#FFFFFF]">#{selectedTx.blockNumber}</span>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                  <span className="text-zinc-300 font-bold">Block Height</span>
+                  <span className="font-mono font-black text-white">#{selectedTx.blockNumber}</span>
                 </div>
 
                 {/* Sender Address */}
-                <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 space-y-1">
+                <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-700 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-zinc-400 uppercase">Customer Sender</span>
+                    <span className="text-[11px] font-black text-zinc-300 uppercase">Customer Sender</span>
                     <button
                       onClick={() => handleCopy(selectedTx.senderAddress, 'sender')}
                       className="text-zinc-400 hover:text-white transition cursor-pointer"
@@ -1471,15 +1483,15 @@ export const TransactionHistoryView: React.FC = () => {
                       )}
                     </button>
                   </div>
-                  <p className="font-mono text-zinc-200 break-all select-all font-medium">
+                  <p className="font-mono text-zinc-100 break-all select-all font-semibold">
                     {selectedTx.senderAddress}
                   </p>
                 </div>
 
                 {/* Recipient Address */}
-                <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 space-y-1">
+                <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-700 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-zinc-400 uppercase">Merchant Recipient</span>
+                    <span className="text-[11px] font-black text-zinc-300 uppercase">Merchant Recipient</span>
                     <button
                       onClick={() => handleCopy(selectedTx.recipientAddress, 'recipient')}
                       className="text-zinc-400 hover:text-white transition cursor-pointer"
@@ -1491,15 +1503,15 @@ export const TransactionHistoryView: React.FC = () => {
                       )}
                     </button>
                   </div>
-                  <p className="font-mono text-zinc-200 break-all select-all font-medium">
+                  <p className="font-mono text-zinc-100 break-all select-all font-semibold">
                     {selectedTx.recipientAddress}
                   </p>
                 </div>
 
                 {/* Transaction Hash */}
-                <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 space-y-1">
+                <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-700 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-zinc-400 uppercase">Transaction Hash</span>
+                    <span className="text-[11px] font-black text-zinc-300 uppercase">Transaction Hash</span>
                     <button
                       onClick={() => handleCopy(selectedTx.txHash, 'hash')}
                       className="text-zinc-400 hover:text-white transition cursor-pointer"
@@ -1511,7 +1523,7 @@ export const TransactionHistoryView: React.FC = () => {
                       )}
                     </button>
                   </div>
-                  <p className="font-mono text-[#3B82F6] break-all select-all font-semibold">
+                  <p className="font-mono text-[#3B82F6] break-all select-all font-bold">
                     {selectedTx.txHash}
                   </p>
                 </div>
@@ -1521,7 +1533,7 @@ export const TransactionHistoryView: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <button
                   onClick={() => generatePaymentReceiptPdf(selectedTx)}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#00E676] hover:bg-[#00E676]/90 text-zinc-950 font-bold text-xs py-3.5 shadow-[0_0_15px_rgba(0,230,118,0.3)] transition active:scale-95 cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#00E676] hover:bg-[#00E676]/90 text-zinc-950 font-black text-xs py-3.5 shadow-[0_0_15px_rgba(0,230,118,0.3)] transition active:scale-95 cursor-pointer"
                 >
                   <FileText className="w-4 h-4 text-zinc-950" />
                   <span>Download PDF Receipt</span>
@@ -1535,7 +1547,7 @@ export const TransactionHistoryView: React.FC = () => {
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white font-bold text-xs py-3.5 shadow-[0_0_15px_rgba(59,130,246,0.3)] transition active:scale-95"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] hover:bg-blue-600 text-white font-black text-xs py-3.5 shadow-[0_0_15px_rgba(59,130,246,0.3)] transition active:scale-95"
                 >
                   <span>Block Explorer</span>
                   <ExternalLink className="w-4 h-4 text-white" />
@@ -1551,9 +1563,9 @@ export const TransactionHistoryView: React.FC = () => {
       {/* ========================================================================= */}
       {selectedPayout && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-zinc-950 rounded-3xl border border-zinc-800 shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-150 text-white">
+          <div className="bg-zinc-950 rounded-3xl border-2 border-zinc-700 shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-150 text-white">
             {/* Modal Header */}
-            <div className="px-6 py-4 bg-zinc-900 border-b border-zinc-800 text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-zinc-900 border-b-2 border-zinc-700 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-[#3B82F6]" />
                 <h3 className="text-sm font-bold text-[#FFFFFF] tracking-wide">
@@ -1562,7 +1574,7 @@ export const TransactionHistoryView: React.FC = () => {
               </div>
               <button
                 onClick={() => setSelectedPayout(null)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1570,27 +1582,27 @@ export const TransactionHistoryView: React.FC = () => {
 
             <div className="p-6 space-y-5">
               {/* Gross Amount Header */}
-              <div className="text-center pb-4 border-b border-zinc-800">
+              <div className="text-center pb-4 border-b-2 border-zinc-800">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <TokenIcon token={(selectedPayout.token?.toLowerCase() as TokenSymbol) || 'usdt'} size={36} />
-                  <span className="text-3xl font-extrabold text-[#00E676]">
+                  <span className="text-3xl font-black text-[#00E676]">
                     ${(selectedPayout.fiatAmount ?? selectedPayout.amount).toFixed(2)}
                   </span>
-                  <span className="text-xl font-bold text-[#FFFFFF]">
+                  <span className="text-xl font-black text-white">
                     {selectedPayout.fiatCurrency || 'USD'}
                   </span>
                 </div>
                 <div className="flex items-center justify-center gap-2 flex-wrap">
-                  <span className="text-xs text-zinc-400">
+                  <span className="text-xs text-zinc-300 font-medium">
                     Source: {selectedPayout.amount} {selectedPayout.token} via Polygon PoS
                   </span>
                   <span
-                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black border ${
                       selectedPayout.status === 'COMPLETED'
-                        ? 'bg-emerald-950/60 text-[#00E676] border-[#00E676]/40'
+                        ? 'bg-emerald-950/80 text-[#00E676] border-[#00E676]/60'
                         : selectedPayout.status === 'FAILED'
-                        ? 'bg-rose-950/60 text-rose-400 border-rose-500/40'
-                        : 'bg-amber-950/60 text-amber-400 border-amber-500/40'
+                        ? 'bg-rose-950/80 text-rose-300 border-rose-500/60'
+                        : 'bg-amber-950/80 text-amber-300 border-amber-500/60'
                     }`}
                   >
                     {selectedPayout.status === 'COMPLETED' ? (
@@ -1615,40 +1627,40 @@ export const TransactionHistoryView: React.FC = () => {
 
               {/* Detail Breakdown */}
               <div className="space-y-2.5 text-xs">
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                  <span className="text-zinc-400 font-semibold">Payment ID</span>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                  <span className="text-zinc-300 font-bold">Payment ID</span>
                   <span className="font-mono font-bold text-white">#{selectedPayout.id}</span>
                 </div>
 
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                  <span className="text-zinc-400 font-semibold">Destination Card</span>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                  <span className="text-zinc-300 font-bold">Destination Card</span>
                   <span className="font-bold text-white flex items-center gap-1.5">
                     <CreditCard className="w-3.5 h-3.5 text-[#3B82F6]" />
                     {selectedPayout.cardBrand || 'Card'} •••• {selectedPayout.cardLast4 || '4242'}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                  <span className="text-zinc-400 font-semibold">Cardholder</span>
-                  <span className="font-semibold text-zinc-200">{selectedPayout.cardholderName || 'Cardholder'}</span>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                  <span className="text-zinc-300 font-bold">Cardholder</span>
+                  <span className="font-bold text-zinc-100">{selectedPayout.cardholderName || 'Cardholder'}</span>
                 </div>
 
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                  <span className="text-zinc-400 font-semibold">Payout Rail / Gateway</span>
-                  <span className="font-semibold text-zinc-200">{selectedPayout.provider || 'Stripe Card Rail'}</span>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                  <span className="text-zinc-300 font-bold">Payout Rail / Gateway</span>
+                  <span className="font-bold text-zinc-100">{selectedPayout.provider || 'Stripe Card Rail'}</span>
                 </div>
 
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
-                  <span className="text-zinc-400 font-semibold">Execution Timestamp</span>
-                  <span className="font-semibold text-zinc-300">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
+                  <span className="text-zinc-300 font-bold">Execution Timestamp</span>
+                  <span className="font-bold text-zinc-200">
                     {new Date(selectedPayout.createdAt).toLocaleString()}
                   </span>
                 </div>
 
                 {selectedPayout.walletAddress && (
-                  <div className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+                  <div className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-zinc-400 font-semibold">Initiating Wallet</span>
+                      <span className="text-zinc-300 font-bold">Initiating Wallet</span>
                       <button
                         onClick={() => handleCopy(selectedPayout.walletAddress, 'payout-wallet')}
                         className="text-zinc-400 hover:text-white transition cursor-pointer"
@@ -1660,16 +1672,16 @@ export const TransactionHistoryView: React.FC = () => {
                         )}
                       </button>
                     </div>
-                    <p className="font-mono text-zinc-300 text-[11px] break-all select-all">
+                    <p className="font-mono text-zinc-200 text-xs break-all select-all font-semibold">
                       {selectedPayout.walletAddress}
                     </p>
                   </div>
                 )}
 
                 {selectedPayout.txHash && (
-                  <div className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+                  <div className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-700">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-zinc-400 font-semibold">Polygon PoS Transaction Hash</span>
+                      <span className="text-zinc-300 font-bold">Polygon PoS Transaction Hash</span>
                       <button
                         onClick={() => handleCopy(selectedPayout.txHash!, 'payout-hash')}
                         className="text-zinc-400 hover:text-white transition cursor-pointer"
@@ -1681,7 +1693,7 @@ export const TransactionHistoryView: React.FC = () => {
                         )}
                       </button>
                     </div>
-                    <p className="font-mono text-[#3B82F6] text-[11px] break-all select-all font-semibold">
+                    <p className="font-mono text-[#3B82F6] text-xs break-all select-all font-bold">
                       {selectedPayout.txHash}
                     </p>
                   </div>
@@ -1692,7 +1704,7 @@ export const TransactionHistoryView: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <button
                   onClick={() => window.print()}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#00E676] hover:bg-[#00E676]/90 text-zinc-950 font-bold text-xs py-3.5 shadow-[0_0_15px_rgba(0,230,118,0.3)] transition active:scale-95 cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#00E676] hover:bg-[#00E676]/90 text-zinc-950 font-black text-xs py-3.5 shadow-[0_0_15px_rgba(0,230,118,0.3)] transition active:scale-95 cursor-pointer"
                 >
                   <FileText className="w-4 h-4 text-zinc-950" />
                   <span>Print Receipt</span>
@@ -1703,7 +1715,7 @@ export const TransactionHistoryView: React.FC = () => {
                     href={`https://polygonscan.com/tx/${selectedPayout.txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white font-bold text-xs py-3.5 shadow-[0_0_15px_rgba(59,130,246,0.3)] transition active:scale-95"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] hover:bg-blue-600 text-white font-black text-xs py-3.5 shadow-[0_0_15px_rgba(59,130,246,0.3)] transition active:scale-95"
                   >
                     <span>Polygonscan</span>
                     <ExternalLink className="w-4 h-4 text-white" />
@@ -1711,7 +1723,7 @@ export const TransactionHistoryView: React.FC = () => {
                 ) : (
                   <button
                     onClick={() => setSelectedPayout(null)}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs py-3.5 transition active:scale-95 cursor-pointer"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs py-3.5 border border-zinc-600 transition active:scale-95 cursor-pointer"
                   >
                     <span>Close</span>
                   </button>

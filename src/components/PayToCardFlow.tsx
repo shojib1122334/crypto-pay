@@ -256,17 +256,17 @@ export const PayToCardFlow: React.FC<PayToCardFlowProps> = ({ wallets, onPayoutS
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-2">Pay From</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-300 mb-2">Pay From</label>
                 <div className="flex gap-2">
                   {wallets.map((w) => (
                     <button
                       key={w.id}
                       type="button"
                       onClick={() => setSourceAsset(w.asset)}
-                      className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-medium transition-all ${
+                      className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border-2 text-xs font-black transition-all cursor-pointer ${
                         sourceAsset === w.asset
-                          ? 'bg-blue-600/20 border-blue-500 text-white'
-                          : 'bg-slate-800/50 border-slate-700/50 text-slate-400 hover:border-slate-600'
+                          ? 'bg-blue-600/25 border-blue-400 text-white shadow-md shadow-blue-500/20 ring-2 ring-blue-500/30'
+                          : 'bg-slate-800 border-slate-700 text-slate-200 hover:border-blue-400 hover:text-white'
                       }`}
                     >
                       <TokenLogo symbol={w.asset} size="sm" />
@@ -275,28 +275,28 @@ export const PayToCardFlow: React.FC<PayToCardFlowProps> = ({ wallets, onPayoutS
                   ))}
                 </div>
                 {selectedWallet && (
-                  <div className="text-xs text-slate-400 mt-2">
-                    Available: <span className="text-slate-200 font-medium">{selectedWallet.available_balance} {selectedWallet.asset}</span>
+                  <div className="text-xs text-slate-300 font-bold mt-2">
+                    Available: <span className="text-emerald-400 font-black">{selectedWallet.available_balance} {selectedWallet.asset}</span>
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-2">Payout Currency</label>
-                <div className="p-3 bg-slate-800/40 border border-slate-700/40 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-white font-medium text-sm">
-                    <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-300 mb-2">Payout Currency</label>
+                <div className="p-3 bg-slate-800/80 border-2 border-slate-700 rounded-xl flex items-center justify-between shadow-2xs">
+                  <div className="flex items-center gap-2 text-white font-black text-sm">
+                    <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-xs border border-emerald-500/40">
                       $
                     </span>
                     <span>USD - United States Dollar</span>
                   </div>
-                  <span className="text-xs text-emerald-400 font-medium">FastFunds</span>
+                  <span className="text-xs text-emerald-300 font-black bg-emerald-950/60 border border-emerald-500/40 px-2 py-0.5 rounded-md">FastFunds</span>
                 </div>
               </div>
             </div>
 
             <div className="relative">
-              <label className="block text-xs font-medium text-slate-400 mb-2">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-300 mb-2">
                 {amountType === 'source' ? `You Pay (${sourceAsset})` : `Card Receives (USD)`}
               </label>
               <div className="relative">
@@ -306,13 +306,13 @@ export const PayToCardFlow: React.FC<PayToCardFlowProps> = ({ wallets, onPayoutS
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
-                  className="w-full bg-slate-800/80 border border-slate-700 rounded-2xl px-4 py-3.5 text-xl font-bold text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-slate-800/90 border-2 border-slate-700 rounded-2xl px-4 py-3.5 text-xl font-black text-white placeholder-slate-500 focus:outline-none focus:border-blue-400 transition-colors font-mono"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setAmountType(amountType === 'source' ? 'destination' : 'source')}
-                  className="absolute right-3 top-3 text-xs bg-slate-700/60 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition-colors"
+                  className="absolute right-3 top-3 text-xs bg-slate-700 hover:bg-slate-600 text-white font-black border border-slate-600 px-3 py-1.5 rounded-lg transition-colors cursor-pointer shadow-xs"
                 >
                   Switch to {amountType === 'source' ? 'USD' : sourceAsset}
                 </button>
@@ -321,74 +321,74 @@ export const PayToCardFlow: React.FC<PayToCardFlowProps> = ({ wallets, onPayoutS
 
             {/* Live Calculation Display */}
             {quote && (
-              <div className="mt-4 p-4 bg-slate-800/40 border border-slate-800 rounded-2xl space-y-2 text-xs">
-                <div className="flex justify-between text-slate-400">
+              <div className="mt-4 p-4 bg-slate-800/70 border-2 border-slate-700 rounded-2xl space-y-2 text-xs">
+                <div className="flex justify-between text-slate-300 font-bold">
                   <span>Exchange Rate</span>
-                  <span className="text-white font-mono">
+                  <span className="text-white font-mono font-black">
                     1 {quote.source_asset} = {quote.exchange_rate.toFixed(4)} {quote.destination_currency}
                   </span>
                 </div>
-                <div className="flex justify-between text-slate-400">
+                <div className="flex justify-between text-slate-300 font-bold">
                   <span>PayFlux Fee (0.75% + Network)</span>
-                  <span className="text-slate-300">
+                  <span className="text-slate-200 font-black">
                     {(quote.platform_fee + quote.network_fee).toFixed(2)} {quote.source_asset}
                   </span>
                 </div>
-                <div className="pt-2 border-t border-slate-700/50 flex justify-between items-center text-sm font-semibold">
+                <div className="pt-2 border-t border-slate-700 flex justify-between items-center text-sm font-black">
                   <span className="text-white">Card Holder Receives</span>
-                  <span className="text-emerald-400 text-base font-bold">
+                  <span className="text-emerald-400 text-base font-black">
                     ${quote.destination_amount.toFixed(2)} USD
                   </span>
                 </div>
               </div>
             )}
-            {quoteError && <p className="text-xs text-rose-400 mt-2">{quoteError}</p>}
+            {quoteError && <p className="text-xs text-rose-400 font-bold mt-2">{quoteError}</p>}
           </div>
 
           {/* Card Destination */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
-            <h3 className="text-base font-semibold text-white flex items-center justify-between">
+          <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <h3 className="text-base font-black text-white flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-blue-400" />
+                <CreditCard className="w-5 h-5 text-blue-400 stroke-[2.5]" />
                 Destination Visa / Mastercard
               </span>
-              <span className="text-xs font-normal text-slate-400 flex items-center gap-1">
-                <Lock className="w-3 h-3 text-emerald-400" />
+              <span className="text-xs font-bold text-slate-300 flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5 text-emerald-400" />
                 PCI-DSS Level 1 Tokenized
               </span>
             </h3>
 
             {savedBeneficiaries.length > 0 && (
               <div className="space-y-2">
-                <label className="block text-xs font-medium text-slate-400">Saved Cards</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-300">Saved Cards</label>
                 <div className="grid grid-cols-1 gap-2">
                   {savedBeneficiaries.map((b) => (
                     <button
                       key={b.id}
                       type="button"
                       onClick={() => setSelectedBeneficiaryId(b.id)}
-                      className={`flex items-center justify-between p-3 rounded-xl border text-sm transition-all ${
+                      className={`flex items-center justify-between p-3 rounded-xl border-2 text-sm transition-all cursor-pointer ${
                         selectedBeneficiaryId === b.id
-                          ? 'bg-blue-600/20 border-blue-500 text-white'
-                          : 'bg-slate-800/40 border-slate-700/50 text-slate-300 hover:border-slate-600'
+                          ? 'bg-blue-600/25 border-blue-400 text-white shadow-md shadow-blue-500/20 ring-2 ring-blue-500/30'
+                          : 'bg-slate-800/80 border-slate-700 text-slate-200 hover:border-slate-500 hover:text-white'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="px-2 py-1 bg-slate-800 rounded text-xs font-bold text-slate-300 border border-slate-700">
+                        <div className="px-2 py-1 bg-slate-800 rounded text-xs font-black text-white border border-slate-600">
                           {b.card_brand}
                         </div>
-                        <span className="font-mono">•••• {b.last4}</span>
+                        <span className="font-mono font-black">•••• {b.last4}</span>
                       </div>
-                      <span className="text-xs text-slate-400">{b.cardholder_name}</span>
+                      <span className="text-xs font-bold text-slate-300">{b.cardholder_name}</span>
                     </button>
                   ))}
                   <button
                     type="button"
                     onClick={() => setSelectedBeneficiaryId('new')}
-                    className={`p-3 rounded-xl border text-xs font-medium transition-all text-center ${
+                    className={`p-3 rounded-xl border-2 text-xs font-black transition-all text-center cursor-pointer ${
                       selectedBeneficiaryId === 'new'
-                        ? 'bg-blue-600/20 border-blue-500 text-white'
-                        : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:border-slate-600'
+                        ? 'bg-blue-600/25 border-blue-400 text-white shadow-md shadow-blue-500/20 ring-2 ring-blue-500/30'
+                        : 'bg-slate-800/80 border-slate-700 text-slate-200 hover:border-slate-500 hover:text-white'
                     }`}
                   >
                     + Enter a New Card
@@ -474,21 +474,21 @@ export const PayToCardFlow: React.FC<PayToCardFlowProps> = ({ wallets, onPayoutS
             <button
               type="button"
               onClick={onCancel}
-              className="w-1/3 py-4 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl font-medium transition-colors"
+              className="w-1/3 py-4 px-4 bg-slate-800 hover:bg-slate-700 text-white border-2 border-slate-700 hover:border-slate-500 rounded-2xl font-black text-sm transition-colors cursor-pointer shadow-xs"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={quoteLoading || !quote}
-              className="w-2/3 py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-2xl shadow-xl shadow-blue-500/20 transition-all flex items-center justify-center gap-2 text-base"
+              className="w-2/3 py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black rounded-2xl shadow-xl shadow-blue-500/25 transition-all flex items-center justify-center gap-2 text-base cursor-pointer disabled:opacity-50 border border-white/20"
             >
               {quoteLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
                   <span>Review Payout Details</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-5 h-5 stroke-[2.5]" />
                 </>
               )}
             </button>
@@ -556,14 +556,14 @@ export const PayToCardFlow: React.FC<PayToCardFlowProps> = ({ wallets, onPayoutS
             <button
               onClick={() => setStep('form')}
               disabled={executionLoading}
-              className="w-1/3 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl font-medium transition-colors"
+              className="w-1/3 py-4 bg-slate-800 hover:bg-slate-700 text-white border-2 border-slate-700 hover:border-slate-500 rounded-2xl font-black text-sm transition-colors cursor-pointer shadow-xs"
             >
               Back
             </button>
             <button
               onClick={handleExecutePayout}
               disabled={executionLoading}
-              className="w-2/3 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl font-semibold shadow-xl shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 text-base"
+              className="w-2/3 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl font-black shadow-xl shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 text-base cursor-pointer border border-white/20"
             >
               {executionLoading ? (
                 <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />

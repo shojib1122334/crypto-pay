@@ -105,19 +105,19 @@ export const TokenSelectModal: React.FC<TokenSelectModalProps> = ({
                     <TokenIcon token={token.symbol} size={36} className="rounded-full shadow-xs shrink-0" />
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="font-semibold text-slate-900 dark:text-white text-sm">
+                        <span className="font-extrabold text-slate-950 dark:text-white text-sm sm:text-base">
                           {token.symbol}
                         </span>
-                        <span className="inline-flex items-center px-1.5 py-0.2 text-[10px] font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-200 dark:border-emerald-800/60">
-                          <ShieldCheck className="w-2.5 h-2.5 mr-0.5" /> Polygon
+                        <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 rounded-md border border-emerald-300 dark:border-emerald-700">
+                          <ShieldCheck className="w-2.5 h-2.5 mr-1" /> Polygon
                         </span>
                         {isOther && (
-                          <span className="text-[10px] text-slate-400 font-normal">
+                          <span className="text-[10px] text-slate-500 font-semibold">
                             (Selected in counter)
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
                         {token.name}
                       </span>
                     </div>
@@ -125,15 +125,15 @@ export const TokenSelectModal: React.FC<TokenSelectModalProps> = ({
 
                   <div className="text-right flex items-center gap-3">
                     <div>
-                      <div className="text-sm font-semibold text-slate-900 dark:text-white">
+                      <div className="text-sm font-black font-mono text-slate-950 dark:text-white">
                         {formatTokenAmount(balance)}
                       </div>
-                      <div className="text-[11px] text-slate-400">
+                      <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
                         Balance
                       </div>
                     </div>
                     {isSelected && (
-                      <Check className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                      <Check className="w-5 h-5 text-indigo-600 dark:text-indigo-400 stroke-[3] shrink-0" />
                     )}
                   </div>
                 </button>

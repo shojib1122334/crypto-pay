@@ -357,29 +357,29 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
           {/* Connected Wallet Card */}
           <div className="bg-zinc-950 rounded-2xl p-5 sm:p-6 border border-zinc-800 shadow-xl">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <span className="text-xs font-black uppercase tracking-wider text-zinc-300">
                 YOUR MERCHANT WALLET
               </span>
               {isConnected ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 text-[#00E676] text-xs font-semibold border border-[#00E676]/40 shadow-[0_0_8px_rgba(0,230,118,0.2)]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950 text-emerald-300 text-xs font-black border-2 border-emerald-500 shadow-[0_0_8px_rgba(0,230,118,0.3)]">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   Connected
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 text-[#FACC15] text-xs font-semibold border border-[#FACC15]/40">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FACC15]" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-950 text-amber-300 text-xs font-black border-2 border-amber-500">
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
                   Not Connected
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-3.5 bg-zinc-900 border border-zinc-800 rounded-xl p-3.5">
-              <div className="w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[#3B82F6] flex-shrink-0 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
-                <Wallet className="w-5 h-5" />
+            <div className="flex items-center gap-3.5 bg-zinc-900 border-2 border-zinc-800 rounded-xl p-3.5">
+              <div className="w-10 h-10 rounded-xl bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center text-[#3B82F6] flex-shrink-0 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+                <Wallet className="w-5 h-5 stroke-[2.5]" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-bold text-[#FFFFFF] font-mono truncate">
+                  <p className="text-sm font-black text-[#FFFFFF] font-mono truncate">
                     {formattedShortAddress ?? 'Connect wallet to activate'}
                   </p>
                   {address && (
@@ -389,15 +389,15 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                       title="Copy full merchant address"
                     >
                       {copiedAddress ? (
-                        <Check className="w-3.5 h-3.5 text-[#00E676]" />
+                        <Check className="w-3.5 h-3.5 text-[#00E676] stroke-[3]" />
                       ) : (
-                        <Copy className="w-3.5 h-3.5" />
+                        <Copy className="w-3.5 h-3.5 stroke-[2.5]" />
                       )}
                     </button>
                   )}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs text-zinc-400">
+                  <span className="text-xs font-bold text-zinc-400">
                     {address ? 'Polygon Mainnet / EVM' : 'Receiving address required'}
                   </span>
                 </div>
@@ -406,12 +406,12 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
           </div>
 
           {/* Payment Creation Card */}
-          <div className="bg-zinc-950 rounded-2xl p-5 sm:p-6 border border-zinc-800 shadow-xl">
+          <div className="bg-zinc-950 rounded-2xl p-5 sm:p-6 border-2 border-zinc-800 shadow-xl">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-[#FFFFFF]">
+              <h3 className="text-lg font-black text-[#FFFFFF]">
                 Create Payment
               </h3>
-              <span className="text-xs text-zinc-400">
+              <span className="text-xs font-bold text-zinc-400">
                 Non-custodial QR Generation
               </span>
             </div>
@@ -421,7 +421,7 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
               <div>
                 <label
                   htmlFor="payment-amount"
-                  className="block text-xs font-bold uppercase tracking-wider text-[#FFFFFF] mb-2"
+                  className="block text-xs font-black uppercase tracking-wider text-[#FFFFFF] mb-2"
                 >
                   Amount
                 </label>
@@ -435,9 +435,9 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                     placeholder="10.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3.5 text-xl font-bold text-[#FFFFFF] placeholder:text-zinc-500 focus:outline-none focus:border-[#3B82F6] transition shadow-inner"
+                    className="w-full rounded-xl border-2 border-zinc-700 bg-zinc-900 px-4 py-3.5 text-xl font-black text-[#FFFFFF] placeholder:text-zinc-500 focus:outline-none focus:border-blue-400 transition shadow-inner font-mono"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-zinc-800 px-2.5 py-1 rounded-lg border border-zinc-700 text-xs font-bold text-[#FFFFFF]">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-700 text-xs font-black text-[#FFFFFF]">
                     <TokenIcon token={selectedToken} size={20} />
                     <span>{currentTokenLabel}</span>
                   </div>
@@ -445,49 +445,56 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
 
                 {/* Quick Presets */}
                 <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-                  <span className="text-[11px] text-zinc-400 font-medium">Quick presets:</span>
-                  {['5.00', '10.00', '25.00', '50.00', '100.00'].map((val) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setAmount(val)}
-                      className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-zinc-900 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white border border-zinc-800 transition cursor-pointer"
-                    >
-                      ${parseInt(val)}
-                    </button>
-                  ))}
+                  <span className="text-[11px] text-zinc-300 font-black">Quick presets:</span>
+                  {['5.00', '10.00', '25.00', '50.00', '100.00'].map((val) => {
+                    const isSelected = amount === val;
+                    return (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setAmount(val)}
+                        className={`px-3 py-1.5 text-xs font-black rounded-lg border-2 transition cursor-pointer ${
+                          isSelected
+                            ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white border-transparent shadow-xs scale-105'
+                            : 'bg-zinc-900 border-zinc-700 text-zinc-100 hover:border-purple-400 hover:text-white hover:bg-zinc-800 shadow-2xs'
+                        }`}
+                      >
+                        ${parseInt(val)}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Token Selector */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#FFFFFF] mb-2">
+                <label className="block text-xs font-black uppercase tracking-wider text-[#FFFFFF] mb-2">
                   Settlement Token
                 </label>
                 <div className="relative z-30" ref={dropdownRef}>
                   <button
                     type="button"
                     onClick={() => setDropdownOpen((o) => !o)}
-                    className="w-full flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 hover:bg-zinc-800/80 px-4 py-3.5 text-sm font-semibold text-[#FFFFFF] transition focus:outline-none focus:border-[#3B82F6] cursor-pointer"
+                    className="w-full flex items-center justify-between rounded-xl border-2 border-zinc-700 bg-zinc-900 hover:bg-zinc-800 px-4 py-3.5 text-sm font-black text-[#FFFFFF] transition focus:outline-none focus:border-blue-400 cursor-pointer shadow-xs"
                   >
                     <div className="flex items-center gap-3">
                       <TokenIcon token={selectedToken} size={32} />
                       <div className="text-left">
-                        <span className="font-bold text-[#FFFFFF]">{currentTokenLabel}</span>
-                        <span className="text-xs text-zinc-400 ml-2">
+                        <span className="font-black text-[#FFFFFF]">{currentTokenLabel}</span>
+                        <span className="text-xs font-bold text-zinc-400 ml-2">
                           {activeTokenConfig?.networkName ?? 'Polygon'}
                         </span>
                       </div>
                     </div>
                     <ChevronDown
-                      className={`w-4 h-4 text-zinc-400 transition-transform ${
+                      className={`w-4 h-4 text-zinc-300 stroke-[2.5] transition-transform ${
                         dropdownOpen ? 'rotate-180' : ''
                       }`}
                     />
                   </button>
 
                   {dropdownOpen && (
-                    <div className="absolute left-0 right-0 mt-1.5 bg-zinc-900 rounded-xl shadow-2xl border border-zinc-800 overflow-hidden z-50 divide-y divide-zinc-800">
+                    <div className="absolute left-0 right-0 mt-1.5 bg-zinc-900 rounded-xl shadow-2xl border-2 border-zinc-700 overflow-hidden z-50 divide-y divide-zinc-800">
                       {TOKEN_LIST.map((token) => {
                         const isSelected = selectedToken === token.symbol;
                         return (
@@ -500,20 +507,20 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                             }}
                             className={`w-full flex items-center justify-between px-4 py-3.5 min-h-[52px] text-sm transition cursor-pointer ${
                               isSelected
-                                ? 'bg-zinc-800 text-[#3B82F6] font-semibold'
-                                : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                                ? 'bg-zinc-800 text-[#3B82F6] font-black'
+                                : 'text-zinc-100 hover:bg-zinc-800 hover:text-white font-bold'
                             }`}
                           >
                             <div className="flex items-center gap-3">
                               <TokenIcon token={token.symbol} size={32} />
                               <div className="text-left">
-                                <span className="font-bold">{token.label}</span>
-                                <span className="text-xs text-zinc-400 block">
+                                <span className="font-black text-white">{token.label}</span>
+                                <span className="text-xs font-bold text-zinc-400 block">
                                   {token.networkName}
                                 </span>
                               </div>
                             </div>
-                            {isSelected && <Check className="w-4 h-4 text-[#3B82F6]" />}
+                            {isSelected && <Check className="w-5 h-5 text-[#3B82F6] stroke-[3]" />}
                           </button>
                         );
                       })}

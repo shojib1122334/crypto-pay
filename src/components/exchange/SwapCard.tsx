@@ -238,14 +238,14 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
                   <button
                     type="button"
                     onClick={() => handlePercent(0.5)}
-                    className="px-1.5 py-0.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 rounded"
+                    className="px-2 py-0.5 text-[11px] font-extrabold text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/80 hover:bg-indigo-200 border border-indigo-300 dark:border-indigo-800 rounded-md transition cursor-pointer shadow-2xs"
                   >
                     50%
                   </button>
                   <button
                     type="button"
                     onClick={() => handlePercent(1.0)}
-                    className="px-1.5 py-0.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 rounded"
+                    className="px-2 py-0.5 text-[11px] font-extrabold text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/80 hover:bg-indigo-200 border border-indigo-300 dark:border-indigo-800 rounded-md transition cursor-pointer shadow-2xs"
                   >
                     MAX
                   </button>
@@ -262,27 +262,27 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               placeholder="0"
               value={inputAmount}
               onChange={(e) => setInputAmount(e.target.value)}
-              className="w-full bg-transparent text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none"
+              className="w-full bg-transparent text-2xl sm:text-3xl font-black text-slate-950 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none"
             />
 
             {/* Token Selector Button */}
             <button
               type="button"
               onClick={() => setIsInputTokenModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-colors shrink-0"
+              className="flex items-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-500 rounded-xl shadow-xs hover:bg-purple-50/20 dark:hover:bg-slate-700/80 transition-all shrink-0 cursor-pointer"
             >
               <TokenIcon token={inputToken.symbol} size={24} className="rounded-full shadow-xs" />
-              <span className="font-bold text-sm text-slate-900 dark:text-white">
+              <span className="font-extrabold text-sm text-slate-950 dark:text-white">
                 {inputToken.symbol}
               </span>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
+              <ChevronDown className="w-4 h-4 text-purple-600 dark:text-purple-400 stroke-[2.5]" />
             </button>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2">
-            <span>{inputUsdValue}</span>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mt-2">
+            <span className="font-semibold">{inputUsdValue}</span>
             {isConnected && (
-              <span className="text-[10px] text-slate-400">
+              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
                 Available: {formatTokenAmount(balances[inputToken.symbol])} {inputToken.symbol}
               </span>
             )}
@@ -296,7 +296,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
           <button
             type="button"
             onClick={handleSwitchDirection}
-            className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-md text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:scale-110 active:scale-95 transition-all duration-200"
+            className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-md text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
             title="Switch swap direction"
           >
             <ArrowUpDown className="w-4 h-4" />
@@ -307,13 +307,13 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
         {/* "You Receive" Output Box */}
         {/* ======================================================== */}
         <div className="p-4 bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-2xl transition-all">
-          <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
             <span>You Receive</span>
-            <span>Balance: <strong className="text-slate-700 dark:text-slate-200 font-semibold">{formatTokenAmount(balances[outputToken.symbol])}</strong></span>
+            <span>Balance: <strong className="text-slate-950 dark:text-white font-extrabold">{formatTokenAmount(balances[outputToken.symbol])}</strong></span>
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            <div className="w-full text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white select-all">
+            <div className="w-full text-2xl sm:text-3xl font-black text-slate-950 dark:text-white select-all">
               {isQuoteLoading ? (
                 <span className="text-slate-400 animate-pulse">Calculating...</span>
               ) : quote ? (
@@ -327,13 +327,13 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
             <button
               type="button"
               onClick={() => setIsOutputTokenModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-colors shrink-0"
+              className="flex items-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-500 rounded-xl shadow-xs hover:bg-purple-50/20 dark:hover:bg-slate-700/80 transition-all shrink-0 cursor-pointer"
             >
               <TokenIcon token={outputToken.symbol} size={24} className="rounded-full shadow-xs" />
-              <span className="font-bold text-sm text-slate-900 dark:text-white">
+              <span className="font-extrabold text-sm text-slate-950 dark:text-white">
                 {outputToken.symbol}
               </span>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
+              <ChevronDown className="w-4 h-4 text-purple-600 dark:text-purple-400 stroke-[2.5]" />
             </button>
           </div>
 

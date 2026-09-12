@@ -1,6 +1,5 @@
 import React from 'react';
 import { Layers, CreditCard, FileText, ArrowLeftRight, Activity, Settings, type LucideIcon } from 'lucide-react';
-import { motion } from 'motion/react';
 import type { NavTab } from '@/types/navigation';
 
 interface BottomNavBarProps {
@@ -80,30 +79,28 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               key={item.id}
               id={`nav-tab-${item.id}`}
               onClick={() => onTabChange(item.id)}
-              className="relative flex flex-col items-center justify-center flex-1 min-w-0 sm:min-w-[56px] py-1.5 px-1 rounded-xl sm:rounded-2xl transition-all duration-200 group select-none cursor-pointer"
+              className="relative flex flex-col items-center justify-center flex-1 min-w-0 sm:min-w-[56px] py-1.5 px-1 rounded-xl sm:rounded-2xl group select-none cursor-pointer"
             >
-              {/* Active Animated Gradient Sliding Pill */}
+              {/* Active Static Gradient Pill - No Animation */}
               {isActive && (
-                <motion.div
-                  layoutId="active-bottom-nav-gradient"
-                  transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                <div
                   className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 shadow-md shadow-purple-500/30"
                 />
               )}
 
               <div className="relative z-10 flex items-center justify-center">
                 <Icon
-                  className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 ${
+                  className={`w-4 h-4 sm:w-5 sm:h-5 ${
                     isActive
                       ? 'text-white scale-110 stroke-[2.4]'
-                      : `${item.accentColor} group-hover:scale-105 opacity-85 group-hover:opacity-100`
+                      : `${item.accentColor} opacity-85 group-hover:opacity-100`
                   }`}
                   strokeWidth={isActive ? 2.4 : 2}
                 />
               </div>
 
               <span
-                className={`relative z-10 text-[10px] sm:text-xs tracking-tight mt-0.5 transition-colors whitespace-nowrap font-bold ${
+                className={`relative z-10 text-[10px] sm:text-xs tracking-tight mt-0.5 whitespace-nowrap font-bold ${
                   isActive
                     ? 'text-white'
                     : 'text-slate-600 group-hover:text-slate-950'

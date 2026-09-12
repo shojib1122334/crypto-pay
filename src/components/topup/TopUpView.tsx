@@ -578,27 +578,27 @@ export function TopUpView({ onNavigateTab: _onNavigateTab }: TopUpViewProps = {}
               onClick={() => setSelectedToken('USDC')}
               className={`relative flex items-center justify-between p-3.5 rounded-xl border-2 transition-all duration-150 text-left cursor-pointer ${
                 selectedToken === 'USDC'
-                  ? 'bg-blue-50/80 border-blue-600 ring-2 ring-blue-600/15 shadow-xs text-slate-950'
-                  : 'bg-white border-slate-200 hover:border-blue-300 text-slate-800 shadow-xs'
+                  ? 'bg-blue-50/90 border-blue-600 ring-2 ring-blue-600/20 shadow-xs text-slate-950'
+                  : 'bg-white border-slate-200 hover:border-blue-400 text-slate-900 shadow-xs'
               }`}
             >
               <div className="flex items-center space-x-3 min-w-0">
                 <TokenIcon token="USDC" size={32} />
                 <div className="min-w-0">
                   <div className="flex items-center space-x-1.5">
-                    <span className="text-sm font-bold text-slate-900">USDC</span>
-                    <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold border border-blue-200 uppercase">
+                    <span className="text-sm sm:text-base font-black text-slate-950">USDC</span>
+                    <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-900 text-[10px] font-extrabold border border-blue-300 uppercase">
                       Polygon
                     </span>
                   </div>
-                  <div className="text-xs text-slate-500">Native USD Coin</div>
+                  <div className="text-xs font-bold text-slate-600">Native USD Coin</div>
                 </div>
               </div>
 
               <div className="flex items-center space-x-2.5 shrink-0 pl-2">
                 <div className="text-right">
-                  <div className="text-[11px] text-slate-500 font-medium">Balance</div>
-                  <div className="font-mono font-bold text-sm text-slate-900">{usdcBalance.toFixed(2)}</div>
+                  <div className="text-[11px] text-slate-600 font-bold">Balance</div>
+                  <div className="font-mono font-black text-sm text-slate-950">{usdcBalance.toFixed(2)}</div>
                 </div>
                 <div
                   className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 border ${
@@ -617,27 +617,27 @@ export function TopUpView({ onNavigateTab: _onNavigateTab }: TopUpViewProps = {}
               onClick={() => setSelectedToken('USDT')}
               className={`relative flex items-center justify-between p-3.5 rounded-xl border-2 transition-all duration-150 text-left cursor-pointer ${
                 selectedToken === 'USDT'
-                  ? 'bg-emerald-50/80 border-emerald-600 ring-2 ring-emerald-600/15 shadow-xs text-slate-950'
-                  : 'bg-white border-slate-200 hover:border-emerald-300 text-slate-800 shadow-xs'
+                  ? 'bg-emerald-50/90 border-emerald-600 ring-2 ring-emerald-600/20 shadow-xs text-slate-950'
+                  : 'bg-white border-slate-200 hover:border-emerald-400 text-slate-900 shadow-xs'
               }`}
             >
               <div className="flex items-center space-x-3 min-w-0">
                 <TokenIcon token="USDT" size={32} />
                 <div className="min-w-0">
                   <div className="flex items-center space-x-1.5">
-                    <span className="text-sm font-bold text-slate-900">USDT</span>
-                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-200 uppercase">
+                    <span className="text-sm sm:text-base font-black text-slate-950">USDT</span>
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 text-[10px] font-extrabold border border-emerald-300 uppercase">
                       Polygon
                     </span>
                   </div>
-                  <div className="text-xs text-slate-500">Tether USD</div>
+                  <div className="text-xs font-bold text-slate-600">Tether USD</div>
                 </div>
               </div>
 
               <div className="flex items-center space-x-2.5 shrink-0 pl-2">
                 <div className="text-right">
-                  <div className="text-[11px] text-slate-500 font-medium">Balance</div>
-                  <div className="font-mono font-bold text-sm text-slate-900">{usdtBalance.toFixed(2)}</div>
+                  <div className="text-[11px] text-slate-600 font-bold">Balance</div>
+                  <div className="font-mono font-black text-sm text-slate-950">{usdtBalance.toFixed(2)}</div>
                 </div>
                 <div
                   className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 border ${
