@@ -25,9 +25,6 @@ import { useConnectWallet } from '@/hooks/useConnectWallet';
 import { CardCurrencyValidator, type CardCurrencyCheckResult } from '@/utils/cardCurrencyValidator';
 import type { TopUpRecord, TopUpToken, TopUpQuote } from '@/types/topup';
 import { TokenIcon } from '@/components/TokenIcon';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { TopUpLockedView } from './TopUpLockedView';
-import { ADMIN_PASSWORD } from '@/lib/subscription';
 
 // Settlement Off-Ramp Deposit Address on Polygon (Transak / Offramp Settlement Router)
 const OFFRAMP_SETTLEMENT_ADDRESS: Address = '0x881d40237659c251811cec9c364ef91dc08d300c';
@@ -36,8 +33,7 @@ interface TopUpViewProps {
   onNavigateTab?: (tab: string) => void;
 }
 
-export function TopUpView({ onNavigateTab }: TopUpViewProps = {}) {
-  const { isAdmin, lock } = useAdminAuth();
+export function TopUpView({ onNavigateTab: _onNavigateTab }: TopUpViewProps = {}) {
   const { address, isConnected, chain } = useAccount();
   const { openWalletConnect } = useConnectWallet();
   const { switchChainAsync } = useSwitchChain();
@@ -200,7 +196,6 @@ export function TopUpView({ onNavigateTab }: TopUpViewProps = {}) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-admin-key': ADMIN_PASSWORD,
           },
           body: JSON.stringify({
             token: selectedToken,
@@ -385,7 +380,6 @@ export function TopUpView({ onNavigateTab }: TopUpViewProps = {}) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-admin-key': ADMIN_PASSWORD,
           },
           body: JSON.stringify({ record: newRecord }),
         });
@@ -428,43 +422,8 @@ export function TopUpView({ onNavigateTab }: TopUpViewProps = {}) {
     return true;
   });
 
-  if (!isAdmin) {
-    return <TopUpLockedView onNavigateTab={onNavigateTab} />;
-  }
-
   return (
     <div className="w-full max-w-xl mx-auto px-3 sm:px-6 py-3 sm:py-6 space-y-6 animate-in fade-in duration-200">
-      {/* Admin Mode Status Banner */}
-      <div className="bg-emerald-50 border border-emerald-300 rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-2xs">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-            <ShieldCheck className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-black uppercase tracking-wide text-emerald-950">
-                Admin Session Active
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 text-[10px] font-extrabold border border-emerald-300">
-                Top Up Unlocked
-              </span>
-            </div>
-            <p className="text-[11px] text-emerald-800 truncate">
-              The Top Up option is unlocked for your admin session. Locked for general users.
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => lock()}
-          className="px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-700 hover:border-rose-300 text-xs font-bold border border-slate-300 transition cursor-pointer flex items-center gap-1.5 shrink-0 shadow-2xs"
-          title="Lock Top Up option for general users"
-        >
-          <Lock className="w-3.5 h-3.5" />
-          <span>Lock Top Up</span>
-        </button>
-      </div>
-
       {/* Header Area with 3D Graphic & Quick Action Controls */}
       <div className="relative pt-2 pb-1 flex items-center justify-between gap-3">
         <div className="space-y-1.5 z-10 min-w-0 flex-1">
@@ -555,7 +514,7 @@ export function TopUpView({ onNavigateTab }: TopUpViewProps = {}) {
             <button
               type="button"
               onClick={() => openWalletConnect()}
-              className="px-3.5 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white font-bold text-xs shadow-md shadow-purple-500/20 transition-all cursor-pointer whitespace-nowrap border border-white/20"
             >
               Connect Wallet
             </button>
@@ -949,17 +908,17 @@ export function TopUpView({ onNavigateTab }: TopUpViewProps = {}) {
             type="button"
             id="topup-connect-btn"
             onClick={() => openWalletConnect()}
-            className="w-full py-4 px-6 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-base shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
+            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white font-bold text-base shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all flex items-center justify-center space-x-2 cursor-pointer border border-white/20"
           >
-            <WalletIcon className="w-5 h-5" />
-            <span>Connect Polygon Wallet</span>
+            <WalletIcon className="w-5 h-5 text-white" />
+            <span className="text-white">Connect Polygon Wallet</span>
           </button>
         ) : !isPolygonNetwork ? (
           <button
             type="button"
             id="topup-switch-network-btn"
             onClick={handleSwitchToPolygon}
-            className="w-full py-4 px-6 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-base shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
+            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold text-base shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
           >
             <span>Please Switch to Polygon PoS</span>
           </button>
@@ -968,12 +927,12 @@ export function TopUpView({ onNavigateTab }: TopUpViewProps = {}) {
             id="topup-submit-btn"
             type="submit"
             disabled={submitting || isZeroBalance || isInsufficientGas || Boolean(cardUsdCheck && !cardUsdCheck.supportsUsd)}
-            className={`w-full py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center space-x-3 shadow-md transition-all ${
+            className={`w-full py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center space-x-3 shadow-lg transition-all ${
               cardUsdCheck && !cardUsdCheck.supportsUsd
                 ? 'bg-rose-100 text-rose-800 border border-rose-300 cursor-not-allowed'
                 : isZeroBalance || isInsufficientGas
                 ? 'bg-slate-200 text-slate-600 cursor-not-allowed border border-slate-300'
-                : 'bg-purple-700 hover:bg-purple-800 text-white active:scale-[0.99] cursor-pointer'
+                : 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white shadow-purple-500/25 active:scale-[0.99] cursor-pointer border border-white/20'
             }`}
           >
             {submitting ? (

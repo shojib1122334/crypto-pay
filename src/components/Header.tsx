@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Wallet, Download, Layers, CreditCard, FileText, ArrowLeftRight, Activity, Settings, Menu, X, Lock } from 'lucide-react';
+import { Wallet, Download, Layers, CreditCard, FileText, ArrowLeftRight, Activity, Settings, Menu, X } from 'lucide-react';
+import { motion } from 'motion/react';
 import { BrandLogo } from '@/components/BrandLogo';
 import { usePWA } from '@/hooks/usePWA';
 import { useConnectWallet } from '@/hooks/useConnectWallet';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
 import type { NavTab } from '@/types/navigation';
 
 interface HeaderProps {
@@ -12,10 +12,25 @@ interface HeaderProps {
   onNavigateTab?: (tab: NavTab) => void;
 }
 
+interface NavItemConfig {
+  id: NavTab;
+  label: string;
+  icon: React.ElementType;
+  accentColor: string;
+}
+
+const NAV_ITEMS: NavItemConfig[] = [
+  { id: 'pay-system', label: 'Pay system', icon: Layers, accentColor: 'text-blue-600' },
+  { id: 'top-up', label: 'Top Up', icon: CreditCard, accentColor: 'text-cyan-600' },
+  { id: 'create-invoice', label: 'Create Invoice', icon: FileText, accentColor: 'text-purple-600' },
+  { id: 'exchange', label: 'Exchange', icon: ArrowLeftRight, accentColor: 'text-indigo-600' },
+  { id: 'activity', label: 'Activity', icon: Activity, accentColor: 'text-emerald-600' },
+  { id: 'settings', label: 'Settings', icon: Settings, accentColor: 'text-violet-600' },
+];
+
 export default function Header({ activeTab = 'pay-system', onNavigateTab }: HeaderProps) {
   const { isInstalled, isInstallable, installApp } = usePWA();
   const { openWalletConnect } = useConnectWallet();
-  const { isAdmin } = useAdminAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNav = (tab: NavTab) => {
@@ -27,124 +42,77 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs transition-colors duration-200 relative">
-        {/* Subtle Wave Glow Background Accent along the bottom */}
-        <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-blue-500/20 via-purple-500/30 to-blue-500/20 pointer-events-none opacity-80" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-50/40 pointer-events-none" />
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 via-cyan-600 via-purple-600 to-pink-500 backdrop-blur-xl border-b border-white/20 shadow-lg shadow-purple-500/20 transition-all duration-200 relative">
+        {/* Subtle Top & Bottom Luminescent Highlight */}
+        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-white/40 pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-[1px] bg-white/20 pointer-events-none" />
 
-        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4 relative z-10 min-h-[4rem]">
-          {/* Left Side: Brand Logo + "Crypto pay" + Tagline */}
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4 relative z-10 min-h-[4.25rem]">
+          {/* Left Side: Brand Logo (100% UNTOUCHED) + "Crypto pay" + Tagline */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
             <button
               onClick={() => handleNav('pay-system')}
               className="flex items-center gap-2.5 sm:gap-3 group text-left focus:outline-none cursor-pointer"
               aria-label="CryptoPay Home"
             >
-              {/* App Icon (Squircle / Rounded Square) */}
-              <div className="relative flex-shrink-0">
-                <BrandLogo size={40} showText={false} className="shadow-xs group-hover:scale-105 transition-transform duration-200" />
+              {/* App Icon (Preserved with authentic original styling & colors) */}
+              <div className="relative flex-shrink-0 p-0.5 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/30 shadow-xs group-hover:scale-105 transition-transform duration-200">
+                <BrandLogo size={40} showText={false} />
               </div>
 
-              {/* Title & Tagline matching reference picture */}
+              {/* Title & Tagline */}
               <div className="flex flex-col justify-center min-w-0">
                 <div className="flex items-baseline gap-1 leading-tight">
-                  <span className="font-black text-base sm:text-xl lg:text-2xl tracking-tight text-slate-900 select-none whitespace-nowrap">
+                  <span className="font-black text-base sm:text-xl lg:text-2xl tracking-tight text-white drop-shadow-sm select-none whitespace-nowrap">
                     𝑪𝑹𝒀𝑷𝑻𝑶 𝑷𝑨𝒀
                   </span>
                 </div>
-                <p className="hidden sm:block text-[10px] lg:text-[11px] text-slate-500 font-medium tracking-normal leading-tight truncate select-none">
+                <p className="hidden sm:block text-[10px] lg:text-[11px] text-sky-100 font-medium tracking-normal leading-tight truncate select-none">
                   Pay with Crypto. Get Paid in Your Way.
                 </p>
               </div>
             </button>
           </div>
 
-          {/* Center: Full Desktop & Tablet Navigation Bar */}
-          <nav className="hidden md:flex items-center gap-1 lg:gap-1.5 flex-shrink-1">
-            <button
-              onClick={() => handleNav('pay-system')}
-              className={`text-xs lg:text-sm font-semibold transition-all cursor-pointer py-2 px-2.5 lg:px-3 rounded-xl flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'pay-system'
-                  ? 'text-blue-700 bg-blue-50 border border-blue-300 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
-              }`}
-            >
-              <Layers className="w-4 h-4 text-blue-600" />
-              <span>Pay system</span>
-            </button>
+          {/* Center: Full Desktop Navigation Bar (Light Glass Container + Gradient Active Pill) */}
+          <nav className="hidden md:flex items-center p-1 bg-white/90 backdrop-blur-xl rounded-2xl border border-white/50 shadow-lg shadow-purple-950/15 relative">
+            {NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
 
-            <button
-              onClick={() => handleNav('top-up')}
-              className={`text-xs lg:text-sm font-semibold transition-all cursor-pointer py-2 px-2.5 lg:px-3 rounded-xl flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'top-up'
-                  ? 'text-blue-700 bg-blue-50 border border-blue-300 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
-              }`}
-            >
-              <CreditCard className="w-4 h-4 text-blue-600" />
-              <span>Top Up</span>
-              {!isAdmin && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-300 shadow-2xs">
-                  <Lock className="w-2.5 h-2.5" />
-                  <span>Locked</span>
-                </span>
-              )}
-            </button>
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNav(item.id)}
+                  className={`relative text-xs lg:text-sm font-semibold transition-colors duration-200 cursor-pointer py-2 px-3 lg:px-3.5 rounded-xl flex items-center gap-1.5 whitespace-nowrap select-none ${
+                    isActive ? 'text-white' : 'text-slate-600 hover:text-slate-950'
+                  }`}
+                >
+                  {/* Active Sliding Gradient Background Pill: Blue → Purple → Pink */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="active-desktop-nav-pill"
+                      transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 shadow-md shadow-purple-500/30"
+                    />
+                  )}
 
-            <button
-              onClick={() => handleNav('create-invoice')}
-              className={`text-xs lg:text-sm font-semibold transition-all cursor-pointer py-2 px-2.5 lg:px-3 rounded-xl flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'create-invoice'
-                  ? 'text-emerald-700 bg-emerald-50 border border-emerald-300 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
-              }`}
-            >
-              <FileText className="w-4 h-4 text-emerald-600" />
-              <span>Create Invoice</span>
-            </button>
-
-            <button
-              onClick={() => handleNav('exchange')}
-              className={`text-xs lg:text-sm font-semibold transition-all cursor-pointer py-2 px-2.5 lg:px-3 rounded-xl flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'exchange'
-                  ? 'text-indigo-700 bg-indigo-50 border border-indigo-300 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
-              }`}
-            >
-              <ArrowLeftRight className="w-4 h-4 text-indigo-600" />
-              <span>Exchange</span>
-            </button>
-
-            <button
-              onClick={() => handleNav('activity')}
-              className={`text-xs lg:text-sm font-semibold transition-all cursor-pointer py-2 px-2.5 lg:px-3 rounded-xl flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'activity'
-                  ? 'text-amber-800 bg-amber-50 border border-amber-300 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
-              }`}
-            >
-              <Activity className="w-4 h-4 text-amber-600" />
-              <span>Activity</span>
-            </button>
-
-            <button
-              onClick={() => handleNav('settings')}
-              className={`text-xs lg:text-sm font-semibold transition-all cursor-pointer py-2 px-2.5 lg:px-3 rounded-xl flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'settings'
-                  ? 'text-slate-900 bg-slate-100 border border-slate-300 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
-              }`}
-            >
-              <Settings className="w-4 h-4 text-slate-600" />
-              <span>Settings</span>
-            </button>
+                  <Icon
+                    className={`w-4 h-4 relative z-10 transition-colors duration-200 ${
+                      isActive ? 'text-white stroke-[2.2]' : item.accentColor
+                    }`}
+                  />
+                  <span className="relative z-10 font-bold">{item.label}</span>
+                </button>
+              );
+            })}
           </nav>
 
           {/* Right Side: Network Badge + PWA Install + Connect Wallet + Mobile Menu Toggle */}
           <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
             {/* Polygon Network Active Badge */}
-            <div className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+            <div className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold tracking-wider bg-white/15 backdrop-blur-md text-white border border-white/25 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#22D3EE] animate-pulse" />
               <span>POLYGON</span>
             </div>
 
@@ -153,15 +121,15 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
               <button
                 onClick={() => installApp()}
                 type="button"
-                className="hidden lg:inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-blue-700 hover:text-blue-800 border border-blue-200 text-xs font-bold transition shadow-xs cursor-pointer"
+                className="hidden lg:inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-md text-xs font-bold transition shadow-xs cursor-pointer"
                 title="Install CryptoPay Progressive Web App"
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-3.5 h-3.5 text-white" />
                 <span>Install</span>
               </button>
             )}
 
-            {/* RainbowKit Connect Wallet Button */}
+            {/* RainbowKit Connect Wallet Button with Blue → Purple → Pink Gradient */}
             <div className="header-connect-wrapper">
               <ConnectButton.Custom>
                 {({
@@ -191,9 +159,9 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
                             <button
                               onClick={() => openWalletConnect(openConnectModal)}
                               type="button"
-                              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 text-xs sm:text-sm font-bold active:scale-[0.98] transition-all whitespace-nowrap cursor-pointer border border-blue-400/30"
+                              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white hover:bg-slate-50 text-purple-700 shadow-md shadow-black/10 text-xs sm:text-sm font-bold active:scale-[0.98] transition-all whitespace-nowrap cursor-pointer border border-white/60"
                             >
-                              <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white stroke-[2.2]" />
+                              <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600 stroke-[2.2]" />
                               <span>Connect Wallet</span>
                             </button>
                           );
@@ -203,7 +171,7 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
                             <button
                               onClick={openChainModal}
                               type="button"
-                              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#DC2626] hover:bg-red-700 text-white text-xs sm:text-sm font-bold shadow-xs transition whitespace-nowrap cursor-pointer"
+                              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold shadow-xs transition whitespace-nowrap cursor-pointer"
                             >
                               Wrong Network
                             </button>
@@ -214,9 +182,9 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
                             <button
                               onClick={openAccountModal}
                               type="button"
-                              className="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white border border-slate-300 text-slate-900 hover:border-blue-400 hover:text-blue-700 text-xs sm:text-sm font-bold shadow-xs transition whitespace-nowrap cursor-pointer"
+                              className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white/95 backdrop-blur-md border border-white/40 text-slate-900 text-xs sm:text-sm font-bold shadow-xs hover:shadow-sm transition whitespace-nowrap cursor-pointer"
                             >
-                              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10B981] animate-pulse" />
                               <span className="max-w-[100px] sm:max-w-none truncate">{account.displayName}</span>
                             </button>
                           </div>
@@ -231,14 +199,14 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
             {/* Mobile Hamburger Menu Toggle Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-xl bg-white border border-slate-200/90 hover:border-slate-300 shadow-xs hover:bg-slate-50 flex items-center justify-center text-slate-800 transition active:scale-95 cursor-pointer flex-shrink-0"
+              className="md:hidden p-2 rounded-xl bg-white/20 border border-white/30 hover:bg-white/30 shadow-xs flex items-center justify-center text-white transition active:scale-95 cursor-pointer flex-shrink-0"
               aria-label="Toggle navigation menu"
               title="Navigation Menu"
             >
               {mobileMenuOpen ? (
-                <X className="w-5 h-5 text-slate-800 stroke-[2.2]" />
+                <X className="w-5 h-5 text-white stroke-[2.2]" />
               ) : (
-                <Menu className="w-5 h-5 text-slate-800 stroke-[2.2]" />
+                <Menu className="w-5 h-5 text-white stroke-[2.2]" />
               )}
             </button>
           </div>
@@ -246,7 +214,7 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
 
         {/* Mobile Dropdown Navigation Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 bg-white/98 backdrop-blur-xl px-4 py-3 space-y-2 animate-fadeIn shadow-xl max-w-7xl mx-auto">
+          <div className="md:hidden border-t border-white/20 bg-white/98 backdrop-blur-xl px-4 py-3 space-y-2 animate-fadeIn shadow-2xl max-w-7xl mx-auto rounded-b-2xl">
             <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 text-xs text-slate-500 font-semibold uppercase tracking-wider">
               <span>Navigation</span>
               <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -256,85 +224,24 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-              <button
-                onClick={() => handleNav('pay-system')}
-                className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${
-                  activeTab === 'pay-system'
-                    ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
-                }`}
-              >
-                <Layers className="w-4 h-4 text-blue-600" />
-                <span>Pay system</span>
-              </button>
-
-              <button
-                onClick={() => handleNav('top-up')}
-                className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-between text-left transition cursor-pointer ${
-                  activeTab === 'top-up'
-                    ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <CreditCard className="w-4 h-4 text-blue-600" />
-                  <span>Top Up</span>
-                </div>
-                {!isAdmin && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-300">
-                    <Lock className="w-2.5 h-2.5" />
-                    <span>Locked</span>
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => handleNav('create-invoice')}
-                className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${
-                  activeTab === 'create-invoice'
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
-                }`}
-              >
-                <FileText className="w-4 h-4 text-emerald-600" />
-                <span>Create Invoice</span>
-              </button>
-
-              <button
-                onClick={() => handleNav('exchange')}
-                className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${
-                  activeTab === 'exchange'
-                    ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
-                }`}
-              >
-                <ArrowLeftRight className="w-4 h-4 text-indigo-600" />
-                <span>Exchange</span>
-              </button>
-
-              <button
-                onClick={() => handleNav('activity')}
-                className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${
-                  activeTab === 'activity'
-                    ? 'bg-amber-50 text-amber-800 border border-amber-200 shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
-                }`}
-              >
-                <Activity className="w-4 h-4 text-amber-600" />
-                <span>Activity</span>
-              </button>
-
-              <button
-                onClick={() => handleNav('settings')}
-                className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${
-                  activeTab === 'settings'
-                    ? 'bg-slate-100 text-slate-900 border border-slate-300 shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
-                }`}
-              >
-                <Settings className="w-4 h-4 text-slate-600" />
-                <span>Settings</span>
-              </button>
+              {NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNav(item.id)}
+                    className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-transparent'
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white stroke-[2.2]' : item.accentColor}`} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* PWA Install Button if available */}
@@ -343,9 +250,9 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
                 <button
                   onClick={() => installApp()}
                   type="button"
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold transition shadow-xs cursor-pointer"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-bold transition shadow-xs cursor-pointer"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-4 h-4 text-purple-600" />
                   <span>Install CryptoPay Web App</span>
                 </button>
               </div>

@@ -92,81 +92,196 @@ html.light ::-webkit-scrollbar-thumb:hover {
 
 /* =========================================================================
    LIGHT THEME ADAPTIVE STYLES
-   Changes background to crisp white and adjusts all text/cards for optimal readability
+   Changes background to colorful light atmosphere and sets Web3 typography
    ========================================================================= */
 
 html.light,
 html.light body,
 html.light #app-root-container,
 html.light .app-main-bg {
-  background-color: #F8FAFC !important;
-  color: #09090B !important;
+  background-color: #F5F7FF !important;
+  color: #101B5C !important;
 }
 
-/* Base typography overrides in light mode */
+/* Base typography overrides in light mode: Deep navy / royal blue / dark indigo headings */
 html.light h1,
 html.light h2,
 html.light h3,
 html.light h4,
 html.light h5,
 html.light h6 {
-  color: #09090B !important;
+  color: #101B5C !important;
   font-weight: 700;
 }
 
-html.light p,
-html.light span,
-html.light div,
+/* Secondary body text: Blue-gray / indigo-gray */
+html.light p {
+  color: #5367A5;
+}
+
 html.light label {
-  color: inherit;
+  color: #172A7A;
 }
 
 /* Primary High Contrast Text */
-html.light .text-white,
-html.light .text-\[\#FFFFFF\],
 html.light .text-zinc-100,
-html.light .text-zinc-200 {
-  color: #09090B !important;
+html.light .text-zinc-200,
+html.light .text-slate-900,
+html.light .text-zinc-900 {
+  color: #101B5C !important;
 }
 
-/* Secondary High Contrast Text - Dark Charcoal / Slate for maximum legibility */
+/* Maintain true white text for gradient backgrounds, buttons, chips, and forced white text */
+.text-white,
+.text-white-force,
+[class*="bg-gradient-"] .text-white,
+[class*="bg-gradient-"] span,
+[class*="bg-gradient-"] p,
+[class*="bg-gradient-"] div,
+[class*="bg-gradient-"] svg,
+.btn-gradient-primary,
+.btn-gradient-primary * {
+  color: #FFFFFF !important;
+}
+
+/* Web3 Futuristic Glassmorphism & Gradient Utilities */
+.web3-glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(214, 224, 245, 0.9);
+  box-shadow: 0 12px 32px -4px rgba(99, 102, 241, 0.08), 0 4px 14px -2px rgba(147, 51, 234, 0.05);
+}
+
+.web3-glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.web3-glass-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px -6px rgba(147, 51, 234, 0.16), 0 6px 18px -3px rgba(59, 130, 246, 0.1);
+  border-color: rgba(192, 132, 252, 0.6);
+}
+
+.web3-gradient-accent {
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #EC4899 100%);
+}
+
+.web3-gradient-text {
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #EC4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Custom Gradient Text Variations */
+.text-gradient-blue-purple {
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-purple-pink {
+  background: linear-gradient(135deg, #7C3AED 0%, #EC4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-cyan-blue {
+  background: linear-gradient(135deg, #06B6D4 0%, #2563EB 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-green-cyan {
+  background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-orange-pink {
+  background: linear-gradient(135deg, #F97316 0%, #EC4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-navy-primary {
+  color: #101B5C !important;
+}
+
+.text-indigo-secondary {
+  color: #5367A5 !important;
+}
+
+.web3-gradient-border {
+  position: relative;
+  background-clip: padding-box;
+}
+
+.web3-glow-blue {
+  box-shadow: 0 0 24px -4px rgba(37, 99, 235, 0.25);
+}
+
+.web3-glow-purple {
+  box-shadow: 0 0 24px -4px rgba(147, 51, 234, 0.28);
+}
+
+.web3-glow-pink {
+  box-shadow: 0 0 24px -4px rgba(236, 72, 153, 0.25);
+}
+
+.web3-input {
+  background-color: #FFFFFF !important;
+  color: #101B5C !important;
+  border: 1.5px solid #D6E0F5 !important;
+  transition: all 0.2s ease;
+}
+
+.web3-input:focus {
+  border-color: #8B5CF6 !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25), 0 0 14px -2px rgba(99, 102, 241, 0.2) !important;
+  outline: none !important;
+}
+
+/* Secondary High Contrast Text - Blue-gray / indigo-gray */
 html.light .text-zinc-300,
 html.light .text-zinc-400 {
-  color: #27272A !important;
+  color: #5367A5 !important;
   font-weight: 500;
 }
 
-/* Tertiary Text / Labels / Timestamps - Crisp Medium Slate */
+/* Tertiary Text / Labels / Timestamps - Soft Indigo Slate */
 html.light .text-zinc-500,
-html.light .text-zinc-600 {
-  color: #4B5563 !important;
+html.light .text-zinc-600,
+html.light .text-slate-500,
+html.light .text-slate-600 {
+  color: #6475A8 !important;
 }
 
 /* Accent Colors - Tuned for AAA contrast against white */
 html.light .text-\[\#00E676\],
 html.light .text-emerald-400,
 html.light .text-green-400 {
-  color: #047857 !important; /* Deep Emerald */
+  color: #059669 !important; /* Emerald */
   font-weight: 600;
 }
 
 html.light .text-\[\#3B82F6\],
 html.light .text-blue-400 {
-  color: #1D4ED8 !important; /* Royal Blue */
+  color: #2563EB !important; /* Royal Blue */
   font-weight: 600;
 }
 
 html.light .text-\[\#FACC15\],
 html.light .text-yellow-400,
 html.light .text-amber-400 {
-  color: #B45309 !important; /* Deep Amber */
+  color: #D97706 !important; /* Amber */
   font-weight: 600;
 }
 
 html.light .text-\[\#EF4444\],
 html.light .text-red-400,
 html.light .text-rose-400 {
-  color: #B91C1C !important; /* Deep Crimson */
+  color: #DC2626 !important; /* Crimson */
   font-weight: 600;
 }
 
@@ -175,29 +290,29 @@ html.light .bg-zinc-950,
 html.light .bg-black,
 html.light .bg-\[\#000000\] {
   background-color: #FFFFFF !important;
-  border-color: #E2E8F0 !important;
+  border-color: #D6E0F5 !important;
 }
 
 html.light .bg-zinc-900,
 html.light .bg-zinc-900\/60,
 html.light .bg-zinc-900\/80,
 html.light .bg-zinc-900\/90 {
-  background-color: #F1F5F9 !important;
-  border-color: #CBD5E1 !important;
+  background-color: #F6F8FE !important;
+  border-color: #D6E0F5 !important;
 }
 
 html.light .bg-zinc-850,
 html.light .bg-zinc-800 {
-  background-color: #E2E8F0 !important;
-  color: #09090B !important;
-  border-color: #CBD5E1 !important;
+  background-color: #EEF2FF !important;
+  color: #101B5C !important;
+  border-color: #D6E0F5 !important;
 }
 
 html.light .bg-zinc-950\/95,
 html.light .bg-zinc-950\/80,
 html.light .bg-black\/95 {
   background-color: rgba(255, 255, 255, 0.98) !important;
-  border-color: #E2E8F0 !important;
+  border-color: #D6E0F5 !important;
 }
 
 /* Borders */
@@ -207,29 +322,31 @@ html.light .border-zinc-850,
 html.light .border-zinc-700\/80,
 html.light .border-zinc-800\/80,
 html.light .border-zinc-800\/90 {
-  border-color: #CBD5E1 !important;
+  border-color: #D6E0F5 !important;
 }
 
 /* Form Inputs, Selects & Textareas */
-html.light input,
+html.light input:not([type="checkbox"]):not([type="radio"]),
 html.light textarea,
 html.light select {
   background-color: #FFFFFF !important;
-  color: #09090B !important;
-  border-color: #CBD5E1 !important;
+  color: #101B5C !important;
+  border: 1.5px solid #D6E0F5 !important;
   font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html.light input:focus,
 html.light textarea:focus,
 html.light select:focus {
-  border-color: #2563EB !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+  border-color: #8B5CF6 !important;
+  box-shadow: 0 0 0 3.5px rgba(139, 92, 246, 0.22), 0 0 16px -2px rgba(99, 102, 241, 0.2) !important;
+  outline: none !important;
 }
 
 html.light input::placeholder,
 html.light textarea::placeholder {
-  color: #64748B !important;
+  color: #8A9BC7 !important;
   font-weight: 400;
 }
 
@@ -237,7 +354,7 @@ html.light textarea::placeholder {
 html.light .shadow-xl,
 html.light .shadow-2xl,
 html.light .shadow-lg {
-  box-shadow: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04) !important;
+  box-shadow: 0 12px 30px -4px rgba(99, 102, 241, 0.08), 0 4px 10px -2px rgba(147, 51, 234, 0.04) !important;
 }
 
 html.light .shadow-\[0_-4px_25px_rgba\(0\,0\,0\,0\.9\)\] {

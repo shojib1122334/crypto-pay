@@ -417,55 +417,57 @@ export default function CustomerPaymentView({
   if (payState === 'success') {
     return (
       <div className="w-full max-w-lg mx-auto px-4 sm:px-6 py-12 sm:py-20 flex flex-col items-center">
-        <div className="w-full bg-zinc-950 rounded-3xl border border-zinc-800 shadow-2xl p-8 sm:p-10 text-center text-white">
-          <div className="w-20 h-20 rounded-2xl bg-zinc-900 border border-[#00E676]/40 flex items-center justify-center text-[#00E676] mx-auto mb-6 shadow-[0_0_20px_rgba(0,230,118,0.25)]">
-            <CheckCircle2 className="w-10 h-10 text-[#00E676]" />
+        <div className="w-full web3-glass-card rounded-3xl border border-white/80 shadow-2xl shadow-purple-500/10 p-8 sm:p-10 text-center relative overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
+
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-300 flex items-center justify-center text-emerald-600 mx-auto mb-6 shadow-md shadow-emerald-500/15">
+            <CheckCircle2 className="w-10 h-10 text-emerald-600" />
           </div>
           
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 text-[#00E676] border border-[#00E676]/40 text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold uppercase tracking-wider mb-2">
             Settled On-Chain
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#FFFFFF] tracking-tight mb-2">
+          <h2 className="text-2xl sm:text-3xl font-black text-[#101B5C] tracking-tight mb-2">
             Payment Completed
           </h2>
           
-          <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+          <p className="text-[#5367A5] text-sm leading-relaxed mb-6 font-medium">
             You successfully transferred{' '}
-            <strong className="text-[#FFFFFF] inline-flex items-center gap-1.5 align-middle font-bold">
+            <strong className="text-[#101B5C] inline-flex items-center gap-1.5 align-middle font-black">
               <TokenIcon token={params.token} size={18} />
               {amountDisplay} {tokenLabel}
             </strong>{' '}
             directly to the merchant wallet on Polygon Mainnet.
           </p>
 
-          <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 text-left space-y-2 mb-6">
+          <div className="bg-[#F8FAFF] rounded-2xl border border-[#D6E0F5] p-4 text-left space-y-2 mb-6">
             <div className="flex justify-between text-xs">
-              <span className="text-zinc-400">Merchant Recipient</span>
-              <span className="font-mono font-bold text-[#FFFFFF]">
+              <span className="text-[#5367A5] font-medium">Merchant Recipient</span>
+              <span className="font-mono font-bold text-[#101B5C]">
                 {merchantAddress.slice(0, 6)}...{merchantAddress.slice(-4)}
               </span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-zinc-400">Network</span>
-              <span className="font-semibold text-[#FFFFFF]">Polygon Mainnet (137)</span>
+              <span className="text-[#5367A5] font-medium">Network</span>
+              <span className="font-bold text-[#101B5C]">Polygon Mainnet (137)</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-zinc-400">Token Contract</span>
-              <span className="font-mono text-xs text-zinc-300 truncate max-w-[180px]">
+              <span className="text-[#5367A5] font-medium">Token Contract</span>
+              <span className="font-mono text-xs text-[#5367A5] truncate max-w-[180px]">
                 {token?.address}
               </span>
             </div>
             {transferVerified && (
-              <div className="flex justify-between text-xs text-[#00E676] font-semibold pt-1">
+              <div className="flex justify-between text-xs text-emerald-600 font-bold pt-1">
                 <span>Transfer Verification</span>
                 <span>Verified in Event Logs ✓</span>
               </div>
             )}
             {txHash && (
-              <div className="flex justify-between text-xs pt-2 border-t border-zinc-800">
-                <span className="text-zinc-400">Transaction</span>
-                <span className="font-mono text-xs text-[#3B82F6] truncate max-w-[180px]">
+              <div className="flex justify-between text-xs pt-2 border-t border-[#D6E0F5]">
+                <span className="text-[#5367A5] font-medium">Transaction</span>
+                <span className="font-mono text-xs text-blue-600 font-bold truncate max-w-[180px]">
                   {txHash}
                 </span>
               </div>
@@ -476,9 +478,9 @@ export default function CustomerPaymentView({
             {verifiedRecord && (
               <button
                 onClick={() => generatePaymentReceiptPdf(verifiedRecord)}
-                className="inline-flex items-center justify-center gap-2 w-full rounded-xl bg-[#00E676] hover:bg-[#00E676]/90 text-zinc-950 font-bold text-sm px-5 py-3.5 shadow-[0_0_15px_rgba(0,230,118,0.3)] active:scale-[0.99] transition cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm px-5 py-3.5 shadow-md shadow-emerald-500/25 active:scale-[0.99] transition cursor-pointer"
               >
-                <FileText className="w-4 h-4 text-zinc-950" />
+                <FileText className="w-4 h-4 text-white" />
                 <span>Download Payment Receipt (PDF)</span>
               </button>
             )}
@@ -488,7 +490,7 @@ export default function CustomerPaymentView({
                 href={explorerTxUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 w-full rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white font-bold text-sm px-5 py-3.5 shadow-[0_0_15px_rgba(59,130,246,0.3)] transition"
+                className="inline-flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:opacity-95 text-white font-bold text-sm px-5 py-3.5 shadow-md shadow-purple-500/25 transition"
               >
                 <span>View on Polygonscan</span>
                 <ExternalLink className="w-4 h-4 text-white" />
@@ -503,15 +505,15 @@ export default function CustomerPaymentView({
   // Invalid token fallback
   if (!token) {
     return (
-      <div className="w-full max-w-md mx-auto px-4 sm:px-6 py-12 sm:py-20 text-center text-white">
-        <div className="bg-zinc-950 rounded-3xl border border-zinc-800 shadow-xl p-8">
-          <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-[#EF4444]/40 flex items-center justify-center mx-auto mb-4 text-[#EF4444] shadow-sm">
-            <AlertCircle className="w-8 h-8 text-[#EF4444]" />
+      <div className="w-full max-w-md mx-auto px-4 sm:px-6 py-12 sm:py-20 text-center">
+        <div className="web3-glass-card rounded-3xl border border-rose-200 shadow-xl p-8">
+          <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto mb-4 text-rose-600 shadow-xs">
+            <AlertCircle className="w-8 h-8 text-rose-600" />
           </div>
-          <h2 className="text-xl font-bold text-[#FFFFFF] mb-2">
+          <h2 className="text-xl font-bold text-[#101B5C] mb-2">
             Invalid Payment Link
           </h2>
-          <p className="text-zinc-400 text-xs leading-relaxed">
+          <p className="text-[#5367A5] text-xs leading-relaxed font-medium">
             This payment link specifies an unsupported asset. Supported tokens are USDT, USDC, and VERSE on Polygon Mainnet.
           </p>
         </div>
@@ -520,32 +522,33 @@ export default function CustomerPaymentView({
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto px-4 sm:px-6 py-10 sm:py-16 text-white">
+    <div className="w-full max-w-lg mx-auto px-4 sm:px-6 py-10 sm:py-16">
       
       {/* Customer Header */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-[#3B82F6]/40 text-[#3B82F6] text-xs font-bold uppercase tracking-wider mb-3 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#FACC15]" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#D6E0F5] text-blue-700 text-xs font-extrabold uppercase tracking-wider mb-3 shadow-xs">
+          <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
           Non-Custodial Payment Request
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#FFFFFF] tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-black text-[#101B5C] tracking-tight">
           Review & Complete Payment
         </h1>
-        <p className="text-sm text-zinc-400 mt-1">
+        <p className="text-sm text-[#5367A5] mt-1 font-medium">
           Direct peer-to-peer settlement to merchant on Polygon Mainnet (Chain ID 137).
         </p>
       </div>
 
       {/* Payment Summary Card */}
-      <div className="bg-zinc-950 rounded-3xl border border-zinc-800 shadow-2xl overflow-hidden mb-6">
+      <div className="web3-glass-card rounded-3xl border border-white/80 shadow-2xl shadow-purple-500/10 overflow-hidden mb-6 relative">
+        <div className="absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
         
         {/* Terminal top bar */}
-        <div className="bg-zinc-900 text-white px-6 py-4 flex items-center justify-between border-b border-zinc-800">
-          <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">
+        <div className="bg-[#F6F8FE] px-6 py-4 flex items-center justify-between border-b border-[#D6E0F5]">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#5367A5]">
             Payment Invoice
           </span>
-          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-950 text-[#00E676] border border-[#00E676]/40 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse" />
+          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
             Polygon Mainnet (137)
           </span>
         </div>
@@ -553,37 +556,37 @@ export default function CustomerPaymentView({
         <div className="p-6">
           
           {/* Amount Due Big Display */}
-          <div className="flex items-center justify-between pb-5 border-b border-zinc-800">
+          <div className="flex items-center justify-between pb-5 border-b border-[#D6E0F5]">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#5367A5]">
                 Amount Due
               </span>
-              <div className="text-3xl font-extrabold text-[#FFFFFF] tracking-tight mt-0.5">
+              <div className="text-3xl font-black text-[#101B5C] tracking-tight mt-0.5">
                 {amountDisplay}{' '}
-                <span className="text-[#3B82F6] text-xl font-bold">{tokenLabel}</span>
+                <span className="text-blue-600 text-xl font-bold">{tokenLabel}</span>
               </div>
             </div>
             
-            <TokenIcon token={params.token} size={48} className="shadow-sm" />
+            <TokenIcon token={params.token} size={48} className="shadow-xs" />
           </div>
 
           {/* Details list */}
           <div className="py-4 space-y-3.5">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#5367A5] block mb-1">
                 Recipient (Merchant Wallet)
               </span>
-              <p className="text-xs font-mono font-medium text-[#FFFFFF] bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 break-all select-all">
+              <p className="text-xs font-mono font-bold text-[#101B5C] bg-[#F8FAFF] border border-[#D6E0F5] rounded-xl p-2.5 break-all select-all">
                 {merchantAddress}
               </p>
             </div>
 
             {address && isCorrect && (
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#5367A5] block mb-1">
                   Your Connected Wallet
                 </span>
-                <p className="text-xs font-mono font-medium text-zinc-300 bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 break-all">
+                <p className="text-xs font-mono font-semibold text-[#5367A5] bg-[#F8FAFF] border border-[#D6E0F5] rounded-xl p-2.5 break-all">
                   {address}
                 </p>
               </div>
@@ -591,16 +594,16 @@ export default function CustomerPaymentView({
 
             {/* Token Balance */}
             {tokenBalance !== undefined && (
-              <div className="flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+              <div className="flex items-center justify-between bg-[#F8FAFF] border border-[#D6E0F5] rounded-xl p-3">
                 <div className="flex items-center gap-2">
                   <TokenIcon token={params.token} size={20} />
-                  <span className="text-xs font-bold text-zinc-300">
+                  <span className="text-xs font-bold text-[#101B5C]">
                     Your {tokenLabel} Balance
                   </span>
                 </div>
                 <span
                   className={`text-xs font-bold ${
-                    insufficientTokenFunds ? 'text-[#EF4444]' : 'text-[#00E676]'
+                    insufficientTokenFunds ? 'text-rose-600' : 'text-emerald-600'
                   }`}
                 >
                   {parseFloat(formatUnits(tokenBalance, effectiveDecimals)).toFixed(4)}{' '}
@@ -611,16 +614,16 @@ export default function CustomerPaymentView({
 
             {/* Native Gas Balance Check */}
             {nativeBalanceData && (
-              <div className="flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+              <div className="flex items-center justify-between bg-[#F8FAFF] border border-[#D6E0F5] rounded-xl p-3">
                 <div className="flex items-center gap-2">
-                  <Fuel className="w-4 h-4 text-[#FACC15]" />
-                  <span className="text-xs font-medium text-zinc-300">
+                  <Fuel className="w-4 h-4 text-amber-500" />
+                  <span className="text-xs font-semibold text-[#5367A5]">
                     Polygon Gas (POL/MATIC)
                   </span>
                 </div>
                 <span
-                  className={`text-xs font-semibold ${
-                    insufficientGas ? 'text-[#EF4444]' : 'text-[#FFFFFF]'
+                  className={`text-xs font-bold ${
+                    insufficientGas ? 'text-rose-600' : 'text-[#101B5C]'
                   }`}
                 >
                   {parseFloat(formatEther(nativeBalanceData.value)).toFixed(4)} POL
@@ -631,20 +634,20 @@ export default function CustomerPaymentView({
 
           {/* Network Mismatch Warning */}
           {isConnected && !isCorrect && (
-            <div className="bg-zinc-900 border border-[#FACC15]/40 rounded-xl p-4 mb-4">
+            <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 mb-4">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-[#FACC15] flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-xs font-bold text-[#FACC15]">
+                  <p className="text-xs font-bold text-amber-800">
                     Network Mismatch
                   </p>
-                  <p className="text-xs text-zinc-300 mt-0.5">
+                  <p className="text-xs text-amber-700 mt-0.5 font-medium">
                     Your wallet is connected to a different network. Please switch to Polygon Mainnet.
                   </p>
                   <button
                     onClick={requestSwitch}
                     disabled={switching}
-                    className="mt-2 text-xs font-bold text-[#3B82F6] hover:text-[#3B82F6]/90 underline disabled:opacity-50 cursor-pointer"
+                    className="mt-2 text-xs font-bold text-blue-600 hover:text-blue-800 underline disabled:opacity-50 cursor-pointer"
                   >
                     {switching ? 'Switching Network...' : 'Switch to Polygon Mainnet'}
                   </button>
@@ -655,14 +658,14 @@ export default function CustomerPaymentView({
 
           {/* Insufficient Token Warning */}
           {isConnected && isCorrect && insufficientTokenFunds && payState === 'idle' && (
-            <div className="bg-zinc-900 border border-[#EF4444]/40 rounded-xl p-4 mb-4">
+            <div className="bg-rose-50 border border-rose-300 rounded-xl p-4 mb-4">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-[#EF4444] flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-xs font-bold text-[#EF4444]">
+                  <p className="text-xs font-bold text-rose-800">
                     Insufficient {tokenLabel} Balance
                   </p>
-                  <p className="text-xs text-zinc-300 mt-0.5">
+                  <p className="text-xs text-rose-700 mt-0.5 font-medium">
                     You need at least {amountDisplay} {tokenLabel} on Polygon to complete this transfer.
                   </p>
                 </div>
@@ -672,14 +675,14 @@ export default function CustomerPaymentView({
 
           {/* Insufficient Gas Warning */}
           {isConnected && isCorrect && !insufficientTokenFunds && insufficientGas && payState === 'idle' && (
-            <div className="bg-zinc-900 border border-[#FACC15]/40 rounded-xl p-4 mb-4">
+            <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 mb-4">
               <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-[#FACC15] flex-shrink-0 mt-0.5" />
+                <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-xs font-bold text-[#FACC15]">
+                  <p className="text-xs font-bold text-amber-800">
                     Low Gas Balance (POL)
                   </p>
-                  <p className="text-xs text-zinc-300 mt-0.5">
+                  <p className="text-xs text-amber-700 mt-0.5 font-medium">
                     Your wallet has 0 POL. You need a small fraction of a POL ($0.01) to pay Polygon blockchain transaction fees.
                   </p>
                 </div>
@@ -689,18 +692,18 @@ export default function CustomerPaymentView({
 
           {/* Payment Error Card with Diagnostics */}
           {errorMessage && payState === 'error' && (
-            <div className="bg-zinc-900 border border-[#EF4444]/40 rounded-xl p-4 mb-4">
+            <div className="bg-rose-50 border border-rose-300 rounded-xl p-4 mb-4">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-[#EF4444] flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-xs font-bold text-[#EF4444]">
+                  <p className="text-xs font-bold text-rose-800">
                     Transaction Notice
                   </p>
-                  <p className="text-xs text-zinc-300 mt-0.5">{errorMessage}</p>
+                  <p className="text-xs text-rose-700 mt-0.5 font-medium">{errorMessage}</p>
                   {techErrorDetails && (
-                    <details className="mt-2 text-[11px] text-zinc-300 bg-black/60 p-2 rounded border border-zinc-800 font-mono break-all cursor-pointer">
-                      <summary className="font-semibold select-none text-zinc-400">Technical Error Log</summary>
-                      <p className="mt-1 text-[#EF4444]">{techErrorDetails}</p>
+                    <details className="mt-2 text-[11px] text-rose-800 bg-white p-2 rounded-lg border border-rose-200 font-mono break-all cursor-pointer">
+                      <summary className="font-semibold select-none text-rose-700">Technical Error Log</summary>
+                      <p className="mt-1 text-rose-600">{techErrorDetails}</p>
                     </details>
                   )}
                 </div>
@@ -710,8 +713,8 @@ export default function CustomerPaymentView({
 
           {/* Action Button */}
           {payState === 'sending' || payState === 'confirming' ? (
-            <div className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-zinc-900 border border-[#3B82F6]/40 px-4 py-4 text-[#3B82F6] font-bold text-sm">
-              <Loader2 className="w-4 h-4 animate-spin text-[#3B82F6]" />
+            <div className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-blue-50 border border-blue-200 px-4 py-4 text-blue-700 font-bold text-sm">
+              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
               {payState === 'sending'
                 ? 'Awaiting wallet signature...'
                 : 'Confirming on Polygon blockchain...'}
@@ -719,7 +722,7 @@ export default function CustomerPaymentView({
           ) : !isConnected ? (
             <button
               onClick={handlePay}
-              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 px-5 py-4 text-white font-bold text-sm shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-[0.99] transition cursor-pointer"
+              className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 px-5 py-4 text-white font-bold text-sm shadow-lg shadow-purple-500/25 active:scale-[0.99] transition cursor-pointer border border-white/20"
             >
               <Wallet className="w-4 h-4" />
               <span>Connect Wallet & Pay {amountDisplay} {tokenLabel}</span>
@@ -729,18 +732,18 @@ export default function CustomerPaymentView({
             <button
               onClick={requestSwitch}
               disabled={switching}
-              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#FACC15] hover:bg-[#FACC15]/90 px-5 py-4 text-black font-bold text-sm shadow-[0_0_15px_rgba(250,204,21,0.3)] active:scale-[0.99] transition disabled:opacity-50 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 px-5 py-4 text-slate-900 font-bold text-sm shadow-md shadow-amber-500/20 active:scale-[0.99] transition disabled:opacity-50 cursor-pointer"
             >
               {switching ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-black" />
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-900" />
                   <span>Switching to Polygon Mainnet...</span>
                 </>
               ) : (
                 <>
-                  <ShieldCheck className="w-4 h-4 text-black" />
+                  <ShieldCheck className="w-4 h-4 text-slate-900" />
                   <span>Switch to Polygon & Pay {amountDisplay} {tokenLabel}</span>
-                  <ArrowRight className="w-4 h-4 ml-0.5 text-black" />
+                  <ArrowRight className="w-4 h-4 ml-0.5 text-slate-900" />
                 </>
               )}
             </button>
@@ -748,7 +751,7 @@ export default function CustomerPaymentView({
             <button
               onClick={handlePay}
               disabled={sending || loadingSession || (insufficientTokenFunds && payState === 'idle')}
-              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 px-5 py-4 text-white font-bold text-sm shadow-[0_0_15px_rgba(59,130,246,0.3)] active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 px-5 py-4 text-white font-bold text-sm shadow-lg shadow-purple-500/25 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border border-white/20"
             >
               <TokenIcon token={params.token} size={22} />
               <span>Pay {amountDisplay} {tokenLabel}</span>
@@ -761,7 +764,7 @@ export default function CustomerPaymentView({
               href={explorerTxUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 flex items-center justify-center gap-1.5 text-xs font-bold text-[#3B82F6] hover:underline transition"
+              className="mt-3 flex items-center justify-center gap-1.5 text-xs font-bold text-purple-600 hover:underline transition"
             >
               Track on Polygonscan <ExternalLink className="w-3.5 h-3.5" />
             </a>
@@ -771,7 +774,7 @@ export default function CustomerPaymentView({
       </div>
 
       {!isConnected && (
-        <p className="text-center text-xs text-zinc-500">
+        <p className="text-center text-xs text-[#5367A5] font-medium">
           Connect your Web3 wallet using the header button to approve and execute this payment on Polygon.
         </p>
       )}

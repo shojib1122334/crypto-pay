@@ -317,6 +317,7 @@ export const TransactionHistoryView: React.FC = () => {
         const matchesId = inv.id.toLowerCase().includes(q);
         const matchesStore = inv.storeName.toLowerCase().includes(q);
         const matchesCustomer = inv.customerName?.toLowerCase().includes(q) || false;
+        const matchesCompany = inv.customerCompanyName?.toLowerCase().includes(q) || false;
         const matchesAddress = inv.customerAddress?.toLowerCase().includes(q) || false;
         const matchesProduct = inv.productName.toLowerCase().includes(q);
         const matchesAmount = inv.amount.includes(q);
@@ -326,6 +327,7 @@ export const TransactionHistoryView: React.FC = () => {
           !matchesId &&
           !matchesStore &&
           !matchesCustomer &&
+          !matchesCompany &&
           !matchesAddress &&
           !matchesProduct &&
           !matchesAmount &&
@@ -532,7 +534,7 @@ export const TransactionHistoryView: React.FC = () => {
           <button
             type="submit"
             disabled={verifyingManual || !manualHash.trim()}
-            className="px-5 py-2.5 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white text-xs font-bold shadow-[0_0_10px_rgba(59,130,246,0.3)] active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white text-xs font-bold shadow-lg shadow-purple-500/25 active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 cursor-pointer border border-white/20"
           >
             {verifyingManual ? (
               <>
@@ -542,7 +544,7 @@ export const TransactionHistoryView: React.FC = () => {
             ) : (
               <>
                 <span>Verify Payment</span>
-                <ArrowRight className="w-3.5 h-3.5 text-white" />
+                <ArrowRight className="w-3.5 h-3.5 text-white stroke-[2.5]" />
               </>
             )}
           </button>
@@ -571,7 +573,7 @@ export const TransactionHistoryView: React.FC = () => {
             onClick={() => setActiveSubTab('all')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
               activeSubTab === 'all'
-                ? 'bg-[#3B82F6] text-white shadow-sm'
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25'
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
@@ -587,7 +589,7 @@ export const TransactionHistoryView: React.FC = () => {
             onClick={() => setActiveSubTab('invoices')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
               activeSubTab === 'invoices'
-                ? 'bg-[#3B82F6] text-white shadow-sm'
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25'
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
@@ -604,7 +606,7 @@ export const TransactionHistoryView: React.FC = () => {
             onClick={() => setActiveSubTab('transactions')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
               activeSubTab === 'transactions'
-                ? 'bg-[#3B82F6] text-white shadow-sm'
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25'
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
@@ -621,7 +623,7 @@ export const TransactionHistoryView: React.FC = () => {
             onClick={() => setActiveSubTab('payouts')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
               activeSubTab === 'payouts'
-                ? 'bg-[#3B82F6] text-white shadow-sm'
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25'
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
@@ -1142,13 +1144,18 @@ export const TransactionHistoryView: React.FC = () => {
                     Customer: {selectedInvoice.customerName}
                   </p>
                 )}
+                {selectedInvoice.customerCompanyName && (
+                  <p className="text-xs text-indigo-400 font-semibold mb-1">
+                    Company: {selectedInvoice.customerCompanyName}
+                  </p>
+                )}
                 {selectedInvoice.customerAddress && (
                   <p className="text-xs text-zinc-300 font-medium mb-2 whitespace-pre-line">
                     Address: {selectedInvoice.customerAddress}
                   </p>
                 )}
-                {!selectedInvoice.customerName && !selectedInvoice.customerAddress && <div className="mb-3" />}
-                {(selectedInvoice.customerName || selectedInvoice.customerAddress) && <div className="mb-2" />}
+                {!selectedInvoice.customerName && !selectedInvoice.customerCompanyName && !selectedInvoice.customerAddress && <div className="mb-3" />}
+                {(selectedInvoice.customerName || selectedInvoice.customerCompanyName || selectedInvoice.customerAddress) && <div className="mb-2" />}
 
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <TokenIcon
@@ -1313,6 +1320,13 @@ export const TransactionHistoryView: React.FC = () => {
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
                     <span className="text-zinc-400 font-semibold">Customer Name</span>
                     <span className="font-bold text-white">{selectedInvoice.customerName}</span>
+                  </div>
+                )}
+
+                {selectedInvoice.customerCompanyName && (
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+                    <span className="text-zinc-400 font-semibold">Customer Company Name</span>
+                    <span className="font-bold text-white">{selectedInvoice.customerCompanyName}</span>
                   </div>
                 )}
 

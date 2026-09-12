@@ -4,6 +4,7 @@ import {
   Store,
   User,
   MapPin,
+  Building2,
   Package,
   Camera,
   Upload,
@@ -90,6 +91,9 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
   // Customer Address (Optional)
   const [customerAddress, setCustomerAddress] = useState<string>('');
+
+  // Customer Company Name
+  const [customerCompanyName, setCustomerCompanyName] = useState<string>('');
 
   // 2. Product Name
   const [productName, setProductName] = useState<string>('');
@@ -359,6 +363,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
       storeName: storeName.trim() || 'CryptoPay Official Store',
       customerName: customerName.trim() || undefined,
       customerAddress: customerAddress.trim() || undefined,
+      customerCompanyName: customerCompanyName.trim() || undefined,
       productName: productName.trim(),
       productImage,
       network,
@@ -468,7 +473,10 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
       </div>
 
       {/* Main Container */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-7">
+      <div className="web3-glass-card rounded-3xl p-6 sm:p-8 shadow-xl shadow-purple-500/5 space-y-7 relative overflow-hidden">
+        {/* Top gradient highlight */}
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
+
         {/* Real Wallet Notice Banner */}
         {!isConnected && (
           <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900">
@@ -491,12 +499,16 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
             {/* SECTION 1: INVOICE GENERATION FORM */}
             <form onSubmit={handleCreateInvoice} className="space-y-6">
               
-              {/* 🏪 Store Name / Company Name */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              {/* Store Name / Company Name → Blue + Purple gradient */}
+              <div className="p-4 rounded-2xl bg-white border border-[#D6E0F5] shadow-xs space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                    <Store className="w-4 h-4 text-blue-700" />
-                    <span>🏪 Store Name / Company Name</span>
+                  <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center shadow-xs shadow-blue-500/30">
+                      <Store className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                      Store Name / Company Name
+                    </span>
                   </label>
                   <button
                     type="button"
@@ -508,7 +520,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                         setIsEditingStore(true);
                       }
                     }}
-                    className="text-xs font-semibold text-blue-700 hover:underline cursor-pointer"
+                    className="text-xs font-bold text-purple-600 hover:text-purple-800 cursor-pointer"
                   >
                     {isEditingStore ? 'Save' : 'Edit'}
                   </button>
@@ -521,21 +533,21 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                       value={storeNameInput}
                       onChange={(e) => setStoreNameInput(e.target.value)}
                       placeholder="Enter Store Name or Company Name"
-                      className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                      className="flex-1 bg-white border border-[#D6E0F5] rounded-xl px-3 py-2 text-xs font-semibold text-[#101B5C] placeholder:text-[#8A9BC7] focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-400/20"
                       autoFocus
                     />
                     <button
                       type="button"
                       onClick={handleSaveStoreName}
-                      className="px-3 py-1.5 bg-blue-700 text-white text-xs font-bold rounded-xl hover:bg-blue-800 cursor-pointer"
+                      className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold rounded-xl hover:opacity-90 cursor-pointer shadow-xs"
                     >
                       Save
                     </button>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900">
+                  <div className="flex items-center justify-between bg-[#F6F8FE] px-3.5 py-2.5 rounded-xl border border-[#D6E0F5] text-xs sm:text-sm font-bold text-[#101B5C]">
                     <span className="truncate">{storeName}</span>
-                    <span className="text-[11px] text-emerald-700 font-normal flex items-center gap-1">
+                    <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       Saved
                     </span>
@@ -543,42 +555,73 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 )}
               </div>
 
-              {/* 👤 Customer Name */}
+              {/* Customer Name → Blue + Cyan gradient */}
               <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <User className="w-4 h-4 text-blue-600" />
-                  <span>👤 Customer Name</span>
+                <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center shadow-xs shadow-cyan-500/30">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                    Customer Name
+                  </span>
                 </label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Enter Customer Name (e.g. John Doe, Alice Smith)"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                  placeholder="Enter Customer Name (e.g. John Doe, Alice)"
+                  className="w-full bg-white border border-[#D6E0F5] rounded-xl px-4 py-3 text-sm font-semibold text-[#101B5C] placeholder:text-[#8A9BC7] focus:outline-none focus:border-purple-500 focus:ring-3 focus:ring-purple-400/20 shadow-xs transition-all"
                 />
               </div>
 
-              {/* 📍 Customer Address (Optional) */}
+              {/* Customer Address (Optional) → Green + Cyan gradient */}
               <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-blue-600" />
-                  <span>Customer Address (Optional)</span>
+                <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-xs shadow-emerald-500/30">
+                    <MapPin className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="bg-gradient-to-r from-emerald-700 to-teal-600 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                    Customer Address (Optional)
+                  </span>
                 </label>
-                <textarea
-                  rows={2}
+                <input
+                  type="text"
                   value={customerAddress}
                   onChange={(e) => setCustomerAddress(e.target.value)}
                   placeholder="Enter Customer Address"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 resize-none"
+                  className="w-full bg-white border border-[#D6E0F5] rounded-xl px-4 py-3 text-sm font-semibold text-[#101B5C] placeholder:text-[#8A9BC7] focus:outline-none focus:border-purple-500 focus:ring-3 focus:ring-purple-400/20 shadow-xs transition-all"
                 />
               </div>
 
-              {/* 📦 Product Name */}
+              {/* Customer Company Name → Orange + Pink gradient */}
               <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <Package className="w-4 h-4 text-emerald-600" />
-                  <span>📦 Product Name</span>
-                  <span className="text-xs text-red-500">*</span>
+                <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 text-white flex items-center justify-center shadow-xs shadow-orange-500/30">
+                    <Building2 className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                    Customer Company Name
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={customerCompanyName}
+                  onChange={(e) => setCustomerCompanyName(e.target.value)}
+                  placeholder="Enter Company Name (e.g. Acme Ltd.)"
+                  className="w-full bg-white border border-[#D6E0F5] rounded-xl px-4 py-3 text-sm font-semibold text-[#101B5C] placeholder:text-[#8A9BC7] focus:outline-none focus:border-purple-500 focus:ring-3 focus:ring-purple-400/20 shadow-xs transition-all"
+                />
+              </div>
+
+              {/* Product Name → Pink + Purple gradient */}
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 text-white flex items-center justify-center shadow-xs shadow-pink-500/30">
+                    <Package className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="bg-gradient-to-r from-pink-600 to-purple-700 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                    Product Name
+                  </span>
+                  <span className="text-xs text-red-500 font-bold">*</span>
                 </label>
                 <input
                   type="text"
@@ -587,16 +630,20 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     setProductName(e.target.value);
                     setFormError(null);
                   }}
-                  placeholder="e.g. VIP Subscription, Hardware Wallet, Coffee"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                  placeholder="e.g. Wireless Headphones, Laptop, etc."
+                  className="w-full bg-white border border-[#D6E0F5] rounded-xl px-4 py-3 text-sm font-semibold text-[#101B5C] placeholder:text-[#8A9BC7] focus:outline-none focus:border-purple-500 focus:ring-3 focus:ring-purple-400/20 shadow-xs transition-all"
                 />
               </div>
 
-              {/* 📷 Product Image: Take Photo | Upload Image */}
+              {/* Product Image: Take Photo | Upload Image → Purple + Blue gradient */}
               <div className="space-y-3">
-                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <Camera className="w-4 h-4 text-purple-600" />
-                  <span>📷 Product Image</span>
+                <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-purple-600 to-blue-500 text-white flex items-center justify-center shadow-xs shadow-purple-500/30">
+                    <Camera className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="bg-gradient-to-r from-purple-700 to-blue-600 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                    Product Image
+                  </span>
                 </label>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -610,7 +657,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                         startLiveCamera();
                       }
                     }}
-                    className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-300 text-sm font-semibold text-slate-800 transition active:scale-[0.98] cursor-pointer"
+                    className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border border-purple-200/80 text-sm font-bold text-purple-900 transition active:scale-[0.98] cursor-pointer shadow-xs"
                   >
                     <Camera className="w-4 h-4 text-purple-600" />
                     <span>Take Photo</span>
@@ -620,9 +667,9 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   <button
                     type="button"
                     onClick={() => uploadInputRef.current?.click()}
-                    className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-300 text-sm font-semibold text-slate-800 transition active:scale-[0.98] cursor-pointer"
+                    className="flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-gradient-to-r from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100 border border-blue-200/80 text-sm font-bold text-blue-900 transition active:scale-[0.98] cursor-pointer shadow-xs"
                   >
-                    <Upload className="w-4 h-4 text-blue-700" />
+                    <Upload className="w-4 h-4 text-blue-600" />
                     <span>Upload Image</span>
                   </button>
                 </div>
@@ -630,7 +677,7 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 {/* Product Image Preview */}
                 {productImage && (
                   <div className="relative inline-block mt-2">
-                    <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-2 border-blue-600 bg-slate-50 shadow-sm">
+                    <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-2 border-purple-500 bg-white shadow-md">
                       <img
                         src={productImage}
                         alt="Product preview"
@@ -639,21 +686,25 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                       <button
                         type="button"
                         onClick={() => setProductImage(null)}
-                        className="absolute top-1.5 right-1.5 p-1 rounded-full bg-slate-900/80 text-white hover:bg-slate-900 transition cursor-pointer"
+                        className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-red-600 text-white hover:bg-red-700 transition cursor-pointer shadow-xs"
                         title="Remove Image"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* 🌐 Network: Polygon | Ethereum (Official Network Logos) */}
+              {/* 🌐 Network: Polygon | Ethereum → Cyan + Blue gradient */}
               <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-blue-700" />
-                  <span>🌐 Network</span>
+                <label className="text-xs sm:text-sm font-bold flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow-xs shadow-cyan-500/30">
+                    <Globe className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="bg-gradient-to-r from-cyan-600 to-blue-700 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                    Network
+                  </span>
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   {/* Polygon */}
@@ -662,13 +713,13 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     onClick={() => setNetwork('Polygon')}
                     className={`py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
                       network === 'Polygon'
-                        ? 'bg-purple-50 text-purple-900 border-purple-600 shadow-xs'
-                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent shadow-md shadow-purple-500/25'
+                        : 'bg-white text-[#5367A5] border-[#D6E0F5] hover:border-purple-300'
                     }`}
                   >
                     <TokenIcon token="POL" size={22} />
                     <span>Polygon</span>
-                    <span className="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-700 font-mono">137</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${network === 'Polygon' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>137</span>
                   </button>
 
                   {/* Ethereum */}
@@ -677,25 +728,29 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                     onClick={() => setNetwork('Ethereum')}
                     className={`py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
                       network === 'Ethereum'
-                        ? 'bg-blue-50 text-blue-900 border-blue-600 shadow-xs'
-                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent shadow-md shadow-purple-500/25'
+                        : 'bg-white text-[#5367A5] border-[#D6E0F5] hover:border-blue-300'
                     }`}
                   >
                     <TokenIcon token="ETH" size={22} />
                     <span>Ethereum</span>
-                    <span className="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-700 font-mono">1</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${network === 'Ethereum' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>1</span>
                   </button>
                 </div>
               </div>
 
-              {/* 💰 Payment Method: USDT | USDC | VERSE (Official Token Logos) */}
+              {/* 💰 Payment Method: USDT | USDC | VERSE → Purple + Pink gradient */}
               <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Coins className="w-4 h-4 text-amber-500" />
-                    <span>💰 Payment Method</span>
+                <label className="text-xs sm:text-sm font-bold flex items-center justify-between">
+                  <span className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 text-white flex items-center justify-center shadow-xs shadow-purple-500/30">
+                      <Coins className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                      Payment Method
+                    </span>
                   </span>
-                  <span className="text-[11px] text-slate-500">Official Web3 Tokens</span>
+                  <span className="text-[11px] text-purple-600 font-bold">Official Web3 Tokens</span>
                 </label>
                 <div className="grid grid-cols-3 gap-3">
                   {(['USDT', 'USDC', 'VERSE'] as const).map((method) => {
@@ -707,8 +762,8 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                         onClick={() => setPaymentMethod(method)}
                         className={`py-3.5 px-3 rounded-xl text-xs sm:text-sm font-bold flex flex-col sm:flex-row items-center justify-center gap-2.5 transition cursor-pointer border-2 ${
                           isSelected
-                            ? 'bg-blue-50 text-blue-900 border-blue-600 shadow-xs'
-                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-500 text-white border-transparent shadow-md shadow-purple-500/25'
+                            : 'bg-white text-[#5367A5] border-[#D6E0F5] hover:border-purple-300'
                         }`}
                       >
                         <TokenIcon token={method} size={24} />
@@ -719,16 +774,20 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 </div>
               </div>
 
-              {/* 💵 Amount */}
+              {/* 💵 Amount / Transaction → Blue + Violet gradient */}
               <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-emerald-600" />
-                    <span>💵 Amount</span>
-                    <span className="text-xs text-red-500">*</span>
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white flex items-center justify-center shadow-xs shadow-blue-500/30">
+                      <DollarSign className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="bg-gradient-to-r from-blue-700 to-violet-700 bg-clip-text text-transparent font-extrabold text-sm sm:text-base">
+                      Transaction Amount
+                    </span>
+                    <span className="text-xs text-red-500 font-bold">*</span>
                   </span>
-                  <span className="text-xs text-slate-600 font-semibold">{paymentMethod}</span>
-                </label>
+                  <span className="text-xs text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">{paymentMethod}</span>
+                </div>
                 <div className="relative">
                   <input
                     type="number"
@@ -740,9 +799,9 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                       setFormError(null);
                     }}
                     placeholder="e.g., 25.00"
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3.5 text-base sm:text-lg font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 pr-24"
+                    className="w-full bg-white border border-[#D6E0F5] rounded-xl px-4 py-3.5 text-base sm:text-lg font-bold text-[#101B5C] placeholder:text-[#8A9BC7] focus:outline-none focus:border-purple-500 focus:ring-3 focus:ring-purple-400/20 pr-24 shadow-xs transition-all"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-200 text-xs font-bold text-slate-900">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F0F4FF] border border-[#D6E0F5] text-xs font-bold text-[#101B5C]">
                     <TokenIcon token={paymentMethod} size={16} />
                     <span>{paymentMethod}</span>
                   </div>
@@ -750,13 +809,13 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
 
                 {/* Quick Amount Suggestion Chips */}
                 <div className="flex items-center gap-2 pt-1">
-                  <span className="text-[11px] text-slate-500">Quick:</span>
+                  <span className="text-[11px] text-[#5367A5] font-semibold">Quick:</span>
                   {['10.00', '25.00', '50.00', '100.00'].map((preset) => (
                     <button
                       key={preset}
                       type="button"
                       onClick={() => setAmount(preset)}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-slate-700 font-medium transition cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-white hover:bg-purple-50 border border-[#D6E0F5] hover:border-purple-300 text-xs text-[#5367A5] hover:text-[#101B5C] font-bold transition cursor-pointer shadow-2xs"
                     >
                       ${preset}
                     </button>
@@ -777,18 +836,18 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                 <button
                   type="button"
                   onClick={() => openWalletConnect()}
-                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all cursor-pointer border border-white/20"
                 >
-                  <Wallet className="w-5 h-5 text-amber-300" />
-                  <span>🔗 Connect Wallet to Create Invoice</span>
+                  <Wallet className="w-5 h-5 text-white stroke-[2.2]" />
+                  <span className="text-white">Connect Wallet to Create Invoice</span>
                 </button>
               ) : (
                 <button
                   type="submit"
-                  className="w-full py-4 px-6 rounded-2xl bg-blue-700 hover:bg-blue-800 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 active:scale-[0.99] text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all cursor-pointer border border-white/20"
                 >
-                  <Sparkles className="w-5 h-5 text-amber-300" />
-                  <span>🔵 Create Credit Invoice</span>
+                  <Sparkles className="w-5 h-5 text-white" />
+                  <span className="text-white">Create Credit Invoice</span>
                 </button>
               )}
             </form>
@@ -796,15 +855,15 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
             {/* SECTION 2: GENERATED CRYPTOPAY INVOICE CARD WITH "CLAIM" BUTTON */}
             {createdInvoice && (
               <div className="pt-8 border-t border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <div className="max-w-md mx-auto bg-white border-2 border-blue-600 rounded-3xl p-6 sm:p-7 shadow-lg space-y-6 relative overflow-hidden">
+                <div className="max-w-md mx-auto web3-glass-card border-2 border-purple-400/50 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-purple-500/10 space-y-6 relative overflow-hidden">
                   
                   {/* Background ambient badge */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 blur-2xl pointer-events-none rounded-full" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100/50 blur-2xl pointer-events-none rounded-full" />
 
                   {/* Title / Header */}
                   <div className="text-center space-y-1">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold mb-1">
-                      <ShieldCheck className="w-3.5 h-3.5" />
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 text-purple-700 text-xs font-bold mb-1 shadow-xs">
+                      <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
                       <span>Verified Web3 Credit Invoice</span>
                     </div>
                     <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
@@ -853,6 +912,16 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                         <span className="text-slate-500 font-medium">Customer Address:</span>
                         <span className="text-slate-900 font-bold text-right whitespace-pre-line max-w-[200px] text-xs">
                           {createdInvoice.customerAddress}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Customer Company Name: Only if provided */}
+                    {createdInvoice.customerCompanyName && (
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                        <span className="text-slate-500 font-medium">Customer Company:</span>
+                        <span className="text-slate-900 font-bold text-right truncate max-w-[200px]">
+                          {createdInvoice.customerCompanyName}
                         </span>
                       </div>
                     )}
@@ -913,11 +982,11 @@ export const CreateInvoiceSection: React.FC<CreateInvoiceSectionProps> = ({ onNa
                   <button
                     type="button"
                     onClick={() => setIsClaimModalOpen(true)}
-                    className="w-full py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-black text-base flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
+                    className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 active:scale-[0.99] text-white font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all cursor-pointer border border-white/20"
                   >
                     <QrCode className="w-5 h-5 text-white" />
-                    <span>Claim</span>
-                    <ArrowRight className="w-4 h-4 text-white" />
+                    <span className="text-white">Claim Invoice</span>
+                    <ArrowRight className="w-4 h-4 text-white stroke-[2.5]" />
                   </button>
                 </div>
               </div>

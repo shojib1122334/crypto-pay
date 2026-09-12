@@ -144,14 +144,17 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
 
   return (
     <div className="w-full max-w-lg mx-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-xl transition-all">
+      <div className="web3-glass-card rounded-3xl p-5 sm:p-6 shadow-xl shadow-purple-500/5 relative overflow-hidden">
+        {/* Top gradient highlight */}
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
+
         {/* Card Header */}
         <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60">
-              <ShieldCheck className="w-3.5 h-3.5" /> Polygon Mainnet
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border border-purple-200/80 shadow-xs">
+              <ShieldCheck className="w-3.5 h-3.5 text-purple-600" /> Polygon Mainnet
             </span>
-            <span className="text-[11px] text-slate-400 font-mono hidden sm:inline">
+            <span className="text-[11px] text-slate-500 font-mono hidden sm:inline">
               Chain ID: 137
             </span>
           </div>
@@ -382,15 +385,15 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
             <button
               type="button"
               onClick={() => openWalletConnect()}
-              className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-2xl transition-all shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-4 px-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white font-bold text-sm sm:text-base rounded-2xl transition-all shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 flex items-center justify-center gap-2 cursor-pointer border border-white/20 active:scale-[0.99]"
             >
-              <Wallet className="w-4 h-4" /> Connect Wallet to Swap
+              <Wallet className="w-5 h-5 text-white stroke-[2.2]" /> <span className="text-white">Connect Wallet to Swap</span>
             </button>
           ) : !isPolygon ? (
             <button
               type="button"
               onClick={handleSwitchToPolygon}
-              className="w-full py-3.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm rounded-2xl transition-all shadow-md flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold text-sm rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <AlertTriangle className="w-4 h-4" /> Switch to Polygon Mainnet (137)
             </button>
@@ -398,7 +401,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
             <button
               type="button"
               disabled
-              className="w-full py-3.5 px-4 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-semibold text-sm rounded-2xl cursor-not-allowed"
+              className="w-full py-3.5 px-4 bg-slate-100 text-slate-400 font-semibold text-sm rounded-2xl cursor-not-allowed border border-slate-200"
             >
               Enter an Amount
             </button>
@@ -406,7 +409,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
             <button
               type="button"
               disabled
-              className="w-full py-3.5 px-4 bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-semibold text-sm rounded-2xl border border-rose-200 dark:border-rose-800 cursor-not-allowed"
+              className="w-full py-3.5 px-4 bg-rose-50 text-rose-600 font-semibold text-sm rounded-2xl border border-rose-200 cursor-not-allowed"
             >
               Insufficient Balance
             </button>
@@ -414,7 +417,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
             <button
               type="button"
               disabled
-              className="w-full py-3.5 px-4 bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-semibold text-sm rounded-2xl border border-amber-200 dark:border-amber-800 cursor-not-allowed"
+              className="w-full py-3.5 px-4 bg-amber-50 text-amber-800 font-semibold text-sm rounded-2xl border border-amber-200 cursor-not-allowed"
             >
               Insufficient Gas Balance
             </button>
@@ -422,7 +425,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
             <button
               type="button"
               disabled
-              className="w-full py-3.5 px-4 bg-slate-100 dark:bg-slate-800 text-slate-400 font-semibold text-sm rounded-2xl cursor-not-allowed"
+              className="w-full py-3.5 px-4 bg-slate-100 text-slate-400 font-semibold text-sm rounded-2xl cursor-not-allowed border border-slate-200"
             >
               Cannot Swap (No Route)
             </button>
@@ -431,18 +434,18 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               type="button"
               onClick={handleApprove}
               disabled={isCheckingAllowance}
-              className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-2xl transition-all shadow-md shadow-indigo-500/20 flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm rounded-2xl transition-all shadow-md shadow-purple-500/20 flex items-center justify-center gap-2 cursor-pointer border border-white/20 active:scale-[0.99]"
             >
-              <Check className="w-4 h-4" /> Approve {inputToken.symbol} on Polygon
+              <Check className="w-4 h-4 text-white stroke-[2.5]" /> <span className="text-white">Approve {inputToken.symbol} on Polygon</span>
             </button>
           ) : (
             <button
               type="button"
               onClick={handleSwap}
               disabled={isQuoteLoading || !quote}
-              className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-2xl transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2"
+              className="w-full py-4 px-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white font-bold text-sm sm:text-base rounded-2xl transition-all shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 flex items-center justify-center gap-2 cursor-pointer border border-white/20 active:scale-[0.99]"
             >
-              Swap {inputToken.symbol} to {outputToken.symbol}
+              <span className="text-white">Swap {inputToken.symbol} to {outputToken.symbol}</span>
             </button>
           )}
         </div>

@@ -45,34 +45,35 @@ export const AdminPasswordSection: React.FC = () => {
   return (
     <div
       id="settings-admin-password-section"
-      className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-sm space-y-5 transition-all"
+      className="web3-glass-card border border-white/80 rounded-3xl p-6 sm:p-7 shadow-xl shadow-purple-500/5 space-y-5 transition-all relative overflow-hidden"
     >
+      <div className="absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#D6E0F5]">
         <div className="flex items-center gap-3">
           <div
-            className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors ${
+            className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors shadow-xs ${
               isAdmin
                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
-                : 'bg-slate-100 text-slate-700 border border-slate-200'
+                : 'bg-gradient-to-br from-blue-500/10 to-purple-500/10 text-purple-600 border border-purple-200'
             }`}
           >
             {isAdmin ? <ShieldCheck className="w-6 h-6" /> : <Shield className="w-6 h-6" />}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-black text-slate-900">Admin Security & Access</h2>
+              <h2 className="text-lg font-black text-[#101B5C]">Admin Security & Access</h2>
               {isAdmin ? (
                 <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-700">
                   Unlocked
                 </span>
               ) : (
-                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 border border-slate-300 text-slate-600">
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700">
                   Protected
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-600 mt-0.5">
+            <p className="text-xs text-[#5367A5] font-medium mt-0.5">
               Admin authentication to manage and run Credit Invoice without subscription restrictions.
             </p>
           </div>
@@ -82,7 +83,7 @@ export const AdminPasswordSection: React.FC = () => {
           <button
             type="button"
             onClick={handleLock}
-            className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 hover:border-rose-300 text-xs font-bold border border-slate-300 transition cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+            className="px-4 py-2 rounded-xl bg-white hover:bg-rose-50 text-[#5367A5] hover:text-rose-700 hover:border-rose-300 text-xs font-bold border border-[#D6E0F5] transition cursor-pointer flex items-center gap-1.5 self-start sm:self-auto shadow-2xs"
           >
             <Lock className="w-3.5 h-3.5" />
             <span>Lock Admin Session</span>
@@ -99,7 +100,7 @@ export const AdminPasswordSection: React.FC = () => {
               <h3 className="text-sm font-black text-emerald-950">
                 Admin Master Pass Active
               </h3>
-              <p className="text-xs text-emerald-800 leading-relaxed">
+              <p className="text-xs text-emerald-800 leading-relaxed font-medium">
                 Credit Invoice is completely unlocked for your administrative account. You can create unlimited Credit Invoices, generate QR settlement codes, download PDF invoices, and manage recurring subscription tools freely without purchasing or updating a subscription.
               </p>
             </div>
@@ -111,7 +112,7 @@ export const AdminPasswordSection: React.FC = () => {
           <div className="space-y-1.5">
             <label
               htmlFor="admin-password-input"
-              className="text-xs font-bold text-slate-800 block"
+              className="text-xs font-bold text-[#101B5C] block"
             >
               Admin Password
             </label>
@@ -123,12 +124,12 @@ export const AdminPasswordSection: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter admin password to unlock..."
                 autoComplete="off"
-                className="w-full pl-4 pr-11 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-xs bg-slate-50/50 hover:bg-white focus:bg-white"
+                className="w-full pl-4 pr-11 py-2.5 rounded-xl border border-[#D6E0F5] text-[#101B5C] text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/20 focus:border-purple-500 transition shadow-xs bg-[#F8FAFF] hover:bg-white focus:bg-white placeholder:text-[#8A9BC7]"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 p-1 text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                className="absolute right-3 p-1 text-[#8A9BC7] hover:text-[#101B5C] transition cursor-pointer"
                 title={showPassword ? 'Hide password' : 'Show password'}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
@@ -140,13 +141,13 @@ export const AdminPasswordSection: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition cursor-pointer flex items-center justify-center gap-2"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white text-xs font-bold shadow-md shadow-purple-500/20 border border-white/20 transition cursor-pointer flex items-center justify-center gap-2"
             >
               <Unlock className="w-4 h-4" />
               <span>Unlock Admin Access</span>
             </button>
 
-            <span className="text-[11px] text-slate-500">
+            <span className="text-[11px] text-[#5367A5] font-medium">
               Only authorized administrators can unlock unlimited Credit Invoice access.
             </span>
           </div>

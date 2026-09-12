@@ -5,6 +5,7 @@ export interface CryptoPayInvoiceData {
   storeName: string;
   customerName?: string;
   customerAddress?: string;
+  customerCompanyName?: string;
   productName: string;
   productImage: string | null;
   network: 'Polygon' | 'Ethereum';
@@ -233,6 +234,9 @@ export function generateInvoicePdf(invoice: CryptoPayInvoiceData): void {
   }
   if (invoice.customerAddress) {
     renderRow('Customer Address', invoice.customerAddress.replace(/\n/g, ', '));
+  }
+  if (invoice.customerCompanyName) {
+    renderRow('Customer Company Name', invoice.customerCompanyName);
   }
   renderRow('Product / Service Name', invoice.productName);
   renderRow('Payment Token', `${invoice.paymentMethod} (Decimals: ${invoice.tokenDecimals})`);

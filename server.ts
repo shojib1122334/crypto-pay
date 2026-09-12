@@ -340,26 +340,8 @@ async function startServer() {
     recordTopUp,
   } = await import('./server/topupDb');
 
-  const ADMIN_PASSWORD = 'shojib@@@@@';
-
-  const checkTopUpAdminAuth = (req: express.Request): boolean => {
-    const adminKey = (req.headers['x-admin-key'] || req.headers['x-admin-password']) as string | undefined;
-    const authHeader = req.headers['authorization'];
-    if (adminKey === ADMIN_PASSWORD) return true;
-    if (authHeader && authHeader.replace(/^Bearer\s+/i, '').trim() === ADMIN_PASSWORD) return true;
-    return false;
-  };
-
   // Verify Card BIN and USD support
   app.post('/api/topup/card/verify-currency', (req, res) => {
-    if (!checkTopUpAdminAuth(req)) {
-      return res.status(403).json({
-        success: false,
-        error: 'Top-up service is currently locked for general users. Only administrators with the correct admin password can use this feature.',
-        locked: true,
-      });
-    }
-
     try {
       const { cardNumber } = req.body;
       const result = CardCurrencyValidator.checkUsdSupport(cardNumber || '');
@@ -372,14 +354,6 @@ async function startServer() {
 
   // Generate Live Quote for Top-Up
   app.post('/api/topup/quote', async (req, res) => {
-    if (!checkTopUpAdminAuth(req)) {
-      return res.status(403).json({
-        success: false,
-        error: 'Top-up service is currently locked for general users. Only administrators with the correct admin password can use this feature.',
-        locked: true,
-      });
-    }
-
     try {
       const { token = 'USDC', amount, fiatCurrency = 'USD' } = req.body;
       const numAmount = parseFloat(amount);
@@ -422,14 +396,6 @@ async function startServer() {
 
   // Record Top-Up Transaction
   app.post('/api/topup/record', async (req, res) => {
-    if (!checkTopUpAdminAuth(req)) {
-      return res.status(403).json({
-        success: false,
-        error: 'Top-up service is currently locked for general users. Only administrators with the correct admin password can use this feature.',
-        locked: true,
-      });
-    }
-
     try {
       const { record } = req.body;
       if (!record || !record.walletAddress || !record.txHash) {

@@ -526,7 +526,7 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
               <button
                 onClick={handleGenerate}
                 disabled={generating || isConnecting}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 active:opacity-95 px-5 py-4 text-white font-bold text-base shadow-[0_0_20px_rgba(59,130,246,0.35)] active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 active:opacity-95 px-5 py-4 text-white font-bold text-base shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border border-white/20"
               >
                 {generating ? (
                   <>

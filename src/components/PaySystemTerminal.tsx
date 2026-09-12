@@ -558,14 +558,14 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
     <div id="cryptopay-terminal-container" className="py-6 sm:py-10 px-3 sm:px-6 lg:px-8 max-w-5xl mx-auto font-sans">
       
       {/* Top Navigation Tabs */}
-      <div className="bg-zinc-950 rounded-2xl p-1.5 border border-zinc-800 shadow-lg grid grid-cols-2 gap-1.5 mb-6">
+      <div className="bg-white/80 backdrop-blur-md rounded-2xl p-1.5 border border-slate-200/80 shadow-xs grid grid-cols-2 gap-2 mb-6">
         <button
           type="button"
           onClick={() => setActiveTab('send')}
-          className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all duration-150 cursor-pointer ${
+          className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
             activeTab === 'send'
-              ? 'bg-[#3B82F6] text-[#FFFFFF] shadow-[0_0_15px_rgba(59,130,246,0.35)]'
-              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/60'
+              ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25'
+              : 'bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
           }`}
         >
           <Send className="w-4 h-4" />
@@ -575,10 +575,10 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
         <button
           type="button"
           onClick={() => setActiveTab('receive')}
-          className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all duration-150 cursor-pointer ${
+          className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
             activeTab === 'receive'
-              ? 'bg-[#3B82F6] text-[#FFFFFF] shadow-[0_0_15px_rgba(59,130,246,0.35)]'
-              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/60'
+              ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25'
+              : 'bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
           }`}
         >
           <QrCode className="w-4 h-4" />
@@ -590,14 +590,15 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
       {/* SECTION 1: SEND CRYPTO */}
       {/* ========================================================================= */}
       {activeTab === 'send' && (
-        <div className="bg-zinc-950 rounded-3xl p-6 sm:p-8 border border-zinc-800/90 shadow-2xl">
+        <div className="web3-glass-card rounded-3xl p-6 sm:p-8 border border-white/80 shadow-xl shadow-purple-500/5 relative overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
           
           {/* A. Network Selection Section */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-bold text-[#FFFFFF]">Network</h3>
-              <span className="text-xs font-semibold text-[#00E676] flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse" />
+              <h3 className="text-base font-bold text-[#101B5C]">Network</h3>
+              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-300 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Live EVM Mainnets
               </span>
             </div>
@@ -606,24 +607,24 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
               <button
                 type="button"
                 onClick={() => handleNetworkSwitch(POLYGON_CHAIN_ID)}
-                className={`relative p-3.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                className={`relative p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                   selectedChainId === POLYGON_CHAIN_ID
-                    ? 'bg-zinc-900 border-[#00E676] shadow-[0_0_15px_rgba(0,230,118,0.15)] ring-1 ring-[#00E676]/40'
-                    : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900'
+                    ? 'bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 border-purple-500 shadow-md shadow-purple-500/10 ring-1 ring-purple-500/40'
+                    : 'bg-[#F8FAFF] border-[#D6E0F5] hover:border-purple-300 hover:bg-purple-50/20'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
-                    <TokenIcon token="POL" size={30} />
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0">
+                    <TokenIcon token="POL" size={32} />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-[#FFFFFF] block">Polygon PoS</span>
-                    <span className="text-[11px] text-zinc-400">Chain ID 137 • ~2s Finality</span>
+                    <span className="text-sm font-bold text-[#101B5C] block">Polygon PoS</span>
+                    <span className="text-[11px] text-[#5367A5] font-medium">Chain ID 137 • ~2s Finality</span>
                   </div>
                 </div>
 
                 {selectedChainId === POLYGON_CHAIN_ID && (
-                  <div className="w-5 h-5 rounded-full bg-[#00E676] text-zinc-950 flex items-center justify-center flex-shrink-0 shadow-[0_0_8px_#00E676]">
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                   </div>
                 )}
@@ -633,24 +634,24 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
               <button
                 type="button"
                 onClick={() => handleNetworkSwitch(ETHEREUM_CHAIN_ID)}
-                className={`relative p-3.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                className={`relative p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                   selectedChainId === ETHEREUM_CHAIN_ID
-                    ? 'bg-zinc-900 border-[#00E676] shadow-[0_0_15px_rgba(0,230,118,0.15)] ring-1 ring-[#00E676]/40'
-                    : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900'
+                    ? 'bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 border-purple-500 shadow-md shadow-purple-500/10 ring-1 ring-purple-500/40'
+                    : 'bg-[#F8FAFF] border-[#D6E0F5] hover:border-purple-300 hover:bg-purple-50/20'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
-                    <TokenIcon token="ETH" size={30} />
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0">
+                    <TokenIcon token="ETH" size={32} />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-[#FFFFFF] block">Ethereum</span>
-                    <span className="text-[11px] text-zinc-400">Chain ID 1 • Mainnet</span>
+                    <span className="text-sm font-bold text-[#101B5C] block">Ethereum</span>
+                    <span className="text-[11px] text-[#5367A5] font-medium">Chain ID 1 • Mainnet</span>
                   </div>
                 </div>
 
                 {selectedChainId === ETHEREUM_CHAIN_ID && (
-                  <div className="w-5 h-5 rounded-full bg-[#00E676] text-zinc-950 flex items-center justify-center flex-shrink-0 shadow-[0_0_8px_#00E676]">
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                   </div>
                 )}
@@ -659,9 +660,9 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
 
             {/* Connected Wallet Network Mismatch Verification Notice */}
             {isConnected && chain && chain.id !== selectedChainId && (
-              <div className="mt-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-200">
+              <div className="mt-3 p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900">
                 <div className="flex items-center gap-2.5">
-                  <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
                   <span>
                     Your wallet is currently on <strong>{chain.name || `Chain ID ${chain.id}`}</strong>. Transactions on this page require{' '}
                     <strong>{selectedChainId === POLYGON_CHAIN_ID ? 'Polygon Mainnet' : 'Ethereum'}</strong>.
@@ -670,7 +671,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                 <button
                   type="button"
                   onClick={() => handleNetworkSwitch(selectedChainId)}
-                  className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs whitespace-nowrap transition cursor-pointer self-end sm:self-auto shadow-xs"
+                  className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs whitespace-nowrap transition cursor-pointer self-end sm:self-auto shadow-xs"
                 >
                   Switch Network
                 </button>
@@ -681,8 +682,8 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           {/* B. Token Selection Section (2x2 Grid) */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-bold text-[#FFFFFF]">Token</h3>
-              <span className="text-xs font-semibold text-[#FACC15]">
+              <h3 className="text-base font-bold text-[#101B5C]">Token</h3>
+              <span className="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-300 px-2.5 py-0.5 rounded-full">
                 Balance: {currentTokenBalance} {currentToken?.symbol}
               </span>
             </div>
@@ -697,10 +698,10 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                     key={item.id}
                     type="button"
                     onClick={() => setSelectedTokenId(item.id)}
-                    className={`relative p-3.5 rounded-xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
+                    className={`relative p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-zinc-900 border-[#3B82F6] shadow-[0_0_15px_rgba(59,130,246,0.2)] ring-1 ring-[#3B82F6]/50'
-                        : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900'
+                        ? 'bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 border-purple-500 shadow-md shadow-purple-500/15 ring-1 ring-purple-500/40'
+                        : 'bg-[#F8FAFF] border-[#D6E0F5] hover:border-purple-300 hover:bg-purple-50/20'
                     }`}
                   >
                     <div className="flex-shrink-0 mt-0.5">
@@ -708,19 +709,19 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                     </div>
 
                     <div className="flex-1 min-w-0 pr-6">
-                      <div className="text-sm font-bold text-[#FFFFFF] leading-tight">
+                      <div className="text-sm font-bold text-[#101B5C] leading-tight">
                         {item.symbol}
                       </div>
-                      <div className="text-xs text-zinc-400 font-normal leading-tight mt-0.5">
+                      <div className="text-xs text-[#5367A5] font-medium leading-tight mt-0.5">
                         {item.name}
                       </div>
-                      <div className="text-xs text-[#FACC15] font-mono mt-1 truncate">
+                      <div className="text-xs text-amber-700 font-mono font-bold mt-1 truncate">
                         {tokenBal} {item.symbol}
                       </div>
                     </div>
 
                     {isSelected && (
-                      <div className="absolute top-3.5 right-3.5 w-5 h-5 rounded-full bg-[#3B82F6] text-white flex items-center justify-center flex-shrink-0 shadow-[0_0_8px_#3B82F6]">
+                      <div className="absolute top-3.5 right-3.5 w-5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
                         <Check className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
                     )}
@@ -734,14 +735,14 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           <div className="mb-6">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-[#FFFFFF]">Receiver Address</h3>
+                <h3 className="text-base font-bold text-[#101B5C]">Receiver Address</h3>
                 {activeReceiver ? (
-                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#00E676]/20 text-[#00E676] border border-[#00E676]/40 flex items-center gap-1">
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3" />
                     Auto-Populated
                   </span>
                 ) : (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950/50 text-amber-400 border border-amber-500/30">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
                     Manual / Unset
                   </span>
                 )}
@@ -751,7 +752,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                 <button
                   type="button"
                   onClick={() => onNavigateTab('settings')}
-                  className="text-xs text-[#3B82F6] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                  className="text-xs text-blue-600 hover:text-purple-600 hover:underline font-bold flex items-center gap-1 cursor-pointer transition-colors"
                 >
                   <span>Settings → Saved Receivers</span>
                   <ExternalLink className="w-3 h-3" />
@@ -761,28 +762,28 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
 
             {/* Active Receiver Highlight Card */}
             {activeReceiver && (
-              <div className="mb-2 p-3 rounded-xl bg-zinc-900 border border-[#00E676]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div className="mb-2 p-3 rounded-2xl bg-emerald-50/70 border border-emerald-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-white">Active Receiver:</span>
-                  <span className="text-[#00E676] font-semibold">{activeReceiver.telegramUsername}</span>
+                  <span className="font-bold text-[#101B5C]">Active Receiver:</span>
+                  <span className="text-emerald-700 font-bold">{activeReceiver.telegramUsername}</span>
                 </div>
-                <span className="font-mono text-zinc-400 text-[11px] truncate">
+                <span className="font-mono text-[#5367A5] text-[11px] truncate font-semibold">
                   {activeReceiver.address}
                 </span>
               </div>
             )}
 
             {!activeReceiver && (
-              <div className="mb-2 p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between gap-2">
+              <div className="mb-2 p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
                   <span>No Active Receiver selected in Settings.</span>
                 </div>
                 {onNavigateTab && (
                   <button
                     type="button"
                     onClick={() => onNavigateTab('settings')}
-                    className="font-bold underline text-amber-200 hover:text-white"
+                    className="font-bold underline text-amber-800 hover:text-amber-950"
                   >
                     Select Receiver
                   </button>
@@ -799,22 +800,22 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                   setSendError(null);
                 }}
                 placeholder="0x... EVM receiver address"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm font-mono text-[#FFFFFF] placeholder:text-zinc-500 focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] pr-12 shadow-inner"
+                className="w-full bg-[#F8FAFF] hover:bg-white focus:bg-white border border-[#D6E0F5] rounded-2xl px-4 py-3 text-sm font-mono text-[#101B5C] placeholder:text-[#8A9BC7] focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-400/20 pr-12 shadow-xs transition-all"
               />
               <button
                 type="button"
                 onClick={() => setIsScannerOpen(true)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 rounded-xl text-[#5367A5] hover:text-[#101B5C] hover:bg-blue-50/60 transition cursor-pointer"
                 title="Scan QR Code"
               >
-                <QrCode className="w-5 h-5 text-[#3B82F6]" />
+                <QrCode className="w-5 h-5 text-purple-600" />
               </button>
             </div>
 
             {/* Validation & Hint */}
             <div className="mt-2 flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs text-[#00E676] font-medium">
-                <ShieldCheck className="w-4 h-4 text-[#00E676] flex-shrink-0" />
+              <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                 <span>Supports all EVM compatible addresses</span>
               </div>
 
@@ -825,7 +826,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                     setRecipientAddress(address);
                     setSendError(null);
                   }}
-                  className="text-xs text-zinc-400 hover:text-[#3B82F6] hover:underline font-medium cursor-pointer"
+                  className="text-xs text-[#5367A5] hover:text-blue-600 hover:underline font-semibold cursor-pointer"
                 >
                   Use My Connected Address
                 </button>
@@ -833,8 +834,8 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
             </div>
 
             {scannedSuccessToast && (
-              <div className="mt-2 p-2 rounded-lg bg-zinc-900 border border-[#00E676]/40 text-[#00E676] text-xs font-semibold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#00E676]" />
+              <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 <span>{scannedSuccessToast}</span>
               </div>
             )}
@@ -843,14 +844,14 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           {/* D. Amount Section */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-base font-bold text-[#FFFFFF]">Amount</h3>
-              <span className="text-xs font-semibold text-[#FACC15]">
+              <h3 className="text-base font-bold text-[#101B5C]">Amount</h3>
+              <span className="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-300 px-2.5 py-0.5 rounded-full">
                 Balance: {currentTokenBalance} {currentToken?.symbol}
               </span>
             </div>
 
             {/* Amount input box with Token badge on right */}
-            <div className="relative border border-zinc-800 rounded-xl p-2 bg-zinc-900/80 flex items-center justify-between mb-3 shadow-inner">
+            <div className="relative border border-[#D6E0F5] rounded-2xl p-2.5 bg-[#F8FAFF] focus-within:bg-white focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-400/20 flex items-center justify-between mb-3 shadow-xs transition-all">
               <input
                 type="number"
                 step="any"
@@ -860,13 +861,13 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                   setSendError(null);
                 }}
                 placeholder="10.00"
-                className="w-full bg-transparent text-2xl font-bold text-[#FFFFFF] focus:outline-none pl-2 font-mono"
+                className="w-full bg-transparent text-2xl sm:text-3xl font-black text-[#101B5C] focus:outline-none pl-2 font-mono"
               />
 
-              <div className="px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-full flex items-center gap-1.5 shadow-sm flex-shrink-0">
-                <TokenIcon token={currentToken?.symbol || 'USDT'} size={18} />
-                <span className="text-xs font-bold text-[#FFFFFF]">{currentToken?.symbol}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+              <div className="px-3.5 py-1.5 bg-white border border-[#D6E0F5] rounded-full flex items-center gap-2 shadow-xs flex-shrink-0">
+                <TokenIcon token={currentToken?.symbol || 'USDT'} size={20} />
+                <span className="text-xs font-black text-[#101B5C]">{currentToken?.symbol}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-[#5367A5]" />
               </div>
             </div>
 
@@ -880,10 +881,10 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                     setSendAmount(val);
                     setSendError(null);
                   }}
-                  className={`px-4 py-1.5 rounded-full border text-xs font-medium transition cursor-pointer ${
+                  className={`px-4 py-1.5 rounded-full border text-xs transition cursor-pointer ${
                     sendAmount === val
-                      ? 'border-[#3B82F6] bg-[#3B82F6]/20 text-[#FFFFFF] font-semibold ring-1 ring-[#3B82F6]'
-                      : 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:border-zinc-700 hover:text-white'
+                      ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white font-bold border-transparent shadow-xs'
+                      : 'border-[#D6E0F5] bg-white text-[#5367A5] font-semibold hover:border-purple-300 hover:text-[#101B5C] hover:bg-purple-50/20'
                   }`}
                 >
                   ${parseFloat(val).toFixed(0)}
@@ -901,7 +902,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                   }
                   setSendError(null);
                 }}
-                className="px-4 py-1.5 rounded-full bg-[#FACC15] hover:bg-[#FACC15]/90 text-zinc-950 text-xs font-bold shadow-[0_0_12px_rgba(250,204,21,0.3)] transition cursor-pointer"
+                className="px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold shadow-xs transition cursor-pointer"
               >
                 MAX
               </button>
@@ -910,23 +911,23 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
 
           {/* Error Message */}
           {sendError && (
-            <div className="p-3.5 rounded-xl bg-zinc-900 border border-[#EF4444]/60 text-[#EF4444] text-xs font-medium flex items-start gap-2 mb-4">
-              <AlertCircle className="w-4 h-4 text-[#EF4444] flex-shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-300 text-rose-900 text-xs font-medium flex items-start gap-2 mb-4">
+              <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
               <span>{sendError}</span>
             </div>
           )}
 
           {/* Transaction Steps & Confirmation */}
           {txStep === 'awaiting_signature' && (
-            <div className="p-4 rounded-xl bg-zinc-900 border border-[#FACC15]/60 text-[#FACC15] mb-4 animate-pulse">
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 mb-4 animate-pulse">
               <div className="text-xs font-bold">Please approve the transaction in your wallet...</div>
             </div>
           )}
 
           {txStep === 'broadcasting' && (
-            <div className="p-4 rounded-xl bg-zinc-900 border border-[#3B82F6]/50 text-white mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-medium">
-                <RefreshCw className="w-4 h-4 animate-spin text-[#00E676]" />
+            <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-[#101B5C] mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-semibold">
+                <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
                 <span>Broadcasting on-chain settlement...</span>
               </div>
               {activeTxHash && (
@@ -934,7 +935,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                   href={`${currentNetworkConfig?.blockExplorerUrl}/tx/${activeTxHash}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs text-[#FACC15] hover:underline flex items-center gap-1"
+                  className="text-xs text-blue-600 hover:underline font-bold flex items-center gap-1"
                 >
                   <span>Explorer</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -944,39 +945,39 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           )}
 
           {txStep === 'success' && (
-            <div className="p-5 rounded-2xl bg-zinc-900 border border-[#00E676]/60 text-white mb-6 space-y-3 shadow-[0_0_20px_rgba(0,230,118,0.15)]">
+            <div className="p-5 rounded-2xl bg-emerald-50/90 border border-emerald-300 text-[#101B5C] mb-6 space-y-3 shadow-md shadow-emerald-500/10">
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-[#00E676]/20 text-[#00E676] flex items-center justify-center flex-shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-[#FFFFFF]">
+                    <h4 className="text-sm font-black text-[#101B5C]">
                       Transaction Settled & Verified On-Chain
                     </h4>
-                    <p className="text-xs text-[#00E676]">
+                    <p className="text-xs text-emerald-800 font-semibold">
                       Transferred {sendAmount} {currentToken?.symbol} to {recipientAddress.slice(0, 6)}...{recipientAddress.slice(-4)}
                     </p>
                   </div>
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#00E676]/20 text-[#00E676] border border-[#00E676]/40">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                   Confirmed
                 </span>
               </div>
 
               {lastVerifiedRecord && (
-                <div className="bg-zinc-950 rounded-xl p-3 border border-zinc-800 text-xs space-y-1.5 font-medium">
+                <div className="bg-white rounded-xl p-3.5 border border-emerald-200 text-xs space-y-1.5 font-medium shadow-xs">
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">Polygon Block:</span>
-                    <span className="font-mono text-[#FFFFFF] font-bold">#{lastVerifiedRecord.blockNumber}</span>
+                    <span className="text-[#5367A5]">Polygon Block:</span>
+                    <span className="font-mono text-[#101B5C] font-bold">#{lastVerifiedRecord.blockNumber}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-400">Tx Hash:</span>
+                    <span className="text-[#5367A5]">Tx Hash:</span>
                     <a
                       href={`https://polygonscan.com/tx/${lastVerifiedRecord.txHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-mono text-[#3B82F6] hover:underline inline-flex items-center gap-1"
+                      className="font-mono text-blue-600 hover:text-purple-600 hover:underline font-bold inline-flex items-center gap-1"
                     >
                       {lastVerifiedRecord.txHash.slice(0, 10)}...{lastVerifiedRecord.txHash.slice(-6)}
                       <ExternalLink className="w-3 h-3" />
@@ -985,12 +986,12 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row gap-2 pt-1">
+              <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
                 {lastVerifiedRecord && (
                   <button
                     type="button"
                     onClick={() => generatePaymentReceiptPdf(lastVerifiedRecord)}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#00E676] hover:bg-[#00E676]/90 text-zinc-950 text-xs font-bold shadow-[0_0_12px_rgba(0,230,118,0.3)] active:scale-95 transition cursor-pointer"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-bold shadow-xs active:scale-95 transition cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Download PDF Receipt</span>
@@ -1003,7 +1004,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                     setActiveTxHash(null);
                     setLastVerifiedRecord(null);
                   }}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white text-xs font-bold shadow-xs active:scale-95 transition cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-[#D6E0F5] text-[#101B5C] text-xs font-bold shadow-xs active:scale-95 transition cursor-pointer"
                 >
                   <span>Send Another Transfer</span>
                 </button>
@@ -1012,33 +1013,33 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           )}
 
           {txStep === 'error' && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900 border border-red-500/60 mb-5 space-y-3 shadow-[0_0_20px_rgba(239,68,68,0.15)] animate-in fade-in">
+            <div className="p-4 sm:p-5 rounded-2xl bg-rose-50/90 border border-rose-300 text-rose-950 mb-5 space-y-3 shadow-md shadow-rose-500/10 animate-in fade-in">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-9 h-9 rounded-full bg-rose-500 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
                   <AlertCircle className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <h4 className="text-sm font-bold text-white">
+                    <h4 className="text-sm font-black text-[#101B5C]">
                       {parsedRpcError?.title || 'Transaction Request Failed'}
                     </h4>
                     {parsedRpcError?.category && (
-                      <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded-full bg-red-950/80 text-red-300 border border-red-800">
+                      <span className="text-[10px] font-mono uppercase font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">
                         {parsedRpcError.category}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-red-200 mt-1.5 leading-relaxed">
+                  <p className="text-xs text-rose-900 font-medium mt-1.5 leading-relaxed">
                     {parsedRpcError?.message || errorMessage}
                   </p>
                 </div>
               </div>
 
               {parsedRpcError?.actionHint && (
-                <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800 flex items-start gap-2.5 text-xs text-zinc-300">
-                  <HelpCircle className="w-4 h-4 text-[#FACC15] flex-shrink-0 mt-0.5" />
+                <div className="p-3 rounded-xl bg-white border border-rose-200 flex items-start gap-2.5 text-xs text-[#5367A5]">
+                  <HelpCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <strong className="text-white font-semibold">Recommended Fix: </strong>
+                    <strong className="text-[#101B5C] font-bold">Recommended Fix: </strong>
                     <span>{parsedRpcError.actionHint}</span>
                   </div>
                 </div>
@@ -1050,13 +1051,13 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                   <button
                     type="button"
                     onClick={() => setShowTechDetails(!showTechDetails)}
-                    className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 font-mono transition cursor-pointer"
+                    className="text-[11px] text-[#5367A5] hover:text-[#101B5C] flex items-center gap-1 font-mono transition cursor-pointer"
                   >
                     <span>{showTechDetails ? 'Hide' : 'Show'} Blockchain Diagnostics</span>
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showTechDetails ? 'rotate-180' : ''}`} />
                   </button>
                   {showTechDetails && (
-                    <div className="mt-2 p-3 rounded-xl bg-black border border-zinc-800 text-[11px] font-mono text-zinc-400 break-all leading-relaxed">
+                    <div className="mt-2 p-3 rounded-xl bg-white border border-[#D6E0F5] text-[11px] font-mono text-[#5367A5] break-all leading-relaxed shadow-xs">
                       {parsedRpcError.technicalDetails}
                     </div>
                   )}
@@ -1064,12 +1065,12 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
               )}
 
               {/* Quick Actions */}
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800/80">
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-rose-200">
                 {parsedRpcError?.category === 'network' && (
                   <button
                     type="button"
                     onClick={() => handleNetworkSwitch(selectedChainId)}
-                    className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                    className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     <span>Switch to {selectedChainId === POLYGON_CHAIN_ID ? 'Polygon Mainnet' : 'Ethereum'}</span>
@@ -1082,7 +1083,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                     setSendError(null);
                     setParsedRpcError(null);
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-xs transition cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-[#D6E0F5] text-[#101B5C] font-bold text-xs transition cursor-pointer shadow-xs"
                 >
                   Dismiss / Try Again
                 </button>
@@ -1096,7 +1097,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
               type="button"
               onClick={handleSendTransaction}
               disabled={txStep === 'awaiting_signature' || txStep === 'broadcasting'}
-              className="w-full py-4 px-6 rounded-2xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 active:scale-[0.99] text-white font-bold text-base flex items-center justify-between shadow-[0_0_20px_rgba(59,130,246,0.35)] transition disabled:opacity-50 cursor-pointer"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 active:scale-[0.99] text-white font-bold text-base flex items-center justify-between shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all disabled:opacity-50 cursor-pointer border border-white/20"
             >
               <div className="w-6" />
               <span className="flex-1 text-center text-white">
@@ -1106,17 +1107,17 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                   ? 'Broadcasting...'
                   : `Send ${sendAmount || '0.00'} ${currentToken?.symbol || ''}`}
               </span>
-              <ArrowRight className="w-5 h-5 text-white" />
+              <ArrowRight className="w-5 h-5 text-white stroke-[2.5]" />
             </button>
           ) : (
             <button
               type="button"
               onClick={() => openWalletConnect()}
-              className="w-full py-4 px-6 rounded-2xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 active:scale-[0.99] text-white font-bold text-base flex items-center justify-between shadow-[0_0_20px_rgba(59,130,246,0.35)] transition cursor-pointer"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 active:scale-[0.99] text-white font-bold text-base flex items-center justify-between shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 transition-all cursor-pointer border border-white/20"
             >
-              <Wallet className="w-5 h-5 text-white" />
+              <Wallet className="w-5 h-5 text-white stroke-[2.2]" />
               <span className="flex-1 text-center text-white">Connect Wallet to Send</span>
-              <ArrowRight className="w-5 h-5 text-white" />
+              <ArrowRight className="w-5 h-5 text-white stroke-[2.5]" />
             </button>
           )}
 
@@ -1445,10 +1446,10 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                 <button
                   type="button"
                   onClick={handleGenerateReceiveQR}
-                  className="w-full py-3.5 px-5 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md transition cursor-pointer bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white active:scale-[0.99] shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+                  className="w-full py-3.5 px-5 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white active:scale-[0.99] shadow-purple-500/25 border border-white/20"
                 >
                   <span>Generate Payment QR</span>
-                  <LayoutGrid className="w-4 h-4 stroke-[2.5]" />
+                  <LayoutGrid className="w-4 h-4 stroke-[2.5] text-white" />
                 </button>
 
                 <div className="mt-2.5 flex items-center gap-1.5 text-xs text-zinc-400 font-medium justify-center">

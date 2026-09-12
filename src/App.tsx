@@ -169,13 +169,14 @@ function AppContent() {
       )}
 
       <div
-        className="min-h-screen relative flex flex-col bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white"
+        className="min-h-screen relative flex flex-col bg-gradient-to-br from-[#F4F7FE] via-[#F9F6FF] to-[#FFF5FA] text-[#101B5C] selection:bg-purple-600 selection:text-white"
       >
-        {/* Subtle Ambient Background Mesh */}
+        {/* Soft Futuristic Web3 Ambient Atmosphere & Mesh Orbs: Very Light Blue + Very Light Purple + Very Light Pink */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-b from-blue-200/40 via-emerald-100/30 to-transparent blur-[120px] rounded-full" />
-          <div className="absolute top-1/3 -left-48 w-96 h-96 bg-blue-100/40 blur-[100px] rounded-full" />
-          <div className="absolute bottom-1/4 -right-48 w-96 h-96 bg-emerald-100/40 blur-[100px] rounded-full" />
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-gradient-to-r from-blue-300/35 via-purple-300/30 to-pink-300/35 blur-[140px] rounded-full" />
+          <div className="absolute top-1/4 -left-48 w-[500px] h-[500px] bg-sky-300/25 blur-[130px] rounded-full" />
+          <div className="absolute top-1/2 -right-48 w-[550px] h-[550px] bg-purple-300/25 blur-[140px] rounded-full" />
+          <div className="absolute bottom-10 left-1/3 w-[450px] h-[400px] bg-pink-300/25 blur-[130px] rounded-full" />
         </div>
 
         {/* Crisp Header */}
