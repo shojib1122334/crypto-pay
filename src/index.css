@@ -128,7 +128,14 @@ html.light label {
 html.light .text-zinc-100,
 html.light .text-zinc-200,
 html.light .text-slate-900,
-html.light .text-zinc-900 {
+html.light .text-zinc-900,
+html.light .text-\[\#FFFFFF\]:not(button *):not(.bg-blue-600 *):not(.bg-emerald-600 *):not(.bg-slate-900 *):not(.bg-slate-800 *):not(.bg-purple-600 *):not(.bg-red-600 *):not(.text-white-force) {
+  color: #0A1140 !important;
+}
+
+/* Ensure QR display panels and forms never have white or unreadable text */
+html.light #payment-qr-display-panel h3,
+html.light #payment-qr-display-panel h4 {
   color: #0A1140 !important;
 }
 
@@ -137,8 +144,21 @@ html.light .text-zinc-900 {
 .btn-gradient-primary,
 .btn-gradient-primary *,
 button.bg-gradient-to-r:not([class*="/10"]):not([class*="/5"]):not([class*="/20"]),
-button.bg-gradient-to-br:not([class*="/10"]):not([class*="/5"]):not([class*="/20"]) {
+button.bg-gradient-to-br:not([class*="/10"]):not([class*="/5"]):not([class*="/20"]),
+#cryptopay-bottom-nav button[data-active="true"],
+#cryptopay-bottom-nav button[data-active="true"] *,
+#cryptopay-bottom-nav button[data-active="true"] span,
+#cryptopay-bottom-nav button[data-active="true"] svg,
+header nav button[data-active="true"],
+header nav button[data-active="true"] *,
+header nav button[data-active="true"] span,
+header nav button[data-active="true"] svg,
+.nav-pill-active,
+.nav-pill-active *,
+.nav-pill-active span,
+.nav-pill-active svg {
   color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
 }
 
 /* Targeted white text for solid gradient controls */
@@ -479,6 +499,41 @@ html.light header nav button:hover {
 html.light svg {
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* Active Navigation Animations */
+@keyframes navPillPop {
+  0% {
+    transform: scale(0.88);
+    opacity: 0.6;
+  }
+  60% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-nav-pop {
+  animation: navPillPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes navGlowPulse {
+  0%, 100% {
+    opacity: 0.9;
+    box-shadow: 0 4px 14px rgba(217, 70, 239, 0.35);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.55);
+  }
+}
+
+.animate-nav-glow {
+  animation: navGlowPulse 2.4s ease-in-out infinite;
 }
 
 /* Ensure solid colored buttons and pills keep crisp white text in Light Mode */

@@ -43,7 +43,7 @@ const NAV_ITEMS: NavItem[] = [
     id: 'activity',
     label: 'Activity',
     icon: Activity,
-    accentColor: 'text-teal-600',
+    accentColor: 'text-emerald-600',
   },
   {
     id: 'settings',
@@ -66,10 +66,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
         paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))',
       }}
     >
-      <div className="max-w-lg md:max-w-2xl mx-auto bg-white/95 backdrop-blur-xl border border-white/60 shadow-2xl shadow-purple-950/15 rounded-2xl sm:rounded-3xl p-1.5 flex items-center justify-around pointer-events-auto relative">
-        {/* Subtle Ambient Gradient Border Accent */}
-        <div className="absolute inset-x-4 top-0 h-[1.5px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-50 rounded-full" />
-
+      <div className="max-w-lg md:max-w-2xl mx-auto bg-white/95 backdrop-blur-xl border border-white/60 shadow-xl shadow-purple-950/10 rounded-2xl sm:rounded-3xl p-1.5 flex items-center justify-around pointer-events-auto relative">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -78,33 +75,38 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
             <button
               key={item.id}
               id={`nav-tab-${item.id}`}
+              data-active={isActive ? 'true' : 'false'}
               onClick={() => onTabChange(item.id)}
-              className="relative flex flex-col items-center justify-center flex-1 min-w-0 sm:min-w-[56px] py-1.5 px-1 rounded-xl sm:rounded-2xl group select-none cursor-pointer"
+              className={`relative flex flex-col items-center justify-center flex-1 min-w-0 sm:min-w-[56px] py-1.5 px-1 rounded-xl sm:rounded-2xl group select-none cursor-pointer active:scale-95 transition-all duration-200 ${
+                isActive ? 'nav-pill-active !text-white' : 'text-slate-600 hover:text-slate-900'
+              }`}
             >
-              {/* Active Static Gradient Pill - No Animation */}
+              {/* Vibrant Two-Color Blend: Royal Purple + Sweet Pink with Animated Pop & Glow */}
               {isActive && (
                 <div
-                  className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 shadow-md shadow-purple-500/30"
+                  className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 shadow-md shadow-pink-500/35 animate-nav-pop animate-nav-glow pointer-events-none"
                 />
               )}
 
               <div className="relative z-10 flex items-center justify-center">
                 <Icon
-                  className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                  className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 ${
                     isActive
-                      ? 'text-white scale-110 stroke-[2.4]'
-                      : `${item.accentColor} opacity-85 group-hover:opacity-100`
+                      ? '!text-white text-white stroke-white scale-110 stroke-[2.4]'
+                      : `${item.accentColor} group-hover:scale-110`
                   }`}
+                  style={isActive ? { color: '#FFFFFF', stroke: '#FFFFFF' } : undefined}
                   strokeWidth={isActive ? 2.4 : 2}
                 />
               </div>
 
               <span
-                className={`relative z-10 text-[10px] sm:text-xs tracking-tight mt-0.5 whitespace-nowrap font-bold ${
+                className={`relative z-10 text-[10px] sm:text-xs tracking-tight mt-0.5 whitespace-nowrap font-bold transition-colors ${
                   isActive
-                    ? 'text-white'
-                    : 'text-slate-600 group-hover:text-slate-950'
+                    ? '!text-white text-white drop-shadow-xs font-extrabold'
+                    : 'text-slate-600 group-hover:text-slate-900'
                 }`}
+                style={isActive ? { color: '#FFFFFF' } : undefined}
               >
                 {item.label}
               </span>

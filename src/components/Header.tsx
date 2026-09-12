@@ -47,15 +47,15 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
         <div className="absolute inset-x-0 bottom-0 h-[1px] bg-white/20 pointer-events-none" />
 
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4 relative z-10 min-h-[4.25rem]">
-          {/* Left Side: Brand Logo (100% UNTOUCHED) + "Crypto pay" + Tagline */}
+          {/* Left Side: Brand Logo + "Crypto pay" + Tagline */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
             <button
               onClick={() => handleNav('pay-system')}
               className="flex items-center gap-2.5 sm:gap-3 group text-left focus:outline-none cursor-pointer"
               aria-label="CryptoPay Home"
             >
-              {/* App Icon (Preserved with authentic original styling & colors) */}
-              <div className="relative flex-shrink-0 p-0.5 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/30 shadow-xs group-hover:scale-105 transition-transform duration-200">
+              {/* App Icon */}
+              <div className="relative flex-shrink-0 p-0.5 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/30 shadow-xs group-hover:scale-105 transition-transform duration-200">
                 <BrandLogo size={40} showText={false} />
               </div>
 
@@ -82,24 +82,31 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
               return (
                 <button
                   key={item.id}
+                  data-active={isActive ? 'true' : 'false'}
                   onClick={() => handleNav(item.id)}
-                  className={`relative text-xs lg:text-sm font-semibold cursor-pointer py-2 px-3 lg:px-3.5 rounded-xl flex items-center gap-1.5 whitespace-nowrap select-none ${
-                    isActive ? 'text-white' : 'text-slate-600 hover:text-slate-950'
+                  className={`relative text-xs lg:text-sm font-semibold cursor-pointer py-2 px-3 lg:px-3.5 rounded-xl flex items-center gap-1.5 whitespace-nowrap select-none active:scale-95 transition-all duration-200 ${
+                    isActive ? 'nav-pill-active !text-white' : 'text-slate-600 hover:text-slate-950'
                   }`}
                 >
-                  {/* Active Static Gradient Pill - No Animation */}
+                  {/* Vibrant Two-Color Active Box: Royal Purple + Sweet Pink with Animated Pop & Glow */}
                   {isActive && (
                     <div
-                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 shadow-md shadow-purple-500/30"
+                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 shadow-md shadow-pink-500/35 animate-nav-pop animate-nav-glow pointer-events-none"
                     />
                   )}
 
                   <Icon
-                    className={`w-4 h-4 relative z-10 ${
-                      isActive ? 'text-white stroke-[2.2]' : item.accentColor
+                    className={`w-4 h-4 relative z-10 transition-transform duration-200 ${
+                      isActive ? '!text-white text-white stroke-white stroke-[2.2] scale-105' : item.accentColor
                     }`}
+                    style={isActive ? { color: '#FFFFFF', stroke: '#FFFFFF' } : undefined}
                   />
-                  <span className="relative z-10 font-bold">{item.label}</span>
+                  <span
+                    className={`relative z-10 font-bold ${isActive ? '!text-white text-white font-extrabold drop-shadow-xs' : ''}`}
+                    style={isActive ? { color: '#FFFFFF' } : undefined}
+                  >
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
@@ -126,7 +133,7 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
               </button>
             )}
 
-            {/* RainbowKit Connect Wallet Button with Blue → Purple → Pink Gradient */}
+            {/* RainbowKit Connect Wallet Button */}
             <div className="header-connect-wrapper">
               <ConnectButton.Custom>
                 {({
@@ -227,15 +234,21 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
                 return (
                   <button
                     key={item.id}
+                    data-active={isActive ? 'true' : 'false'}
                     onClick={() => handleNav(item.id)}
-                    className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition cursor-pointer ${
+                    className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left active:scale-95 transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25'
+                        ? 'nav-pill-active bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 !text-white text-white shadow-md shadow-pink-500/30'
                         : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-transparent'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white stroke-[2.2]' : item.accentColor}`} />
-                    <span>{item.label}</span>
+                    <Icon
+                      className={`w-4 h-4 ${isActive ? '!text-white text-white stroke-white stroke-[2.2]' : item.accentColor}`}
+                      style={isActive ? { color: '#FFFFFF', stroke: '#FFFFFF' } : undefined}
+                    />
+                    <span style={isActive ? { color: '#FFFFFF' } : undefined} className={isActive ? '!text-white text-white font-extrabold' : ''}>
+                      {item.label}
+                    </span>
                   </button>
                 );
               })}

@@ -1154,10 +1154,10 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           {/* Header */}
           <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#FFFFFF] tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                 Create Receive QR
               </h1>
-              <p className="text-sm text-zinc-400 mt-1">
+              <p className="text-sm text-slate-600 mt-1">
                 Enter your receiver wallet address, select network and token to generate a real payment request QR
               </p>
             </div>
@@ -1169,9 +1169,9 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                   setIsQrGenerated(false);
                   setReceiveValidationError(null);
                 }}
-                className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+                className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
               >
-                <Wallet className="w-3.5 h-3.5 text-[#3B82F6]" />
+                <Wallet className="w-3.5 h-3.5 text-blue-600" />
                 <span>Use Connected Wallet ({address.slice(0, 6)}...{address.slice(-4)})</span>
               </button>
             )}
@@ -1181,40 +1181,40 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
             {/* ----------------- LEFT PANEL: Form Configuration (7 cols) ----------------- */}
-            <div className="lg:col-span-7 bg-zinc-950 rounded-3xl p-6 sm:p-7 border border-zinc-800/90 shadow-xl space-y-6">
+            <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xl space-y-6">
               
               {/* 01 Receiver Address */}
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#3B82F6] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-[0_0_8px_#3B82F6]">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm">
                       01
                     </div>
-                    <h3 className="text-sm sm:text-base font-bold text-[#FFFFFF]">
-                      Receiver Address <span className="text-[#EF4444]">*</span>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                      Receiver Address <span className="text-red-500">*</span>
                     </h3>
                     {activeReceiver ? (
-                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#00E676]/20 text-[#00E676] border border-[#00E676]/40 flex items-center gap-1">
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" />
                         Auto-Populated
                       </span>
                     ) : null}
                   </div>
-                  <span className="text-[11px] text-zinc-400 font-medium">Step 1 of 4</span>
+                  <span className="text-[11px] text-slate-500 font-medium">Step 1 of 4</span>
                 </div>
 
                 {/* Active Receiver Display Card */}
                 {activeReceiver && (
-                  <div className="mb-2 p-2.5 rounded-xl bg-zinc-900 border border-[#00E676]/30 flex items-center justify-between gap-2 text-xs">
+                  <div className="mb-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-2 text-xs">
                     <div className="flex items-center gap-2 truncate">
-                      <span className="font-bold text-white">Active Receiver:</span>
-                      <span className="text-[#00E676] font-semibold">{activeReceiver.telegramUsername}</span>
+                      <span className="font-bold text-slate-800">Active Receiver:</span>
+                      <span className="text-emerald-700 font-semibold">{activeReceiver.telegramUsername}</span>
                     </div>
                     {onNavigateTab && (
                       <button
                         type="button"
                         onClick={() => onNavigateTab('settings')}
-                        className="text-[11px] text-[#3B82F6] hover:underline font-medium flex items-center gap-1 flex-shrink-0 cursor-pointer"
+                        className="text-[11px] text-blue-600 hover:underline font-medium flex items-center gap-1 flex-shrink-0 cursor-pointer"
                       >
                         <span>Change in Settings</span>
                         <ExternalLink className="w-3 h-3" />
@@ -1234,23 +1234,23 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                       setReceiveVerifiedRecord(null);
                     }}
                     placeholder="0x... Enter EVM receiver address"
-                    className={`w-full bg-zinc-900 border rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-mono text-[#FFFFFF] placeholder:text-zinc-500 focus:outline-none pr-10 shadow-inner transition ${
+                    className={`w-full bg-slate-50 border rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:outline-none pr-10 shadow-inner transition ${
                       receiveReceiverAddress
                         ? isReceiveAddressValid
-                          ? 'border-[#00E676] ring-1 ring-[#00E676]/40'
-                          : 'border-[#EF4444] ring-1 ring-[#EF4444]/40'
-                        : 'border-zinc-800 focus:border-[#3B82F6]'
+                          ? 'border-emerald-500 ring-1 ring-emerald-500/40 bg-white'
+                          : 'border-red-500 ring-1 ring-red-500/40 bg-white'
+                        : 'border-slate-300 focus:border-blue-600 bg-white'
                     }`}
                   />
                   {receiveReceiverAddress && (
                     <button
                       type="button"
                       onClick={handleCopyReceiveAddress}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
                       title="Copy Address"
                     >
                       {copiedReceiveAddress ? (
-                        <Check className="w-4 h-4 text-[#00E676]" />
+                        <Check className="w-4 h-4 text-emerald-600" />
                       ) : (
                         <Copy className="w-4 h-4" />
                       )}
@@ -1284,14 +1284,14 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
               <div className={!isReceiveAddressValid ? 'opacity-50 pointer-events-none transition-opacity' : 'transition-opacity'}>
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#3B82F6] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-[0_0_8px_#3B82F6]">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm">
                       02
                     </div>
-                    <h3 className="text-sm sm:text-base font-bold text-[#FFFFFF]">
-                      Select Network <span className="text-[#EF4444]">*</span>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                      Select Network <span className="text-red-500">*</span>
                     </h3>
                   </div>
-                  <span className="text-[11px] text-zinc-400 font-medium">Step 2 of 4</span>
+                  <span className="text-[11px] text-slate-500 font-medium">Step 2 of 4</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -1305,16 +1305,16 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                     }}
                     className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2.5 text-sm font-black transition cursor-pointer ${
                       receiveNetworkId === POLYGON_CHAIN_ID
-                        ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-md shadow-emerald-500/20 ring-2 ring-emerald-400/40'
-                        : 'bg-zinc-900 border-zinc-700 text-zinc-100 hover:border-emerald-400 hover:text-emerald-300 hover:bg-zinc-800'
+                        ? 'bg-emerald-50 border-emerald-500 text-emerald-800 shadow-sm ring-2 ring-emerald-500/30'
+                        : 'bg-slate-50 border-slate-300 text-slate-700 hover:border-emerald-500 hover:bg-slate-100'
                     }`}
                   >
                     <TokenIcon token="POL" size={24} />
                     <span>Polygon PoS</span>
                     <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-black ${
                       receiveNetworkId === POLYGON_CHAIN_ID
-                        ? 'bg-emerald-500 text-zinc-950'
-                        : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-200 text-slate-700 border border-slate-300'
                     }`}>137</span>
                   </button>
 
@@ -1328,16 +1328,16 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                     }}
                     className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2.5 text-sm font-black transition cursor-pointer ${
                       receiveNetworkId === ETHEREUM_CHAIN_ID
-                        ? 'bg-blue-500/25 border-blue-400 text-blue-300 shadow-md shadow-blue-500/20 ring-2 ring-blue-400/40'
-                        : 'bg-zinc-900 border-zinc-700 text-zinc-100 hover:border-blue-400 hover:text-blue-300 hover:bg-zinc-800'
+                        ? 'bg-blue-50 border-blue-500 text-blue-800 shadow-sm ring-2 ring-blue-500/30'
+                        : 'bg-slate-50 border-slate-300 text-slate-700 hover:border-blue-500 hover:bg-slate-100'
                     }`}
                   >
                     <TokenIcon token="ETH" size={24} />
                     <span>Ethereum</span>
                     <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-black ${
                       receiveNetworkId === ETHEREUM_CHAIN_ID
-                        ? 'bg-blue-500 text-zinc-950'
-                        : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-200 text-slate-700 border border-slate-300'
                     }`}>1</span>
                   </button>
                 </div>
@@ -1347,14 +1347,14 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
               <div className={!isReceiveAddressValid ? 'opacity-50 pointer-events-none transition-opacity' : 'transition-opacity'}>
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#3B82F6] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-[0_0_8px_#3B82F6]">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm">
                       03
                     </div>
-                    <h3 className="text-sm sm:text-base font-bold text-[#FFFFFF]">
-                      Select Token <span className="text-[#EF4444]">*</span>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                      Select Token <span className="text-red-500">*</span>
                     </h3>
                   </div>
-                  <span className="text-[11px] text-zinc-400 font-medium">Step 3 of 4</span>
+                  <span className="text-[11px] text-slate-500 font-medium">Step 3 of 4</span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
@@ -1368,8 +1368,8 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                     }}
                     className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 text-sm font-black transition cursor-pointer ${
                       receiveTokenId === 'usdt'
-                        ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-md shadow-emerald-500/20 ring-2 ring-emerald-400/40'
-                        : 'bg-zinc-900 border-zinc-700 text-zinc-100 hover:border-emerald-400 hover:text-emerald-300 hover:bg-zinc-800'
+                        ? 'bg-emerald-50 border-emerald-500 text-emerald-800 shadow-sm ring-2 ring-emerald-500/30'
+                        : 'bg-slate-50 border-slate-300 text-slate-700 hover:border-emerald-500 hover:bg-slate-100'
                     }`}
                   >
                     <TokenIcon token="USDT" size={22} />
@@ -1386,8 +1386,8 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                     }}
                     className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 text-sm font-black transition cursor-pointer ${
                       receiveTokenId === 'usdc'
-                        ? 'bg-blue-500/25 border-blue-400 text-blue-300 shadow-md shadow-blue-500/20 ring-2 ring-blue-400/40'
-                        : 'bg-zinc-900 border-zinc-700 text-zinc-100 hover:border-blue-400 hover:text-blue-300 hover:bg-zinc-800'
+                        ? 'bg-blue-50 border-blue-500 text-blue-800 shadow-sm ring-2 ring-blue-500/30'
+                        : 'bg-slate-50 border-slate-300 text-slate-700 hover:border-blue-500 hover:bg-slate-100'
                     }`}
                   >
                     <TokenIcon token="USDC" size={22} />
@@ -1404,8 +1404,8 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                     }}
                     className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 text-sm font-black transition cursor-pointer ${
                       receiveTokenId === 'verse'
-                        ? 'bg-purple-500/25 border-purple-400 text-purple-300 shadow-md shadow-purple-500/20 ring-2 ring-purple-400/40'
-                        : 'bg-zinc-900 border-zinc-700 text-zinc-100 hover:border-purple-400 hover:text-purple-300 hover:bg-zinc-800'
+                        ? 'bg-purple-50 border-purple-500 text-purple-800 shadow-sm ring-2 ring-purple-500/30'
+                        : 'bg-slate-50 border-slate-300 text-slate-700 hover:border-purple-500 hover:bg-slate-100'
                     }`}
                   >
                     <TokenIcon token="VERSE" size={22} />
@@ -1415,9 +1415,9 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
 
                 {/* Contract address preview */}
                 {receiveNetworkConfig && !receiveNetworkConfig.isNative && (
-                  <p className="mt-2 text-[11px] text-zinc-400 font-mono flex items-center gap-1 truncate">
+                  <p className="mt-2 text-[11px] text-slate-500 font-mono flex items-center gap-1 truncate">
                     <span>Contract:</span>
-                    <span className="truncate text-zinc-300">{receiveNetworkConfig.address}</span>
+                    <span className="truncate text-slate-700 font-semibold">{receiveNetworkConfig.address}</span>
                   </p>
                 )}
               </div>
@@ -1426,14 +1426,14 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
               <div className={!isReceiveAddressValid ? 'opacity-50 pointer-events-none transition-opacity' : 'transition-opacity'}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-[#3B82F6] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-[0_0_8px_#3B82F6]">
+                    <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm">
                       04
                     </div>
-                    <h3 className="text-sm sm:text-base font-bold text-[#FFFFFF]">
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900">
                       Amount (Optional)
                     </h3>
                   </div>
-                  <span className="text-[11px] text-zinc-400 font-medium">Step 4 of 4</span>
+                  <span className="text-[11px] text-slate-500 font-medium">Step 4 of 4</span>
                 </div>
 
                 <div className="relative">
@@ -1448,14 +1448,14 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                       setReceiveValidationError(null);
                     }}
                     placeholder="Leave empty for customer-specified amount"
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm font-mono text-[#FFFFFF] placeholder:text-zinc-500 focus:outline-none focus:border-[#3B82F6] pr-16 shadow-inner font-bold"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 pr-16 shadow-inner font-bold"
                   />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#FACC15] select-none">
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-amber-700 select-none">
                     {receiveSelectedToken?.symbol || 'USDT'}
                   </span>
                 </div>
 
-                <p className="mt-1 text-[11px] text-zinc-400">
+                <p className="mt-1 text-[11px] text-slate-500">
                   {receiveAmount && parseFloat(receiveAmount) > 0
                     ? `Requesting exactly ${receiveAmount} ${receiveSelectedToken?.symbol}. The customer wallet will prefill this amount.`
                     : 'Customer wallet will prompt the payer to specify any amount.'}
@@ -1464,10 +1464,10 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
 
               {/* Validation Error Banner (if any) */}
               {receiveValidationError && (
-                <div className="p-3.5 rounded-2xl bg-red-950/40 border border-red-500/50 text-red-400 text-xs flex items-start gap-2.5 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
-                  <AlertCircle className="w-4 h-4 text-[#EF4444] flex-shrink-0 mt-0.5" />
+                <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5 shadow-sm">
+                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
                   <div className="space-y-0.5">
-                    <span className="font-bold text-white block">Action Required</span>
+                    <span className="font-bold text-red-900 block">Action Required</span>
                     <span>{receiveValidationError}</span>
                   </div>
                 </div>
@@ -1497,25 +1497,25 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
             </div>
 
             {/* ----------------- RIGHT PANEL: Payment QR Display (5 cols) ----------------- */}
-            <div id="payment-qr-display-panel" className="lg:col-span-5 bg-zinc-950 rounded-3xl p-6 sm:p-7 border border-zinc-800/90 shadow-xl flex flex-col justify-between space-y-5">
+            <div id="payment-qr-display-panel" className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-xl flex flex-col justify-between space-y-5">
               
               {/* Header with LIVE badge */}
               <div className="flex items-center justify-between">
-                <h3 className="text-base sm:text-lg font-bold text-[#FFFFFF]">Payment QR</h3>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">Payment QR</h3>
                 {isQrGenerated && isReceiveAddressValid ? (
-                  <span className="px-2 py-0.5 rounded-full bg-[#00E676]/20 border border-[#00E676]/40 text-[#00E676] text-[10px] font-bold tracking-wide uppercase flex items-center gap-1 shadow-[0_0_8px_rgba(0,230,118,0.3)]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse" />
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold tracking-wide uppercase flex items-center gap-1 shadow-xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     LIVE ON-CHAIN
                   </span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 text-[10px] font-bold tracking-wide uppercase">
+                  <span className="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-[10px] font-bold tracking-wide uppercase">
                     Awaiting Inputs
                   </span>
                 )}
               </div>
 
               {/* QR Code Frame with centered logo badge */}
-              <div className="relative mx-auto p-4 bg-white rounded-2xl border border-zinc-800 shadow-md flex flex-col items-center justify-center min-h-[240px] w-full">
+              <div className="relative mx-auto p-4 bg-white rounded-2xl border border-slate-200 shadow-md flex flex-col items-center justify-center min-h-[240px] w-full">
                 {isQrGenerated && isReceiveAddressValid && generatedReceiveQrUri ? (
                   <QRCodeSVG
                     id="payment-qr-svg"
@@ -1534,11 +1534,11 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                   />
                 ) : (
                   <div className="py-12 px-6 text-center space-y-2">
-                    <div className="w-12 h-12 rounded-2xl bg-zinc-100 text-zinc-500 mx-auto flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
                       <QrCode className="w-6 h-6" />
                     </div>
-                    <p className="text-sm font-semibold text-zinc-800">Payment QR Not Generated</p>
-                    <p className="text-xs text-zinc-500 max-w-[220px] mx-auto">
+                    <p className="text-sm font-semibold text-slate-800">Payment QR Not Generated</p>
+                    <p className="text-xs text-slate-500 max-w-[220px] mx-auto">
                       Fill out the receiver address, select network & token, then click Generate Payment QR.
                     </p>
                   </div>
@@ -1546,41 +1546,41 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
               </div>
 
               {/* Payment Details Section */}
-              <div className="space-y-2.5 pt-2 border-t border-zinc-800">
-                <h4 className="text-xs font-bold text-[#FFFFFF] uppercase tracking-wider">
+              <div className="space-y-2.5 pt-2 border-t border-slate-200">
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                   Payment Request Parameters
                 </h4>
 
                 <div className="space-y-2 text-xs">
                   {/* Network */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-zinc-400">
+                    <div className="flex items-center gap-1.5 text-slate-500 font-semibold">
                       <TokenIcon token={receiveNetworkId === POLYGON_CHAIN_ID ? 'POL' : 'ETH'} size={14} />
                       <span>Network</span>
                     </div>
-                    <span className="font-semibold text-[#00E676]">
+                    <span className="font-bold text-emerald-700">
                       {receiveNetworkId === POLYGON_CHAIN_ID ? 'Polygon PoS (Chain ID 137)' : 'Ethereum (Chain ID 1)'}
                     </span>
                   </div>
 
                   {/* Token */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-zinc-400">
+                    <div className="flex items-center gap-1.5 text-slate-500 font-semibold">
                       <TokenIcon token={receiveSelectedToken?.symbol || 'USDT'} size={14} />
                       <span>Token</span>
                     </div>
-                    <span className="font-semibold text-[#FFFFFF]">
+                    <span className="font-bold text-slate-900">
                       {receiveSelectedToken?.symbol} ({receiveSelectedToken?.name})
                     </span>
                   </div>
 
                   {/* Amount */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-zinc-400">
-                      <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                    <div className="flex items-center gap-1.5 text-slate-500 font-semibold">
+                      <Clock className="w-3.5 h-3.5 text-slate-500" />
                       <span>Amount</span>
                     </div>
-                    <span className="font-semibold text-[#FACC15]">
+                    <span className="font-bold text-amber-700">
                       {receiveAmount && parseFloat(receiveAmount) > 0
                         ? `${parseFloat(receiveAmount).toFixed(2)} ${receiveSelectedToken?.symbol}`
                         : 'Any amount (Open)'}
@@ -1589,11 +1589,11 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
 
                   {/* Receiver */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-zinc-400">
-                      <User className="w-3.5 h-3.5 text-zinc-500" />
+                    <div className="flex items-center gap-1.5 text-slate-500 font-semibold">
+                      <User className="w-3.5 h-3.5 text-slate-500" />
                       <span>Receiver</span>
                     </div>
-                    <span className="font-mono text-zinc-300 truncate max-w-[140px]" title={receiveReceiverAddress}>
+                    <span className="font-mono text-slate-800 font-bold truncate max-w-[140px]" title={receiveReceiverAddress}>
                       {receiveReceiverAddress
                         ? `${receiveReceiverAddress.slice(0, 6)}...${receiveReceiverAddress.slice(-4)}`
                         : 'Not specified'}
@@ -1608,36 +1608,36 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                   <button
                     type="button"
                     onClick={handleShareQR}
-                    className="w-full py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-[#FFFFFF] font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="w-full py-2.5 px-4 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
                   >
-                    <Share2 className="w-4 h-4 text-[#3B82F6]" />
-                    <span>{shareSuccessToast ? 'Link / URI Copied!' : 'Share / Copy Payment URI'}</span>
+                    <Share2 className="w-4 h-4 text-blue-600" />
+                    <span className="text-slate-900">{shareSuccessToast ? 'Link / URI Copied!' : 'Share / Copy Payment URI'}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={handleDownloadQR}
-                    className="w-full py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-[#FFFFFF] font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="w-full py-2.5 px-4 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-xs"
                   >
-                    <Download className="w-4 h-4 text-[#00E676]" />
-                    <span>Download QR Image</span>
+                    <Download className="w-4 h-4 text-emerald-600" />
+                    <span className="text-slate-900">Download QR Image</span>
                   </button>
                 </div>
               )}
 
               {/* On-Chain Payment Verification Box */}
               {isQrGenerated && isReceiveAddressValid && (
-                <div className="pt-3 border-t border-zinc-800">
-                  <div className="bg-zinc-900 rounded-2xl p-3.5 border border-zinc-800 space-y-3">
+                <div className="pt-3 border-t border-slate-200">
+                  <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <ShieldCheck className="w-4 h-4 text-[#00E676]" />
-                        <span className="text-xs font-bold text-[#FFFFFF]">Verify Payment On-Chain</span>
+                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                        <span className="text-xs font-bold text-slate-900">Verify Payment On-Chain</span>
                       </div>
-                      <span className="text-[10px] text-[#00E676] font-medium">RPC Node Verified</span>
+                      <span className="text-[10px] text-emerald-700 font-bold">RPC Node Verified</span>
                     </div>
 
-                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
                       After customer pays via their crypto wallet, paste the transaction hash to verify receipt and save to your merchant history.
                     </p>
 
@@ -1650,43 +1650,43 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                           setVerificationError(null);
                         }}
                         placeholder="0x... Transaction hash"
-                        className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-[#FFFFFF] placeholder:text-zinc-500 focus:outline-none focus:border-[#3B82F6]"
+                        className="flex-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600"
                       />
                       <button
                         type="button"
                         disabled={isVerifyingTx || !manualTxHash}
                         onClick={() => handleVerifyIncomingPayment()}
-                        className="px-3 py-1.5 rounded-lg bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white font-bold text-xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                        className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 shadow-xs"
                       >
                         {isVerifyingTx ? (
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
                         ) : (
-                          <Search className="w-3.5 h-3.5" />
+                          <Search className="w-3.5 h-3.5 text-white" />
                         )}
-                        <span>{isVerifyingTx ? 'Checking...' : 'Verify'}</span>
+                        <span className="text-white">{isVerifyingTx ? 'Checking...' : 'Verify'}</span>
                       </button>
                     </div>
 
                     {verificationError && (
-                      <div className="p-2 rounded-lg bg-zinc-950 border border-[#EF4444]/60 text-[#EF4444] text-xs flex items-center gap-1.5">
+                      <div className="p-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-1.5">
                         <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                         <span>{verificationError}</span>
                       </div>
                     )}
 
                     {receiveVerifiedRecord && (
-                      <div className="p-2.5 rounded-xl bg-zinc-950 border border-[#00E676]/60 text-white text-xs space-y-1.5 shadow-[0_0_15px_rgba(0,230,118,0.15)]">
+                      <div className="p-2.5 rounded-xl bg-white border border-emerald-400 text-slate-900 text-xs space-y-1.5 shadow-sm">
                         <div className="flex items-center justify-between font-bold">
-                          <span className="flex items-center gap-1 text-[#00E676]">
-                            <CheckCircle2 className="w-4 h-4 text-[#00E676]" />
+                          <span className="flex items-center gap-1 text-emerald-700">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                             <span>Payment Verified & Saved!</span>
                           </span>
-                          <span className="text-[10px] bg-[#00E676]/20 border border-[#00E676]/40 px-1.5 py-0.5 rounded text-[#00E676]">
+                          <span className="text-[10px] bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-emerald-700 font-bold">
                             Block #{receiveVerifiedRecord.blockNumber}
                           </span>
                         </div>
-                        <div className="text-[11px] text-zinc-300 space-y-0.5 font-mono">
-                          <div>Amount: <span className="text-[#00E676] font-bold">{receiveVerifiedRecord.amount} {receiveVerifiedRecord.tokenLabel}</span></div>
+                        <div className="text-[11px] text-slate-700 space-y-0.5 font-mono">
+                          <div>Amount: <span className="text-emerald-700 font-bold">{receiveVerifiedRecord.amount} {receiveVerifiedRecord.tokenLabel}</span></div>
                           <div>From: {receiveVerifiedRecord.senderAddress.slice(0, 6)}...{receiveVerifiedRecord.senderAddress.slice(-4)}</div>
                           <div>To: {receiveVerifiedRecord.recipientAddress.slice(0, 6)}...{receiveVerifiedRecord.recipientAddress.slice(-4)}</div>
                         </div>
@@ -1699,7 +1699,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                             }
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[11px] font-semibold text-[#3B82F6] underline hover:text-[#3B82F6]/80 flex items-center gap-1"
+                            className="text-[11px] font-semibold text-blue-600 underline hover:text-blue-800 flex items-center gap-1"
                           >
                             <span>View on Explorer</span>
                             <ExternalLink className="w-3 h-3" />
@@ -1707,7 +1707,7 @@ export default function PaySystemTerminal({ onNavigateTab }: PaySystemTerminalPr
                           <button
                             type="button"
                             onClick={() => generatePaymentReceiptPdf(receiveVerifiedRecord)}
-                            className="text-[11px] font-semibold text-[#00E676] underline hover:text-[#00E676]/80 flex items-center gap-1 cursor-pointer"
+                            className="text-[11px] font-semibold text-emerald-700 underline hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
                           >
                             <Download className="w-3 h-3" />
                             <span>Download Receipt PDF</span>

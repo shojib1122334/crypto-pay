@@ -560,19 +560,19 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
           
           {/* Payment QR Terminal Card */}
           {qrPayload && qrParams ? (
-            <div className="bg-zinc-950 rounded-2xl border border-zinc-800 shadow-xl overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
               {/* Terminal Title Bar */}
-              <div className="bg-zinc-900 text-white px-5 py-4 flex items-center justify-between border-b border-zinc-800">
+              <div className="bg-slate-50 px-5 py-4 flex items-center justify-between border-b border-slate-200">
                 <div>
-                  <h4 className="text-sm font-bold text-[#FFFFFF] tracking-wide">
+                  <h4 className="text-sm font-bold text-slate-900 tracking-wide">
                     Payment Request
                   </h4>
-                  <span className="text-[11px] text-[#00E676] font-semibold">
+                  <span className="text-[11px] text-emerald-700 font-semibold">
                     Polygon Mainnet
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-zinc-950 border border-zinc-800 px-2.5 py-1 rounded-lg text-[#FACC15] text-xs font-mono">
-                  <Clock className="w-3.5 h-3.5 text-[#FACC15]" />
+                <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg text-amber-800 text-xs font-mono">
+                  <Clock className="w-3.5 h-3.5 text-amber-600" />
                   Expires in {formatCountdown(secondsRemaining)}
                 </div>
               </div>
@@ -580,13 +580,13 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
               <div className="p-6 flex flex-col items-center">
                 {/* Big Amount Badge */}
                 <div className="text-center mb-5">
-                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
                     Total Amount
                   </span>
-                  <div className="inline-flex items-center justify-center gap-2 text-3xl font-extrabold text-[#FFFFFF] tracking-tight">
+                  <div className="inline-flex items-center justify-center gap-2 text-3xl font-extrabold text-slate-900 tracking-tight">
                     <TokenIcon token={qrParams.token} size={30} />
                     <span>{qrParams.amount}</span>
-                    <span className="text-[#3B82F6]">
+                    <span className="text-blue-600">
                       {TOKEN_LIST.find((t) => t.symbol === qrParams.token)?.label}
                     </span>
                   </div>
@@ -595,7 +595,7 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                 {/* QR Code SVG */}
                 <div
                   ref={qrRef}
-                  className="p-4 bg-white rounded-2xl border border-zinc-800 shadow-md flex items-center justify-center mb-2"
+                  className="p-4 bg-white rounded-2xl border border-slate-200 shadow-md flex items-center justify-center mb-2"
                 >
                   <QRCodeSVG
                     value={qrPayload}
@@ -606,16 +606,16 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                 </div>
 
                 {/* EIP-681 Standard URI Box */}
-                <div className="mt-5 w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3.5 space-y-1.5">
+                <div className="mt-5 w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                       EIP-681 Payment Scanner URI
                     </span>
-                    <span className="text-[10px] text-[#00E676] font-semibold px-2 py-0.5 rounded bg-zinc-950 border border-[#00E676]/40">
+                    <span className="text-[10px] text-emerald-700 font-semibold px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200">
                       Scanner Ready
                     </span>
                   </div>
-                  <p className="text-[11px] text-zinc-300 break-all font-mono select-all leading-tight">
+                  <p className="text-[11px] text-slate-700 break-all font-mono select-all leading-tight">
                     {qrPayload}
                   </p>
                 </div>
@@ -625,16 +625,16 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                   <div className="flex gap-2">
                     <button
                       onClick={handleCopyPayload}
-                      className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 px-3 py-2.5 text-xs font-bold text-[#FFFFFF] transition cursor-pointer"
+                      className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 px-3 py-2.5 text-xs font-bold text-slate-800 transition cursor-pointer"
                     >
                       {copiedPayload ? (
                         <>
-                          <Check className="w-3.5 h-3.5 text-[#00E676]" />
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
                           URI Copied
                         </>
                       ) : (
                         <>
-                          <Copy className="w-3.5 h-3.5 text-zinc-400" />
+                          <Copy className="w-3.5 h-3.5 text-slate-500" />
                           Copy URI
                         </>
                       )}
@@ -643,16 +643,16 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                     {webLink && (
                       <button
                         onClick={handleCopyWebLink}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 px-3 py-2.5 text-xs font-bold text-[#FFFFFF] transition cursor-pointer"
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 px-3 py-2.5 text-xs font-bold text-slate-800 transition cursor-pointer"
                       >
                         {copiedWebLink ? (
                           <>
-                            <Check className="w-3.5 h-3.5 text-[#00E676]" />
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
                             Link Copied
                           </>
                         ) : (
                           <>
-                            <Copy className="w-3.5 h-3.5 text-zinc-400" />
+                            <Copy className="w-3.5 h-3.5 text-slate-500" />
                             Copy Link
                           </>
                         )}
@@ -665,16 +665,16 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                       href={webLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-[#3B82F6]/40 bg-zinc-900 hover:bg-zinc-800 px-3 py-2.5 text-xs font-bold text-[#3B82F6] transition"
+                      className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 px-3 py-2.5 text-xs font-bold text-blue-700 transition"
                     >
-                      <ExternalLink className="w-3.5 h-3.5 text-[#3B82F6]" />
+                      <ExternalLink className="w-3.5 h-3.5 text-blue-700" />
                       Open Customer Pay Page
                     </a>
                   )}
 
                   <button
                     onClick={handleDownload}
-                    className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white px-3 py-2.5 text-xs font-bold transition shadow-[0_0_15px_rgba(59,130,246,0.3)] cursor-pointer"
+                    className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3 py-2.5 text-xs font-bold transition shadow-sm cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5 text-white" />
                     Download QR
@@ -686,9 +686,9 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
 
           {/* Live Transaction Status Tracker */}
           {sessionId && (
-            <div className="bg-zinc-950 rounded-2xl border border-zinc-800 shadow-xl p-5 sm:p-6">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-5 sm:p-6">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-bold text-[#FFFFFF]">
+                <h4 className="text-sm font-bold text-slate-900">
                   Transaction Status
                 </h4>
                 <span
@@ -711,20 +711,20 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                           className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
                             isActive
                               ? isCurrent
-                                ? 'bg-[#3B82F6] text-white shadow-[0_0_10px_#3B82F6]'
-                                : 'bg-[#00E676] text-zinc-950 shadow-[0_0_8px_#00E676]'
-                              : 'bg-zinc-900 text-zinc-500 border border-zinc-800'
+                                ? 'bg-blue-600 text-white shadow-sm'
+                                : 'bg-emerald-600 text-white shadow-sm'
+                              : 'bg-slate-100 text-slate-500 border border-slate-300'
                           }`}
                         >
                           {isActive && !isCurrent ? (
-                            <Check className="w-3.5 h-3.5 text-zinc-950 stroke-[3]" />
+                            <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
                           ) : (
                             idx + 1
                           )}
                         </div>
                         <span
                           className={`mt-1.5 text-[10px] font-semibold text-center ${
-                            isActive ? 'text-[#FFFFFF]' : 'text-zinc-500'
+                            isActive ? 'text-slate-900' : 'text-slate-500'
                           }`}
                         >
                           {STATUS_LABELS[status]}
@@ -733,7 +733,7 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                       {idx < STATUS_ORDER.length - 1 && (
                         <div
                           className={`h-0.5 flex-1 mx-1.5 transition-colors duration-300 ${
-                            idx < activeStep ? 'bg-[#00E676]' : 'bg-zinc-800'
+                            idx < activeStep ? 'bg-emerald-500' : 'bg-slate-200'
                           }`}
                         />
                       )}
@@ -743,67 +743,67 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
               </div>
 
               {/* Verify Payment Section directly below Stepper */}
-              <div className="pt-4 border-t border-zinc-800 space-y-3">
+              <div className="pt-4 border-t border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-[#00E676]" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#FFFFFF]">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-900">
                       Verify Payment
                     </span>
                   </div>
-                  <span className="text-[11px] text-[#00E676] font-medium">
+                  <span className="text-[11px] text-emerald-700 font-medium">
                     On-chain validation
                   </span>
                 </div>
 
                 {/* If already verified, show real verified record summary */}
                 {verifiedRecord ? (
-                  <div className="bg-zinc-900 border border-[#00E676]/40 rounded-xl p-4 space-y-3 shadow-[0_0_15px_rgba(0,230,118,0.15)]">
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-[#00E676]/20 text-[#00E676] flex items-center justify-center flex-shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
                           <CheckCircle2 className="w-4 h-4" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-[#00E676]">
+                          <p className="text-xs font-bold text-emerald-800">
                             Payment Verified (Success)
                           </p>
-                          <p className="text-[11px] text-zinc-400">
+                          <p className="text-[11px] text-slate-600">
                             Recorded in Activity under Transaction History
                           </p>
                         </div>
                       </div>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#00E676]/20 text-[#00E676] border border-[#00E676]/40">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                         Finalized
                       </span>
                     </div>
 
-                    <div className="text-xs space-y-1.5 bg-zinc-950 rounded-lg p-3 border border-zinc-800 font-medium">
+                    <div className="text-xs space-y-1.5 bg-white rounded-lg p-3 border border-emerald-200 font-medium">
                       <div className="flex justify-between">
-                        <span className="text-zinc-400">Amount Settled:</span>
-                        <span className="font-bold text-[#00E676]">
+                        <span className="text-slate-500">Amount Settled:</span>
+                        <span className="font-bold text-emerald-700">
                           +{verifiedRecord.amount} {verifiedRecord.tokenLabel}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-zinc-400">Exact Time:</span>
-                        <span className="text-zinc-200 font-semibold">
+                        <span className="text-slate-500">Exact Time:</span>
+                        <span className="text-slate-800 font-semibold">
                           {verifiedRecord.formattedDate || new Date(verifiedRecord.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-zinc-400">Polygon Block:</span>
-                        <span className="font-mono text-zinc-200 font-semibold">
+                        <span className="text-slate-500">Polygon Block:</span>
+                        <span className="font-mono text-slate-800 font-semibold">
                           #{verifiedRecord.blockNumber}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center pt-1 border-t border-zinc-800">
-                        <span className="text-zinc-400">Tx Hash:</span>
+                      <div className="flex justify-between items-center pt-1 border-t border-slate-200">
+                        <span className="text-slate-500">Tx Hash:</span>
                         <a
                           href={`https://polygonscan.com/tx/${verifiedRecord.txHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-mono text-[#3B82F6] hover:underline inline-flex items-center gap-1"
+                          className="font-mono text-blue-600 hover:underline inline-flex items-center gap-1"
                         >
                           {verifiedRecord.txHash.slice(0, 8)}...{verifiedRecord.txHash.slice(-6)}
                           <ArrowUpRight className="w-3 h-3" />
@@ -814,23 +814,23 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                     <div className="flex flex-col sm:flex-row gap-2 pt-1">
                       <button
                         onClick={() => generatePaymentReceiptPdf(verifiedRecord)}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#00E676] hover:bg-[#00E676]/90 text-zinc-950 text-xs font-bold shadow-[0_0_10px_rgba(0,230,118,0.3)] active:scale-95 transition cursor-pointer"
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm active:scale-95 transition cursor-pointer"
                       >
-                        <FileText className="w-3.5 h-3.5 text-zinc-950" />
+                        <FileText className="w-3.5 h-3.5 text-white" />
                         <span>Download Receipt (PDF)</span>
                       </button>
                       <a
                         href="#activity"
-                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-[#FFFFFF] text-xs font-bold shadow-xs active:scale-95 transition cursor-pointer"
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-bold shadow-xs active:scale-95 transition cursor-pointer"
                       >
                         <span>View in Activity</span>
-                        <ArrowRight className="w-3.5 h-3.5 text-zinc-400" />
+                        <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
                       </a>
                     </div>
                   </div>
                 ) : (
                   <form onSubmit={handleVerifyPayment} className="space-y-2">
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-slate-600">
                       Enter the transaction hash here to display 'Success' status and save record.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-2">
@@ -842,12 +842,12 @@ export default function MerchantDashboard({ onNavigateTab: _onNavigateTab }: Mer
                           setVerifyInputHash(e.target.value);
                           setVerifyError(null);
                         }}
-                        className="flex-1 px-3.5 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-xs font-mono text-[#FFFFFF] placeholder:text-zinc-500 placeholder:font-sans focus:outline-none focus:border-[#3B82F6] transition"
+                        className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-xs font-mono text-slate-900 placeholder:text-slate-400 placeholder:font-sans focus:outline-none focus:border-blue-600 transition"
                       />
                       <button
                         type="submit"
                         disabled={isVerifyingHash || !verifyInputHash.trim()}
-                        className="px-4 py-2.5 rounded-xl bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white text-xs font-bold shadow-[0_0_10px_rgba(59,130,246,0.3)] active:scale-95 transition flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 cursor-pointer"
+                        className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 cursor-pointer"
                       >
                         {isVerifyingHash ? (
                           <>
