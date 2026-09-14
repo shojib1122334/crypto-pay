@@ -222,7 +222,7 @@ function AppContent() {
           {/* Exchange Tab (Polygon Mainnet Swap for USDT, USDC, and VERSE) */}
           {activeTab === 'exchange' && (
             <div id="exchange-page" className="w-full max-w-7xl mx-auto px-3.5 sm:px-6 py-3 sm:py-6 min-h-[50vh]">
-              <ExchangeView />
+              <ExchangeView onNavigateTab={handleTabChange} />
             </div>
           )}
 

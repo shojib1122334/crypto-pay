@@ -24,12 +24,16 @@ import {
   QrCode,
   CreditCard,
   AlertTriangle,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAccount } from 'wagmi';
 import { TokenIcon } from '@/components/TokenIcon';
 import { TOKEN_LIST, TOKENS, type TokenSymbol } from '@/lib/tokens';
 import type { TopUpRecord } from '@/types/topup';
+import type { SwapHistoryRecord } from '@/types/swap';
+import { getLocalSwapHistory, syncSwapHistory } from '@/services/swapHistoryStorage';
+import { formatTokenAmount, getPolygonscanTxUrl } from '@/components/exchange/tokenData';
 import {
   getVerifiedTransactions,
   verifyOnChainPayment,
@@ -47,12 +51,13 @@ import { buildPaymentQRUri } from '@/lib/payments';
 export const TransactionHistoryView: React.FC = () => {
   const { address } = useAccount();
 
-  // Top subtab: 'all', 'invoices', 'transactions', or 'payouts'
-  const [activeSubTab, setActiveSubTab] = useState<'all' | 'invoices' | 'transactions' | 'payouts'>('all');
+  // Top subtab: 'all', 'invoices', 'transactions', 'payouts', or 'swaps'
+  const [activeSubTab, setActiveSubTab] = useState<'all' | 'invoices' | 'transactions' | 'payouts' | 'swaps'>('all');
 
   const [transactions, setTransactions] = useState<VerifiedTransactionRecord[]>([]);
   const [invoices, setInvoices] = useState<CryptoPayInvoiceData[]>([]);
   const [payouts, setPayouts] = useState<TopUpRecord[]>([]);
+  const [swaps, setSwaps] = useState<SwapHistoryRecord[]>([]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTokenFilter, setSelectedTokenFilter] = useState<string>('all');
@@ -161,7 +166,24 @@ export const TransactionHistoryView: React.FC = () => {
     } catch (err) {
       console.warn('Could not load payout history:', err);
     }
-  }, []);
+
+    // 4. Load Swap History
+    try {
+      const localSwaps = getLocalSwapHistory(address);
+      setSwaps(localSwaps);
+      if (address) {
+        syncSwapHistory(address)
+          .then(({ history }) => {
+            if (Array.isArray(history) && history.length > 0) {
+              setSwaps(history);
+            }
+          })
+          .catch((err) => console.warn('Could not sync swap history:', err));
+      }
+    } catch (err) {
+      console.warn('Could not load swap history:', err);
+    }
+  }, [address]);
 
   useEffect(() => {
     loadData();
@@ -173,12 +195,14 @@ export const TransactionHistoryView: React.FC = () => {
     window.addEventListener('cryptopay_history_update', handleHistoryUpdate);
     window.addEventListener('cryptopay_invoices_update', handleHistoryUpdate);
     window.addEventListener('cryptopay_payout_update', handleHistoryUpdate);
+    window.addEventListener('cryptopay_swap_history_update', handleHistoryUpdate);
     window.addEventListener('storage', handleHistoryUpdate);
 
     return () => {
       window.removeEventListener('cryptopay_history_update', handleHistoryUpdate);
       window.removeEventListener('cryptopay_invoices_update', handleHistoryUpdate);
       window.removeEventListener('cryptopay_payout_update', handleHistoryUpdate);
+      window.removeEventListener('cryptopay_swap_history_update', handleHistoryUpdate);
       window.removeEventListener('storage', handleHistoryUpdate);
     };
   }, [loadData]);
@@ -275,6 +299,7 @@ export const TransactionHistoryView: React.FC = () => {
     ) {
       localStorage.removeItem('cryptopay_real_transaction_history');
       localStorage.removeItem('cryptopay_created_invoices');
+      localStorage.removeItem('cryptopay_swap_history');
       loadData();
     }
   };
@@ -391,6 +416,46 @@ export const TransactionHistoryView: React.FC = () => {
     });
   }, [payouts, searchQuery, selectedTokenFilter, filterMyWalletOnly, address]);
 
+  // Filtered swaps
+  const filteredSwaps = useMemo(() => {
+    return swaps.filter((s) => {
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchesId = s.id?.toLowerCase().includes(q);
+        const matchesHash = s.txHash?.toLowerCase().includes(q);
+        const matchesInput = s.inputToken?.toLowerCase().includes(q);
+        const matchesOutput = s.outputToken?.toLowerCase().includes(q);
+        const matchesWallet = s.walletAddress?.toLowerCase().includes(q);
+        const matchesRouter = s.routerName?.toLowerCase().includes(q);
+        if (
+          !matchesId &&
+          !matchesHash &&
+          !matchesInput &&
+          !matchesOutput &&
+          !matchesWallet &&
+          !matchesRouter
+        ) {
+          return false;
+        }
+      }
+
+      if (selectedTokenFilter !== 'all') {
+        const tok = selectedTokenFilter.toLowerCase();
+        if (s.inputToken?.toLowerCase() !== tok && s.outputToken?.toLowerCase() !== tok) {
+          return false;
+        }
+      }
+
+      if (filterMyWalletOnly && address) {
+        if (s.walletAddress?.toLowerCase() !== address.toLowerCase()) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [swaps, searchQuery, selectedTokenFilter, filterMyWalletOnly, address]);
+
   // Aggregate stats
   const totalVolume = useMemo(() => {
     const txVol = transactions.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
@@ -455,7 +520,7 @@ export const TransactionHistoryView: React.FC = () => {
         </div>
 
         {/* Metrics Summary Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t-2 border-zinc-800">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5 mt-6 pt-6 border-t-2 border-zinc-800">
           <div className="bg-zinc-900 border-2 border-zinc-700 rounded-2xl p-4 shadow-sm">
             <span className="text-xs font-black text-zinc-300 uppercase tracking-wider block">
               Settled Volume
@@ -494,6 +559,15 @@ export const TransactionHistoryView: React.FC = () => {
           </div>
 
           <div className="bg-zinc-900 border-2 border-zinc-700 rounded-2xl p-4 shadow-sm">
+            <span className="text-xs font-black text-zinc-300 uppercase tracking-wider block">
+              DEX Swaps
+            </span>
+            <span className="text-xl sm:text-2xl font-black text-black !text-black tracking-tight mt-1.5 block">
+              {swaps.length}
+            </span>
+          </div>
+
+          <div className="bg-zinc-900 border-2 border-zinc-700 rounded-2xl p-4 shadow-sm col-span-2 sm:col-span-1">
             <span className="text-xs font-black text-zinc-300 uppercase tracking-wider block">
               Networks & Assets
             </span>
@@ -564,7 +638,7 @@ export const TransactionHistoryView: React.FC = () => {
         )}
       </div>
 
-      {/* Subtab Segmented Control: All / Invoices / On-Chain TXs / Payout History */}
+      {/* Subtab Segmented Control: All / Invoices / On-Chain TXs / Payout History / Swap History */}
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <div className="flex items-center gap-2 p-1.5 bg-zinc-950 border-2 border-zinc-700 rounded-2xl flex-wrap">
           <button
@@ -581,7 +655,7 @@ export const TransactionHistoryView: React.FC = () => {
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
               activeSubTab === 'all' ? 'bg-black/40 text-white' : 'bg-zinc-800 text-zinc-100 border border-zinc-600'
             }`}>
-              {invoices.length + transactions.length + payouts.length}
+              {invoices.length + transactions.length + payouts.length + swaps.length}
             </span>
           </button>
 
@@ -639,6 +713,25 @@ export const TransactionHistoryView: React.FC = () => {
               activeSubTab === 'payouts' ? 'bg-black/40 text-white' : 'bg-zinc-800 text-zinc-100 border border-zinc-600'
             }`}>
               {payouts.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            id="activity-subtab-swaps"
+            onClick={() => setActiveSubTab('swaps')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
+              activeSubTab === 'swaps'
+                ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white shadow-md shadow-purple-500/25 scale-[1.02]'
+                : 'bg-zinc-900 border border-zinc-700 text-zinc-100 hover:text-white hover:border-zinc-500 hover:bg-zinc-800 shadow-2xs'
+            }`}
+          >
+            <ArrowLeftRight className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>Swap History</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+              activeSubTab === 'swaps' ? 'bg-black/40 text-white' : 'bg-zinc-800 text-zinc-100 border border-zinc-600'
+            }`}>
+              {swaps.length}
             </span>
           </button>
         </div>
@@ -1104,6 +1197,155 @@ export const TransactionHistoryView: React.FC = () => {
                         <Eye className="w-3.5 h-3.5 text-white" />
                         <span>Inspect</span>
                       </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SECTION 4: SWAP HISTORY (Rendered if activeSubTab is 'all' or 'swaps') */}
+      {(activeSubTab === 'all' || activeSubTab === 'swaps') && (
+        <div className="bg-zinc-950 rounded-2xl border-2 border-zinc-700 shadow-xl overflow-hidden mb-6">
+          <div className="px-5 py-4 bg-zinc-900 border-b-2 border-zinc-700 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <ArrowLeftRight className="w-4 h-4 text-purple-400" />
+              <h2 className="text-xs font-black uppercase tracking-wider text-white">
+                Swap History ({filteredSwaps.length})
+              </h2>
+            </div>
+            <span className="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+              Polygon DEX Aggregator Swaps & Smart Routing
+            </span>
+          </div>
+
+          {swaps.length === 0 ? (
+            <div className="p-10 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-zinc-900 border-2 border-zinc-700 flex items-center justify-center text-purple-400 mx-auto mb-3 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                <ArrowLeftRight className="w-6 h-6 text-purple-400" />
+              </div>
+              <h3 className="text-base font-bold text-white mb-1.5">No Swap Transactions Yet</h3>
+              <p className="text-xs sm:text-sm text-zinc-300 max-w-md mx-auto leading-relaxed font-normal">
+                Transactions executed through CryptoPay Swap will be automatically recorded here with live Polygonscan transaction proofs.
+              </p>
+            </div>
+          ) : filteredSwaps.length === 0 ? (
+            <div className="p-6 text-center">
+              <p className="text-sm font-semibold text-zinc-300">No swaps match your search filters.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-zinc-800">
+              {filteredSwaps.map((record) => {
+                const isSuccess = record.status === 'COMPLETED';
+                const isPending = record.status === 'PENDING';
+                const isFailed = !isSuccess && !isPending;
+
+                return (
+                  <div
+                    key={record.id || record.txHash}
+                    className="p-4 sm:p-5 hover:bg-zinc-900/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                  >
+                    {/* Left: Token Swap Details */}
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-12 h-12 rounded-xl bg-zinc-900 border-2 border-zinc-700 flex items-center justify-center">
+                          <ArrowLeftRight className="w-6 h-6 text-purple-400" />
+                        </div>
+                        <div
+                          className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center border-2 border-zinc-950 ${
+                            isSuccess
+                              ? 'bg-[#00E676] text-black'
+                              : isFailed
+                              ? 'bg-rose-500 text-white'
+                              : 'bg-amber-400 text-black'
+                          }`}
+                        >
+                          {isSuccess ? (
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          ) : isFailed ? (
+                            <AlertTriangle className="w-2.5 h-2.5 stroke-[3]" />
+                          ) : (
+                            <Clock className="w-2.5 h-2.5 stroke-[3]" />
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-black text-sm sm:text-base text-white">
+                            {formatTokenAmount(record.inputAmount)} {record.inputToken}
+                          </span>
+                          <span className="text-zinc-500 font-bold">→</span>
+                          <span className="font-black text-sm sm:text-base text-[#00E676]">
+                            {formatTokenAmount(record.expectedOutputAmount)} {record.outputToken}
+                          </span>
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black border ${
+                              isSuccess
+                                ? 'bg-emerald-950/80 text-[#00E676] border-[#00E676]/60'
+                                : isFailed
+                                ? 'bg-rose-950/80 text-rose-300 border-rose-500/60'
+                                : 'bg-amber-950/80 text-amber-300 border-amber-500/60'
+                            }`}
+                          >
+                            {isSuccess ? (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5 text-[#00E676]" />
+                                Completed
+                              </>
+                            ) : isFailed ? (
+                              <>
+                                <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                                Failed
+                              </>
+                            ) : (
+                              <>
+                                <Clock className="w-3.5 h-3.5 text-amber-400" />
+                                Pending
+                              </>
+                            )}
+                          </span>
+                          {record.routerName && (
+                            <span className="text-xs font-mono font-bold bg-zinc-800 text-zinc-200 border border-zinc-600 px-2 py-0.5 rounded">
+                              {record.routerName}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 sm:gap-3 text-xs text-zinc-300 mt-1.5 flex-wrap font-medium">
+                          <span className="text-zinc-300">
+                            {new Date(record.createdAt).toLocaleDateString()} at{' '}
+                            {new Date(record.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {record.walletAddress && (
+                            <>
+                              <span className="text-zinc-600 font-bold">•</span>
+                              <span className="text-zinc-400 font-mono text-[11px]">
+                                {record.walletAddress.substring(0, 6)}...{record.walletAddress.substring(record.walletAddress.length - 4)}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: Actions */}
+                    <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
+                      {record.txHash && (
+                        <a
+                          href={getPolygonscanTxUrl(record.txHash)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 hover:text-white text-xs font-bold transition"
+                          title="View on Polygonscan"
+                        >
+                          <span>Explorer</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
                     </div>
                   </div>
                 );

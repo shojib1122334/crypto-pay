@@ -55,8 +55,8 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
               aria-label="CryptoPay Home"
             >
               {/* App Icon */}
-              <div className="relative flex-shrink-0 p-0.5 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/30 shadow-xs group-hover:scale-105 transition-transform duration-200">
-                <BrandLogo size={40} showText={false} />
+              <div className="relative flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                <BrandLogo size={42} showText={false} />
               </div>
 
               {/* Title & Tagline */}

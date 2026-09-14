@@ -27,10 +27,10 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   const numSize = typeof size === 'number' ? size : parseInt(size, 10) || 40;
 
   return (
-    <div className={`inline-flex items-center gap-2.5 ${className}`}>
+    <div className={`inline-flex items-center ${showText ? 'gap-2.5' : ''} ${className}`}>
       <div
         style={{ width: dimension, height: dimension }}
-        className="relative flex-shrink-0 rounded-2xl overflow-hidden shadow-sm flex items-center justify-center bg-slate-900 border border-slate-700/60 select-none ring-1 ring-black/5"
+        className="relative flex-shrink-0 rounded-xl sm:rounded-2xl overflow-hidden shadow-md flex items-center justify-center bg-slate-950 border border-white/40 ring-1 ring-white/15 select-none"
       >
         {!hasError ? (
           <img
@@ -38,7 +38,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
             alt="CryptoPay Logo"
             width={numSize}
             height={numSize}
-            className="w-full h-full object-cover rounded-2xl"
+            className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
             onError={() => {
               if (imgSrc === PRIMARY_LOGO_SRC) {
