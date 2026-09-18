@@ -16,6 +16,7 @@ import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { SavedReceiversProvider } from '@/context/SavedReceiversContext';
+import { AssetSelectorProvider, useAssetSelector } from '@/context/AssetSelectorContext';
 
 import { usePWA } from '@/hooks/usePWA';
 import { WifiOff } from 'lucide-react';
@@ -120,6 +121,7 @@ function AppContent() {
   const [params, setParams] = useState(() => getCurrentPaymentParams());
   const [activeTab, setActiveTab] = useState<NavTab>(() => getInitialTab());
   const { isOnline } = usePWA();
+  const { isAssetSelectorOpen } = useAssetSelector();
 
   useEffect(() => {
     const onPop = () => {
@@ -174,14 +176,16 @@ function AppContent() {
           <div className="absolute bottom-10 left-1/3 w-[450px] h-[400px] bg-pink-300/25 blur-[130px] rounded-full" />
         </div>
 
-        {/* Crisp Header */}
-        <Header
-          activeTab={activeTab}
-          onNavigateTab={handleTabChange}
-        />
+        {/* Crisp Header - Hidden when Asset Selector is Open */}
+        {!isAssetSelectorOpen && (
+          <Header
+            activeTab={activeTab}
+            onNavigateTab={handleTabChange}
+          />
+        )}
 
         {/* Main Content Area */}
-        <main className="relative z-10 flex-1 pb-20 sm:pb-24">
+        <main className={`relative z-10 flex-1 ${isAssetSelectorOpen ? 'p-0 pb-0' : 'pb-20 sm:pb-24'}`}>
           {/* Dashboard Tab */}
           {activeTab === 'dashboard' && (
             <>
@@ -195,7 +199,14 @@ function AppContent() {
 
           {/* Exchange Tab (Polygon Mainnet Swap for USDT, USDC, and VERSE) */}
           {activeTab === 'exchange' && (
-            <div id="exchange-page" className="w-full max-w-7xl mx-auto px-3.5 sm:px-6 py-3 sm:py-6 min-h-[50vh]">
+            <div
+              id="exchange-page"
+              className={
+                isAssetSelectorOpen
+                  ? 'w-full h-full p-0 m-0'
+                  : 'w-full max-w-7xl mx-auto px-3.5 sm:px-6 py-3 sm:py-6 min-h-[50vh]'
+              }
+            >
               <ExchangeView onNavigateTab={handleTabChange} />
             </div>
           )}
@@ -214,11 +225,13 @@ function AppContent() {
           {activeTab === 'settings' && <ComingSoonPage />}
         </main>
 
-        {/* Persistent Native Mobile Bottom Navigation Bar */}
-        <BottomNavBar
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-        />
+        {/* Persistent Native Mobile Bottom Navigation Bar - Hidden when Asset Selector is Open */}
+        {!isAssetSelectorOpen && (
+          <BottomNavBar
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+          />
+        )}
       </div>
     </>
   );
@@ -248,7 +261,9 @@ export default function App() {
         <WagmiProvider config={config}>
           <ThemeProvider>
             <SavedReceiversProvider>
-              <AppWithTheme />
+              <AssetSelectorProvider>
+                <AppWithTheme />
+              </AssetSelectorProvider>
             </SavedReceiversProvider>
           </ThemeProvider>
         </WagmiProvider>

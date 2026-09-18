@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { X, Search, Check } from 'lucide-react';
+import { X, Search, Check, ArrowLeft, Wallet, Sparkles } from 'lucide-react';
+import { useAccount } from 'wagmi';
+import { useConnectWallet } from '../../hooks/useConnectWallet';
 import {
   MULTI_CHAIN_TOKENS,
   BlockchainNetworkId,
@@ -48,6 +50,17 @@ const ORDERED_PRIMARY_SYMBOLS: string[] = [
   'VERSE',
 ];
 
+const POPULAR_SYMBOLS: string[] = [
+  'BTC',
+  'ETH',
+  'USDT',
+  'USDC',
+  'BNB',
+  'SOL',
+  'POL',
+  'VERSE',
+];
+
 export const TokenSelectModal: React.FC<TokenSelectModalProps> = ({
   isOpen,
   onClose,
@@ -57,8 +70,11 @@ export const TokenSelectModal: React.FC<TokenSelectModalProps> = ({
   balances,
   activeNetwork,
 }) => {
+  const { isConnected } = useAccount();
+  const { openWalletConnect } = useConnectWallet();
+
   const [searchQuery, setSearchQuery] = useState('');
-  // Step 2 active token for multi-network bottom sheet selection
+  // Step 2 active token for multi-network network selection screen
   const [activeMultiToken, setActiveMultiToken] = useState<DistinctTokenItem | null>(null);
 
   // Reset state on open
@@ -144,52 +160,217 @@ export const TokenSelectModal: React.FC<TokenSelectModalProps> = ({
     });
   }, [searchQuery, distinctTokens]);
 
+  // Compute tokens with non-zero balance for the "Wallet assets" section
+  const walletAssets = useMemo(() => {
+    if (!balances) return [];
+
+    const list: {
+      token: SwapTokenInfo;
+      balance: string;
+      numericBalance: number;
+      distinctItem: DistinctTokenItem;
+      networkName: string;
+      networkSymbol: string;
+    }[] = [];
+
+    for (const item of distinctTokens) {
+      for (const net of item.networks) {
+        const key = `${net.networkId}:${item.symbol}`;
+        const rawBal =
+          balances[key] || (net.networkId === activeNetwork ? balances[item.symbol] : undefined);
+        const num = rawBal ? parseFloat(rawBal) : 0;
+        if (!isNaN(num) && num > 0) {
+          list.push({
+            token: net.token,
+            balance: rawBal!,
+            numericBalance: num,
+            distinctItem: item,
+            networkName: net.networkName,
+            networkSymbol: net.networkSymbol,
+          });
+        }
+      }
+    }
+
+    return list.sort((a, b) => b.numericBalance - a.numericBalance);
+  }, [balances, distinctTokens, activeNetwork]);
+
   if (!isOpen) return null;
 
-  // Handle click on a token row in Step 1
+  // Handle click on a token row
   const handleTokenClick = (item: DistinctTokenItem) => {
     if (item.networks.length <= 1) {
       // Single-network token: immediately select its network & token and return to swap
       onSelect(item.networks[0].token);
       onClose();
     } else {
-      // Multi-network token: open mobile bottom sheet for network selection
+      // Multi-network token: transition to network selection view
       setActiveMultiToken(item);
     }
   };
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
-      onClick={onClose}
-    >
-      {/* Modal Container */}
-      <div
-        className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] relative"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* ================= STEP 1: SELECT ASSET ================= */}
+  // =========================================================================
+  // VIEW B: NETWORK SELECTION SCREEN (Full Screen for multi-network tokens)
+  // =========================================================================
+  if (activeMultiToken) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#F8FAFC] dark:bg-[#0B0F19] text-slate-900 dark:text-white flex flex-col w-screen h-screen min-h-screen overflow-hidden animate-in fade-in duration-150">
+        {/* Sticky Top Header */}
+        <header className="sticky top-0 z-10 bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 py-3.5 flex items-center justify-between shrink-0">
+          <button
+            type="button"
+            onClick={() => setActiveMultiToken(null)}
+            className="p-1.5 -ml-1 text-orange-500 hover:text-orange-600 dark:text-orange-400 rounded-full hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors focus:outline-none cursor-pointer inline-flex items-center gap-1.5"
+            aria-label="Back"
+          >
+            <ArrowLeft className="w-5 h-5 text-orange-500" strokeWidth={2.5} />
+            <span className="text-xs font-semibold text-orange-500 hidden xs:inline">Back</span>
+          </button>
 
-        {/* Top Header: Orange X on top-left, centered "Select asset" */}
-        <div className="relative flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+          <div className="text-center">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+              Select network
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              Networks supported for {activeMultiToken.symbol}
+            </p>
+          </div>
+
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 -ml-1 text-orange-500 hover:text-orange-600 dark:text-orange-400 rounded-full hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors focus:outline-none z-10 cursor-pointer"
+            className="p-1.5 -mr-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none cursor-pointer"
             aria-label="Close"
           >
-            <X className="w-5 h-5 text-orange-500" strokeWidth={2.5} />
+            <X className="w-5 h-5" strokeWidth={2.5} />
           </button>
-          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white absolute inset-x-0 text-center pointer-events-none select-none">
-            Select asset
-          </h2>
-          <div className="w-8" aria-hidden="true" />
-        </div>
+        </header>
 
-        {/* Search Bar: Large rounded input "Search by CoinGecko" */}
-        <div className="px-5 pt-4 pb-2 shrink-0">
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
+          <div className="max-w-xl mx-auto w-full space-y-4">
+            {/* Selected Token Overview */}
+            <div className="flex items-center gap-3.5 px-3.5 py-3 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+              <TokenIcon
+                token={activeMultiToken.symbol}
+                size={40}
+                className="rounded-full shadow-2xs shrink-0"
+              />
+              <div className="min-w-0">
+                <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white leading-tight block">
+                  {activeMultiToken.symbol}
+                </span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 block truncate">
+                  {activeMultiToken.name} • Available on {activeMultiToken.networks.length} networks
+                </span>
+              </div>
+            </div>
+
+            <div className="px-1 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Choose Blockchain Network
+            </div>
+
+            {/* List of Networks in Original Clean Style */}
+            <div className="space-y-1">
+              {activeMultiToken.networks.map((net) => {
+                const isNetworkSelected =
+                  selectedToken &&
+                  selectedToken.symbol === activeMultiToken.symbol &&
+                  selectedToken.networkId === net.networkId;
+
+                const balanceKey = `${net.networkId}:${activeMultiToken.symbol}`;
+                const rawBal =
+                  balances?.[balanceKey] ||
+                  (net.networkId === activeNetwork ? balances?.[activeMultiToken.symbol] : undefined);
+                const numBal = rawBal ? parseFloat(rawBal) : 0;
+                const hasBalance = !isNaN(numBal) && numBal > 0;
+
+                return (
+                  <button
+                    key={net.networkId}
+                    type="button"
+                    onClick={() => {
+                      onSelect(net.token);
+                      onClose();
+                    }}
+                    className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl transition-colors text-left group cursor-pointer ${
+                      isNetworkSelected
+                        ? 'bg-orange-50/70 dark:bg-orange-950/25 ring-1 ring-orange-400/30'
+                        : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 active:bg-slate-100 dark:active:bg-slate-800'
+                    }`}
+                  >
+                    {/* Left: Network logo + Name */}
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-200/80 dark:ring-slate-700/80 flex items-center justify-center overflow-hidden shadow-2xs shrink-0">
+                        <TokenIcon token={net.networkSymbol} size={28} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white block leading-tight truncate">
+                          {net.networkName}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5 truncate">
+                          {net.networkId === 'ethereum' ||
+                          net.networkId === 'bsc' ||
+                          net.networkId === 'polygon'
+                            ? 'EVM Network'
+                            : 'Native Network'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Right: Balance + Checkmark */}
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
+                      {hasBalance && (
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          {formatTokenAmount(rawBal!)}
+                        </span>
+                      )}
+                      {isNetworkSelected && (
+                        <div className="p-1 rounded-full text-orange-500 shrink-0">
+                          <Check className="w-4 h-4 stroke-[2.5]" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // VIEW A: FULL-SCREEN "SELECT ASSET" WITH ORIGINAL TOKEN ROW STYLING
+  // =========================================================================
+  return (
+    <div className="fixed inset-0 z-50 bg-[#F8FAFC] dark:bg-[#0B0F19] text-slate-900 dark:text-white flex flex-col w-screen h-screen min-h-screen overflow-hidden animate-in fade-in duration-150">
+      {/* Top Header: Orange Close X on left, Centered title */}
+      <header className="sticky top-0 z-10 bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 py-3.5 flex items-center justify-between shrink-0">
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-1.5 -ml-1 text-orange-500 hover:text-orange-600 dark:text-orange-400 rounded-full hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors focus:outline-none z-10 cursor-pointer"
+          aria-label="Close"
+        >
+          <X className="w-5 h-5 text-orange-500" strokeWidth={2.5} />
+        </button>
+
+        <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+          Select asset
+        </h2>
+
+        <div className="w-8 -mr-1" aria-hidden="true" />
+      </header>
+
+      {/* Main Scrollable Content */}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5">
+        <div className="max-w-xl mx-auto w-full space-y-4">
+
+          {/* 1. Search Bar with CoinGecko placeholder & original rounded-full pill design */}
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-slate-400 absolute left-4 pointer-events-none" />
+            <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
@@ -209,253 +390,231 @@ export const TokenSelectModal: React.FC<TokenSelectModalProps> = ({
               </button>
             )}
           </div>
-        </div>
 
-        {/* Section Header: "⚡ All tokens" */}
-        <div className="px-5 pt-3 pb-1 shrink-0">
-          <h3 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 select-none tracking-tight">
-            {searchQuery ? (
-              <span>Search results ({filteredTokens.length})</span>
-            ) : (
-              <>
-                <span>⚡</span>
-                <span>All tokens</span>
-              </>
-            )}
-          </h3>
-        </div>
+          {/* 2. Wallet Assets Section (Displayed when not searching) */}
+          {!searchQuery && (
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <Wallet className="w-3.5 h-3.5 text-orange-500" />
+                  <span>Wallet assets</span>
+                  {walletAssets.length > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400">
+                      {walletAssets.length}
+                    </span>
+                  )}
+                </h3>
+              </div>
 
-        {/* Token List: One row per token */}
-        <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-2 space-y-1">
-          {filteredTokens.length === 0 ? (
-            <div className="py-12 text-center px-4">
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                No tokens found for &ldquo;{searchQuery}&rdquo;
-              </p>
-              <p className="text-xs text-slate-400 mt-1">
-                Try searching for BTC, ETH, USDT, BNB, USDC, SOL, POL, or VERSE.
-              </p>
+              {!isConnected ? (
+                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 shadow-2xs">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0">
+                      <Wallet className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                        Connect wallet to view your balances
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={openWalletConnect}
+                    className="px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs transition-colors shadow-2xs cursor-pointer shrink-0 ml-2"
+                  >
+                    Connect
+                  </button>
+                </div>
+              ) : walletAssets.length === 0 ? (
+                <div className="px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 shadow-2xs flex items-center gap-2.5">
+                  <Wallet className="w-4 h-4 text-slate-400 shrink-0" />
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    No active balances found in this connected wallet.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {walletAssets.map((asset) => (
+                    <button
+                      key={`${asset.token.networkId}:${asset.token.symbol}`}
+                      type="button"
+                      onClick={() => {
+                        onSelect(asset.token);
+                        onClose();
+                      }}
+                      className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/60 active:bg-slate-100 dark:active:bg-slate-800 transition-colors text-left group cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <TokenIcon
+                          token={asset.token.symbol}
+                          size={40}
+                          className="rounded-full shadow-2xs shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white leading-tight">
+                              {asset.token.symbol}
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                              {asset.networkName}
+                            </span>
+                          </div>
+                          <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5 leading-tight truncate">
+                            {asset.token.name}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0 ml-3">
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+                          {formatTokenAmount(asset.balance)}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          ) : (
-            filteredTokens.map((item) => {
-              // Check if this token is currently selected
-              const isSelected =
-                (selectedToken && selectedToken.symbol === item.symbol) ||
-                (!selectedToken && item.symbol === selectedSymbol);
+          )}
 
-              // Aggregate or current network balance for this token
-              let displayBalance: string | null = null;
-              if (balances) {
-                // If token is on active network, show that balance
-                const activeKey = activeNetwork ? `${activeNetwork}:${item.symbol}` : null;
-                const directBal = activeKey ? balances[activeKey] : balances[item.symbol];
+          {/* 3. Popular Assets Section (Displayed when not searching) */}
+          {!searchQuery && (
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-orange-500" />
+                  <span>Popular assets</span>
+                </h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {POPULAR_SYMBOLS.map((sym) => {
+                  const tokenItem = distinctTokens.find((t) => t.symbol === sym);
+                  if (!tokenItem) return null;
+                  return (
+                    <button
+                      key={sym}
+                      type="button"
+                      onClick={() => handleTokenClick(tokenItem)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100/90 dark:bg-slate-800/80 hover:bg-orange-50 dark:hover:bg-orange-950/20 border border-slate-200/60 dark:border-slate-700/60 hover:border-orange-300 dark:hover:border-orange-500/50 rounded-full text-xs font-bold text-slate-800 dark:text-slate-200 transition-colors cursor-pointer"
+                    >
+                      <TokenIcon token={sym} size={18} className="rounded-full shrink-0" />
+                      <span>{sym}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-                if (directBal && parseFloat(directBal) > 0) {
-                  displayBalance = formatTokenAmount(directBal);
-                } else {
-                  // Check any network with balance
-                  for (const net of item.networks) {
-                    const b = balances[`${net.networkId}:${item.symbol}`];
-                    if (b && parseFloat(b) > 0) {
-                      displayBalance = formatTokenAmount(b);
-                      break;
+          {/* 4. All Tokens Section with Original Clean Token Row Style */}
+          <div className="space-y-2 pt-1">
+            <div className="px-1 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 select-none tracking-tight">
+              <span>⚡</span>
+              <span>{searchQuery ? `Search results (${filteredTokens.length})` : 'All tokens'}</span>
+            </div>
+
+            {filteredTokens.length === 0 ? (
+              <div className="py-12 text-center text-slate-400 text-sm">
+                No tokens found for &ldquo;{searchQuery}&rdquo;
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {filteredTokens.map((item) => {
+                  const isSelected =
+                    (selectedToken && selectedToken.symbol === item.symbol) ||
+                    (!selectedToken && item.symbol === selectedSymbol);
+
+                  // Calculate aggregate or direct balance
+                  let displayBalance: string | null = null;
+                  if (balances) {
+                    const activeKey = activeNetwork ? `${activeNetwork}:${item.symbol}` : null;
+                    const directBal = activeKey ? balances[activeKey] : balances[item.symbol];
+
+                    if (directBal && parseFloat(directBal) > 0) {
+                      displayBalance = formatTokenAmount(directBal);
+                    } else {
+                      for (const net of item.networks) {
+                        const b = balances[`${net.networkId}:${item.symbol}`];
+                        if (b && parseFloat(b) > 0) {
+                          displayBalance = formatTokenAmount(b);
+                          break;
+                        }
+                      }
                     }
                   }
-                }
-              }
 
-              const isMultiNetwork = item.networks.length > 1;
+                  const isMultiNetwork = item.networks.length > 1;
 
-              return (
-                <button
-                  key={item.symbol}
-                  type="button"
-                  onClick={() => handleTokenClick(item)}
-                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl transition-colors text-left group cursor-pointer ${
-                    isSelected
-                      ? 'bg-orange-50/70 dark:bg-orange-950/25 ring-1 ring-orange-400/30'
-                      : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 active:bg-slate-100 dark:active:bg-slate-800'
-                  }`}
-                >
-                  {/* Left: Token Logo + Symbol with Network Icons beside it + Token name underneath */}
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <TokenIcon
-                      token={item.symbol}
-                      size={40}
-                      className="rounded-full shadow-2xs shrink-0"
-                    />
-
-                    <div className="min-w-0">
-                      {/* Top line: Bold token symbol + small network icons beside it */}
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white leading-tight">
-                          {item.symbol}
-                        </span>
-
-                        {/* Small network icons displayed strictly BESIDE the token symbol */}
-                        {isMultiNetwork && (
-                          <div
-                            className="flex items-center gap-1 ml-1"
-                            title={`Supported on: ${item.networks.map((n) => n.networkName).join(', ')}`}
-                          >
-                            {item.networks.map((net) => (
+                  return (
+                    <button
+                      key={item.symbol}
+                      type="button"
+                      onClick={() => handleTokenClick(item)}
+                      className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl transition-colors text-left group cursor-pointer ${
+                        isSelected
+                          ? 'bg-orange-50/70 dark:bg-orange-950/25 ring-1 ring-orange-400/30'
+                          : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 active:bg-slate-100 dark:active:bg-slate-800'
+                      }`}
+                    >
+                      {/* Left: Token Logo + Symbol with Network Icons beside it + Token name underneath */}
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <TokenIcon
+                          token={item.symbol}
+                          size={40}
+                          className="rounded-full shadow-2xs shrink-0"
+                        />
+                        <div className="min-w-0">
+                          {/* Top line: Bold token symbol + small network icons beside it */}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white leading-tight">
+                              {item.symbol}
+                            </span>
+                            {isMultiNetwork && (
                               <div
-                                key={net.networkId}
-                                className="w-4 h-4 rounded-full bg-white dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700 flex items-center justify-center overflow-hidden shadow-2xs"
-                                title={net.networkName}
+                                className="flex items-center gap-1 ml-1"
+                                title={`Supported on ${item.networks.map((n) => n.networkName).join(', ')}`}
                               >
-                                <TokenIcon token={net.networkSymbol} size={13} />
+                                {item.networks.map((net) => (
+                                  <div
+                                    key={net.networkId}
+                                    className="w-4 h-4 rounded-full bg-white dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700 flex items-center justify-center overflow-hidden shadow-2xs"
+                                    title={net.networkName}
+                                  >
+                                    <TokenIcon token={net.networkSymbol} size={13} />
+                                  </div>
+                                ))}
                               </div>
-                            ))}
+                            )}
+                          </div>
+
+                          {/* Bottom line: Token name underneath (No network name) */}
+                          <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5 leading-tight truncate">
+                            {item.name}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right side: Balance if available + Selection checkmark */}
+                      <div className="flex items-center gap-2 shrink-0 ml-3">
+                        {displayBalance && (
+                          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            {displayBalance}
+                          </span>
+                        )}
+                        {isSelected && (
+                          <div className="p-1 rounded-full text-orange-500 shrink-0">
+                            <Check className="w-4 h-4 stroke-[2.5]" />
                           </div>
                         )}
                       </div>
-
-                      {/* Bottom line: Token name underneath (No network name) */}
-                      <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5 leading-tight truncate">
-                        {item.name}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Right side: Balance if available + Selection checkmark */}
-                  <div className="flex items-center gap-2 shrink-0 ml-3">
-                    {displayBalance && (
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                        {displayBalance}
-                      </span>
-                    )}
-                    {isSelected && (
-                      <div className="p-1 rounded-full text-orange-500 shrink-0">
-                        <Check className="w-4 h-4" strokeWidth={2.5} />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              );
-            })
-          )}
-        </div>
-
-        {/* ================= STEP 2: NETWORK SELECTION BOTTOM SHEET ================= */}
-
-        {/* Dimmed backdrop when bottom sheet is open */}
-        {activeMultiToken && (
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-xs z-20 animate-in fade-in duration-200"
-            onClick={() => setActiveMultiToken(null)}
-          />
-        )}
-
-        {/* Bottom sheet panel */}
-        {activeMultiToken && (
-          <div
-            className="absolute inset-x-0 bottom-0 z-30 bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200/80 dark:border-slate-800 shadow-2xl p-4 sm:p-5 flex flex-col max-h-[82%] animate-in slide-in-from-bottom duration-250 ease-out"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Drag handle */}
-            <div className="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-3.5 shrink-0" />
-
-            {/* Bottom Sheet Header */}
-            <div className="flex items-center justify-between px-1 pb-3 mb-1 border-b border-slate-100 dark:border-slate-800 shrink-0">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <TokenIcon
-                  token={activeMultiToken.symbol}
-                  size={26}
-                  className="rounded-full shrink-0"
-                />
-                <div className="min-w-0">
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight truncate">
-                    Select network
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-none truncate">
-                    Available networks for {activeMultiToken.symbol}
-                  </p>
-                </div>
+                    </button>
+                  );
+                })}
               </div>
-              <button
-                type="button"
-                onClick={() => setActiveMultiToken(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                aria-label="Back"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Vertical list of available networks */}
-            <div className="flex-1 overflow-y-auto py-2 space-y-1.5">
-              {activeMultiToken.networks.map((net) => {
-                // Is this exact network and token currently selected?
-                const isNetworkSelected =
-                  selectedToken &&
-                  selectedToken.symbol === activeMultiToken.symbol &&
-                  selectedToken.networkId === net.networkId;
-
-                // Live balance for this network and token
-                const balanceKey = `${net.networkId}:${activeMultiToken.symbol}`;
-                const rawBal =
-                  balances?.[balanceKey] ||
-                  (net.networkId === activeNetwork ? balances?.[activeMultiToken.symbol] : undefined);
-                const numBal = rawBal ? parseFloat(rawBal) : 0;
-                const hasBalance = !isNaN(numBal) && numBal > 0;
-
-                return (
-                  <button
-                    key={net.networkId}
-                    type="button"
-                    onClick={() => {
-                      // 1. Close the bottom sheet
-                      setActiveMultiToken(null);
-                      // 2. Select BOTH the token and the selected network
-                      onSelect(net.token);
-                      // 3. Return to the existing Swap screen
-                      onClose();
-                    }}
-                    className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-colors text-left cursor-pointer group ${
-                      isNetworkSelected
-                        ? 'bg-orange-50/80 dark:bg-orange-950/30 ring-1 ring-orange-400/40'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 active:bg-slate-100 dark:active:bg-slate-800'
-                    }`}
-                  >
-                    {/* Left: Network logo + Network name */}
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-200/80 dark:ring-slate-700/80 flex items-center justify-center overflow-hidden shadow-2xs shrink-0">
-                        <TokenIcon token={net.networkSymbol} size={30} />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white block leading-tight truncate">
-                          {net.networkName}
-                        </span>
-                        <span className="text-xs text-slate-400 dark:text-slate-500 block leading-tight mt-0.5">
-                          {net.networkId === 'ethereum' ||
-                          net.networkId === 'bsc' ||
-                          net.networkId === 'polygon'
-                            ? 'EVM Network'
-                            : 'Native Network'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Right: Balance + Checkmark */}
-                    <div className="flex items-center gap-2.5 shrink-0 ml-3">
-                      {hasBalance && (
-                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          {formatTokenAmount(rawBal!)}
-                        </span>
-                      )}
-                      {isNetworkSelected && (
-                        <div className="p-1 rounded-full text-orange-500 shrink-0">
-                          <Check className="w-5 h-5" strokeWidth={2.5} />
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+            )}
           </div>
-        )}
+
+        </div>
       </div>
     </div>
   );

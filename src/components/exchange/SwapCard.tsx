@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ArrowUpDown,
   Settings,
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useConnectWallet } from '../../hooks/useConnectWallet';
 import { useSwapEngine } from '../../hooks/useSwapEngine';
+import { useAssetSelector } from '../../context/AssetSelectorContext';
 import { TokenSelectModal } from './TokenSelectModal';
 import { SlippageModal } from './SlippageModal';
 import { SwapDetails } from './SwapDetails';
@@ -41,6 +42,8 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
     handleSwitchToChain,
     balances,
     polBalance,
+    ethBalance,
+    bnbBalance,
     getTokenBalance,
     isBalanceLoading,
     fetchBalances,
@@ -77,7 +80,15 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
   const [isInputTokenModalOpen, setIsInputTokenModalOpen] = useState(false);
   const [isOutputTokenModalOpen, setIsOutputTokenModalOpen] = useState(false);
   const [isSlippageModalOpen, setIsSlippageModalOpen] = useState(false);
-  const [isNetworkDropdownOpen, setIsNetworkDropdownOpen] = useState(false);
+
+  const { setIsAssetSelectorOpen } = useAssetSelector();
+
+  useEffect(() => {
+    setIsAssetSelectorOpen(isInputTokenModalOpen || isOutputTokenModalOpen);
+    return () => {
+      setIsAssetSelectorOpen(false);
+    };
+  }, [isInputTokenModalOpen, isOutputTokenModalOpen, setIsAssetSelectorOpen]);
 
   // Active network meta
   const currentNetworkMeta =
@@ -89,17 +100,40 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
   const enteredAmount = parseFloat(inputAmount || '0');
   const isInsufficientBalance = isConnected && enteredAmount > inputBalance;
 
-  // Gas balance check for native Polygon/EVM transactions
-  const userPol = parseFloat(polBalance || '0');
-  const estGasPol = quote ? parseFloat(quote.estimatedGasFeePol || '0.01') : 0.01;
+  // Gas balance check for native Polygon/Ethereum/BSC EVM transactions
   const isNativeIn = inputToken.isNative;
-  const requiredPol = isNativeIn ? enteredAmount + estGasPol : estGasPol;
-  const isInsufficientGas =
-    isConnected &&
-    selectedNetwork === 'polygon' &&
-    enteredAmount > 0 &&
-    !isInsufficientBalance &&
-    userPol < requiredPol;
+  const isInsufficientGas = useMemo(() => {
+    if (!isConnected || enteredAmount <= 0 || isInsufficientBalance) return false;
+    if (selectedNetwork === 'polygon') {
+      const userPol = parseFloat(polBalance || '0');
+      const estGasPol = quote ? parseFloat(quote.estimatedGasFeePol || '0.01') : 0.01;
+      const requiredPol = isNativeIn ? enteredAmount + estGasPol : estGasPol;
+      return userPol < requiredPol;
+    }
+    if (selectedNetwork === 'ethereum') {
+      const userEth = parseFloat(ethBalance || '0');
+      const estGasEth = 0.002;
+      const requiredEth = isNativeIn ? enteredAmount + estGasEth : estGasEth;
+      return userEth < requiredEth;
+    }
+    if (selectedNetwork === 'bsc') {
+      const userBnb = parseFloat(bnbBalance || '0');
+      const estGasBnb = 0.001;
+      const requiredBnb = isNativeIn ? enteredAmount + estGasBnb : estGasBnb;
+      return userBnb < requiredBnb;
+    }
+    return false;
+  }, [
+    isConnected,
+    enteredAmount,
+    isInsufficientBalance,
+    selectedNetwork,
+    polBalance,
+    ethBalance,
+    bnbBalance,
+    quote,
+    isNativeIn,
+  ]);
 
   // EVM network mismatch check
   const isChainMismatch = useMemo(() => {
@@ -173,60 +207,8 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
         {/* Top gradient highlight */}
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
 
-        {/* Card Header with Network Selector */}
-        <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-slate-100 dark:border-slate-800/80">
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setIsNetworkDropdownOpen(!isNetworkDropdownOpen)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-purple-50 to-pink-50 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/80 shadow-xs hover:border-purple-400 transition-all cursor-pointer"
-              title="Click to switch active blockchain network"
-            >
-              <TokenIcon token={currentNetworkMeta.nativeSymbol} size={16} className="rounded-full shrink-0" />
-              <span>{currentNetworkMeta.name}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-            </button>
-
-            {/* Network Switcher Dropdown */}
-            {isNetworkDropdownOpen && (
-              <div
-                className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-30 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                  Supported Networks
-                </div>
-                {supportedNetworks.map((net) => {
-                  const isSelected = selectedNetwork === net.id;
-                  return (
-                    <button
-                      key={net.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedNetwork(net.id);
-                        setIsNetworkDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                        isSelected
-                          ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold'
-                          : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <TokenIcon token={net.nativeSymbol} size={20} className="rounded-full" />
-                        <div className="text-left">
-                          <div className="text-xs font-bold leading-tight">{net.name}</div>
-                          <div className="text-[10px] text-slate-400">Native: {net.nativeSymbol}</div>
-                        </div>
-                      </div>
-                      {isSelected && <Check className="w-4 h-4 text-purple-600" />}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
+        {/* Card Header */}
+        <div className="flex items-center justify-end pb-3.5 mb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div className="flex items-center gap-1.5">
             {/* Auto refresh countdown */}
             {quote && (
@@ -529,7 +511,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               disabled
               className="w-full py-3.5 px-4 bg-amber-50 text-amber-800 font-semibold text-sm rounded-2xl border border-amber-200 cursor-not-allowed"
             >
-              Insufficient Gas Balance (POL)
+              Insufficient Gas Balance ({selectedNetwork === 'ethereum' ? 'ETH' : selectedNetwork === 'bsc' ? 'BNB' : 'POL'})
             </button>
           ) : quoteError ? (
             <button

@@ -165,6 +165,34 @@ export function useSwapEngine() {
     [inputToken.symbol, outputNetwork, selectedNetwork, switchChain, chainId]
   );
 
+  // Auto-synchronize swap network when user connects or switches network in their wallet
+  const prevChainIdRef = useRef<number | undefined>(chainId);
+  useEffect(() => {
+    if (!chainId) return;
+    if (chainId === prevChainIdRef.current) return;
+    prevChainIdRef.current = chainId;
+
+    let targetNetwork: BlockchainNetworkId | null = null;
+    if (chainId === POLYGON_CHAIN_ID) targetNetwork = 'polygon';
+    else if (chainId === ETHEREUM_CHAIN_ID) targetNetwork = 'ethereum';
+    else if (chainId === BSC_CHAIN_ID) targetNetwork = 'bsc';
+
+    if (targetNetwork && targetNetwork !== selectedNetwork) {
+      setSelectedNetwork(targetNetwork);
+      const netTokens = getTokensByNetwork(targetNetwork);
+      if (netTokens.length > 0) {
+        const matchingInput = netTokens.find((t) => t.symbol === inputToken.symbol);
+        setInputToken(matchingInput || netTokens.find((t) => t.isNative) || netTokens[0]);
+      }
+      if (outputNetwork === selectedNetwork) {
+        setOutputNetwork(targetNetwork);
+        const outNetTokens = getTokensByNetwork(targetNetwork);
+        const stable = outNetTokens.find((t) => t.symbol === 'USDT' || t.symbol === 'USDC');
+        setOutputToken(stable || outNetTokens[1] || outNetTokens[0]);
+      }
+    }
+  }, [chainId, selectedNetwork, outputNetwork, inputToken.symbol]);
+
   // Switch to target EVM chain
   const handleSwitchToChain = useCallback(
     (targetChainId: number) => {
