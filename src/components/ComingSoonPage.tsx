@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Download, CheckCircle2, Wifi, WifiOff, Globe, Layers, Loader2 } from 'lucide-react';
 import { usePWA } from '@/hooks/usePWA';
-import { SavedReceiversSection } from '@/components/SavedReceiversSection';
-import { AdminPasswordSection } from '@/components/AdminPasswordSection';
 
 export const ComingSoonPage: React.FC = () => {
   const { isInstalled, isIOS, isOnline, installApp } = usePWA();
@@ -43,9 +41,6 @@ export const ComingSoonPage: React.FC = () => {
       id="settings-page"
       className="w-full sm:max-w-4xl mx-auto px-3.5 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6 font-sans"
     >
-      {/* 1. Main Saved Receivers Management Section (Top) */}
-      <SavedReceiversSection />
-
       {/* App & Terminal Settings Header */}
       <div className="web3-glass-card border border-white/80 rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 shadow-xl shadow-purple-500/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
         <div className="absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
@@ -216,9 +211,6 @@ export const ComingSoonPage: React.FC = () => {
           <span className="w-3 h-3 rounded-full bg-pink-500 animate-pulse delay-500" />
         </div>
       </div>
-
-      {/* Admin Password Access Section (Bottom of Settings) */}
-      <AdminPasswordSection />
     </div>
   );
 };

@@ -6,12 +6,10 @@ import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@ta
 import { config } from '@/lib/wallet';
 import Header from '@/components/Header';
 import MerchantDashboard from '@/components/MerchantDashboard';
-import PaySystemTerminal from '@/components/PaySystemTerminal';
 import CustomerPaymentView from '@/components/CustomerPaymentView';
 import BottomNavBar from '@/components/BottomNavBar';
 import ComingSoonPage from '@/components/ComingSoonPage';
 import TransactionHistoryView from '@/components/TransactionHistoryView';
-import { CreateInvoiceSection } from '@/components/CreateInvoiceSection';
 import { ExchangeView } from '@/components/exchange/ExchangeView';
 import { TopUpView } from '@/components/topup/TopUpView';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
@@ -89,14 +87,11 @@ function parseTabFromHash(hashStr: string): NavTab {
   if (clean === 'dashboard') {
     return 'dashboard';
   }
-  if (clean === 'top-up' || clean === 'topup') {
-    return 'top-up';
-  }
-  if (clean === 'create-invoice' || clean === 'invoice' || clean === 'credit-invoice') {
-    return 'create-invoice';
-  }
   if (clean === 'exchange' || clean === 'swap') {
     return 'exchange';
+  }
+  if (clean === 'top-up' || clean === 'topup') {
+    return 'top-up';
   }
   if (clean === 'activity' || clean === 'transactions' || clean === 'history') {
     return 'activity';
@@ -104,7 +99,7 @@ function parseTabFromHash(hashStr: string): NavTab {
   if (clean === 'settings') {
     return 'settings';
   }
-  return 'pay-system';
+  return 'exchange';
 }
 
 function getInitialTab(): NavTab {
@@ -116,9 +111,9 @@ function getInitialTab(): NavTab {
     if (paymentParams) {
       return 'dashboard';
     }
-    return 'pay-system';
+    return 'exchange';
   }
-  return 'pay-system';
+  return 'exchange';
 }
 
 function AppContent() {
@@ -142,7 +137,7 @@ function AppContent() {
   const handleTabChange = (tab: NavTab) => {
     setActiveTab(tab);
     if (typeof window !== 'undefined') {
-      if (tab === 'pay-system') {
+      if (tab === 'exchange') {
         if (window.location.hash && window.location.hash !== '') {
           window.history.pushState(null, '', window.location.pathname + window.location.search);
         }
@@ -198,10 +193,10 @@ function AppContent() {
             </>
           )}
 
-          {/* Pay System Tab (Web3 Terminal: Send Crypto, Receive Crypto QR, Token Balance) */}
-          {activeTab === 'pay-system' && (
-            <div id="pay-system-page">
-              <PaySystemTerminal onNavigateTab={handleTabChange} />
+          {/* Exchange Tab (Polygon Mainnet Swap for USDT, USDC, and VERSE) */}
+          {activeTab === 'exchange' && (
+            <div id="exchange-page" className="w-full max-w-7xl mx-auto px-3.5 sm:px-6 py-3 sm:py-6 min-h-[50vh]">
+              <ExchangeView onNavigateTab={handleTabChange} />
             </div>
           )}
 
@@ -209,20 +204,6 @@ function AppContent() {
           {activeTab === 'top-up' && (
             <div id="top-up-page" className="w-full max-w-7xl mx-auto py-2 sm:py-6 min-h-[50vh]">
               <TopUpView onNavigateTab={(tab) => handleTabChange(tab as NavTab)} />
-            </div>
-          )}
-
-          {/* Create Invoice Tab */}
-          {activeTab === 'create-invoice' && (
-            <div id="create-invoice-page">
-              <CreateInvoiceSection onNavigateTab={handleTabChange} />
-            </div>
-          )}
-
-          {/* Exchange Tab (Polygon Mainnet Swap for USDT, USDC, and VERSE) */}
-          {activeTab === 'exchange' && (
-            <div id="exchange-page" className="w-full max-w-7xl mx-auto px-3.5 sm:px-6 py-3 sm:py-6 min-h-[50vh]">
-              <ExchangeView onNavigateTab={handleTabChange} />
             </div>
           )}
 

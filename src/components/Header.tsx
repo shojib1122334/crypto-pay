@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Wallet, Download, Layers, CreditCard, FileText, ArrowLeftRight, Activity, Settings, Menu, X } from 'lucide-react';
+import { Wallet, Download, CreditCard, ArrowLeftRight, Activity, Settings, Menu, X } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 import { usePWA } from '@/hooks/usePWA';
 import { useConnectWallet } from '@/hooks/useConnectWallet';
@@ -19,15 +19,13 @@ interface NavItemConfig {
 }
 
 const NAV_ITEMS: NavItemConfig[] = [
-  { id: 'pay-system', label: 'Pay system', icon: Layers, accentColor: 'text-blue-600' },
-  { id: 'top-up', label: 'Top Up', icon: CreditCard, accentColor: 'text-cyan-600' },
-  { id: 'create-invoice', label: 'Create Invoice', icon: FileText, accentColor: 'text-purple-600' },
   { id: 'exchange', label: 'Exchange', icon: ArrowLeftRight, accentColor: 'text-indigo-600' },
+  { id: 'top-up', label: 'Top Up', icon: CreditCard, accentColor: 'text-cyan-600' },
   { id: 'activity', label: 'Activity', icon: Activity, accentColor: 'text-emerald-600' },
   { id: 'settings', label: 'Settings', icon: Settings, accentColor: 'text-violet-600' },
 ];
 
-export default function Header({ activeTab = 'pay-system', onNavigateTab }: HeaderProps) {
+export default function Header({ activeTab = 'exchange', onNavigateTab }: HeaderProps) {
   const { isInstalled, isInstallable, installApp } = usePWA();
   const { openWalletConnect } = useConnectWallet();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -50,7 +48,7 @@ export default function Header({ activeTab = 'pay-system', onNavigateTab }: Head
           {/* Left Side: Brand Logo + "Crypto pay" + Tagline */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
             <button
-              onClick={() => handleNav('pay-system')}
+              onClick={() => handleNav('exchange')}
               className="flex items-center gap-2.5 sm:gap-3 group text-left focus:outline-none cursor-pointer"
               aria-label="CryptoPay Home"
             >

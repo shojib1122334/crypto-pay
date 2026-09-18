@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, CreditCard, FileText, ArrowLeftRight, Activity, Settings, type LucideIcon } from 'lucide-react';
+import { CreditCard, ArrowLeftRight, Activity, Settings, type LucideIcon } from 'lucide-react';
 import type { NavTab } from '@/types/navigation';
 
 interface BottomNavBarProps {
@@ -16,28 +16,16 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   {
-    id: 'pay-system',
-    label: 'Pay system',
-    icon: Layers,
-    accentColor: 'text-blue-600',
+    id: 'exchange',
+    label: 'Exchange',
+    icon: ArrowLeftRight,
+    accentColor: 'text-indigo-600',
   },
   {
     id: 'top-up',
     label: 'Top Up',
     icon: CreditCard,
     accentColor: 'text-cyan-600',
-  },
-  {
-    id: 'create-invoice',
-    label: 'Invoice',
-    icon: FileText,
-    accentColor: 'text-purple-600',
-  },
-  {
-    id: 'exchange',
-    label: 'Exchange',
-    icon: ArrowLeftRight,
-    accentColor: 'text-indigo-600',
   },
   {
     id: 'activity',

@@ -11,6 +11,41 @@ const originUrl =
     ? window.location.origin
     : 'https://cryptopay.network';
 
+// Safely clean up orphaned WalletConnect v2 relayer subscriptions if no session is active
+if (typeof window !== 'undefined' && window.localStorage) {
+  try {
+    let hasActiveSession = false;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.includes('//session') || (key.includes('@walletconnect') && key.includes('session')))) {
+        const val = localStorage.getItem(key);
+        if (val && val !== '[]' && val !== '{}' && val !== '""') {
+          hasActiveSession = true;
+          break;
+        }
+      }
+    }
+    if (!hasActiveSession) {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('wc@2:') && (key.includes('//subscription') || key.includes('//messages'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((k) => {
+        try {
+          localStorage.removeItem(k);
+        } catch {
+          // ignore
+        }
+      });
+    }
+  } catch {
+    // Ignore restricted localStorage contexts
+  }
+}
+
 export const config = getDefaultConfig({
   appName: 'CryptoPay',
   projectId,
