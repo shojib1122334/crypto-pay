@@ -1,7 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { RefreshCw, ExternalLink, ArrowRight, CheckCircle2, Clock, XCircle, Layers, ArrowLeft } from 'lucide-react';
 import { SwapHistoryRecord } from '../../types/swap';
-import { getPolygonscanTxUrl, formatTokenAmount } from './tokenData';
+import {
+  getExplorerTxUrl,
+  formatTokenAmount,
+  SUPPORTED_NETWORKS,
+  BlockchainNetworkId,
+} from './tokenData';
 import { getLocalSwapHistory, syncSwapHistory } from '../../services/swapHistoryStorage';
 
 interface SwapHistoryViewProps {
@@ -38,7 +43,6 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
       }
     } catch (err) {
       console.warn('[SwapHistoryView] Sync notice:', err);
-      // Fallback to local storage records without blocking UI
       const local = getLocalSwapHistory(walletAddress);
       setHistory(local);
     } finally {
@@ -46,12 +50,9 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
     }
   }, [walletAddress]);
 
-  // Initial load and whenever walletAddress changes
   useEffect(() => {
     if (walletAddress) {
-      // Immediately set local cache first
       setHistory(getLocalSwapHistory(walletAddress));
-      // Then sync with server in background
       fetchHistory(false);
     } else {
       setHistory([]);
@@ -68,12 +69,12 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
           Wallet Not Connected
         </h3>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
-          Please connect your wallet to view your Polygon swap transaction history.
+          Please connect your wallet to view your multi-chain swap transaction history.
         </p>
         <button
           type="button"
           onClick={onBackToSwap}
-          className="mt-5 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-colors inline-flex items-center gap-1.5"
+          className="mt-5 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-xl transition-colors inline-flex items-center gap-1.5"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Swap
         </button>
@@ -90,8 +91,8 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
             <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white whitespace-nowrap">
               Swap History
             </h3>
-            <span className="text-[11px] font-medium px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full whitespace-nowrap">
-              Polygon 137
+            <span className="text-[11px] font-semibold px-2 py-0.5 bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 rounded-full whitespace-nowrap border border-purple-200 dark:border-purple-800/80">
+              Multi-Chain
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-mono truncate">
@@ -137,7 +138,7 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
       {/* Transaction List or Clean Empty State */}
       {isLoading && history.length === 0 ? (
         <div className="py-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-          <RefreshCw className="w-4 h-4 animate-spin text-indigo-500" /> Loading transactions...
+          <RefreshCw className="w-4 h-4 animate-spin text-purple-600" /> Loading transactions...
         </div>
       ) : history.length === 0 ? (
         <div className="py-10 sm:py-12 text-center">
@@ -148,12 +149,12 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
             No Swap Transactions Yet
           </h4>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto leading-relaxed">
-            Transactions executed through CryptoPay Swap will appear here with live Polygonscan links.
+            Transactions executed across Bitcoin, Ethereum, BNB Chain, Polygon, and Solana will appear here with live block explorer links.
           </p>
           <button
             type="button"
             onClick={onBackToSwap}
-            className="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-colors inline-flex items-center gap-1.5 shadow-xs"
+            className="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-xl transition-colors inline-flex items-center gap-1.5 shadow-xs"
           >
             Start a Swap
           </button>
@@ -163,6 +164,9 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
           {history.map((record) => {
             const isSuccess = record.status === 'COMPLETED';
             const isPending = record.status === 'PENDING';
+            const netKey = (record.network || record.fromNetwork || 'polygon') as BlockchainNetworkId;
+            const netMeta = SUPPORTED_NETWORKS.find((n) => n.id === netKey) || SUPPORTED_NETWORKS[0];
+            const explorerLink = record.explorerUrl || (record.txHash ? getExplorerTxUrl(record.txHash, netKey) : '#');
 
             return (
               <div
@@ -172,9 +176,13 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-sm text-slate-900 dark:text-white flex items-center gap-1.5 flex-wrap">
-                      <span>{formatTokenAmount(record.inputAmount)} {record.inputToken}</span>
+                      <span>
+                        {formatTokenAmount(record.inputAmount)} {record.inputToken}
+                      </span>
                       <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{formatTokenAmount(record.expectedOutputAmount)} {record.outputToken}</span>
+                      <span>
+                        {formatTokenAmount(record.expectedOutputAmount)} {record.outputToken}
+                      </span>
                     </span>
                   </div>
 
@@ -198,6 +206,10 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
 
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60 mt-2">
                   <div className="flex items-center gap-2 flex-wrap text-[11px]">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">
+                      {netMeta.name}
+                    </span>
+                    <span>•</span>
                     <span>
                       {new Date(record.createdAt).toLocaleDateString()} at{' '}
                       {new Date(record.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -214,10 +226,10 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
 
                   {record.txHash && (
                     <a
-                      href={getPolygonscanTxUrl(record.txHash)}
+                      href={explorerLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1 font-mono text-[11px] ml-auto"
+                      className="text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1 font-mono text-[11px] ml-auto"
                     >
                       {record.txHash.substring(0, 6)}...{record.txHash.substring(record.txHash.length - 4)}
                       <ExternalLink className="w-3 h-3" />
@@ -232,4 +244,3 @@ export const SwapHistoryView: React.FC<SwapHistoryViewProps> = ({
     </div>
   );
 };
-

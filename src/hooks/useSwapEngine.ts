@@ -3,9 +3,27 @@ import { useAccount, useSwitchChain, useSendTransaction, useWriteContract, useCo
 import { waitForTransactionReceipt } from '@wagmi/core';
 import { erc20Abi, formatUnits, parseUnits, getAddress } from 'viem';
 import { SwapQuote, SwapStatus } from '../types/swap';
-import { POLYGON_CHAIN_ID, SWAP_TOKENS, SwapTokenInfo } from '../components/exchange/tokenData';
-import { fetchDirectDEXQuote, prepareDirectSwapTransaction } from '../services/clientSwapService';
-import { polygonPublicClient, ethereumPublicClient, fetchCryptoPrices } from '../lib/rpcService';
+import {
+  POLYGON_CHAIN_ID,
+  ETHEREUM_CHAIN_ID,
+  BSC_CHAIN_ID,
+  SUPPORTED_NETWORKS,
+  BlockchainNetworkId,
+  SwapTokenInfo,
+  getTokensByNetwork,
+  getExplorerTxUrl,
+} from '../components/exchange/tokenData';
+import {
+  fetchDirectMultiChainQuote,
+  prepareDirectSwapTransaction,
+  getChainIdFromNetwork,
+} from '../services/clientSwapService';
+import {
+  polygonPublicClient,
+  ethereumPublicClient,
+  bscPublicClient,
+  fetchCryptoPrices,
+} from '../lib/rpcService';
 import { saveLocalSwapRecord } from '../services/swapHistoryStorage';
 
 export function useSwapEngine() {
@@ -15,11 +33,18 @@ export function useSwapEngine() {
   const { writeContractAsync } = useWriteContract();
   const wagmiConfig = useConfig();
 
-  // Selected tokens (Defaults to VERSE -> USDT)
-  const defaultInput = SWAP_TOKENS.find((t) => t.symbol === 'VERSE') || SWAP_TOKENS[3];
-  const defaultOutput = SWAP_TOKENS.find((t) => t.symbol === 'USDT') || SWAP_TOKENS[1];
-  const [inputToken, setInputToken] = useState<SwapTokenInfo>(defaultInput);
-  const [outputToken, setOutputToken] = useState<SwapTokenInfo>(defaultOutput);
+  // Active Networks (Default: Polygon)
+  const [selectedNetwork, setSelectedNetwork] = useState<BlockchainNetworkId>('polygon');
+  const [outputNetwork, setOutputNetwork] = useState<BlockchainNetworkId>('polygon');
+
+  // Selected tokens (Defaults to POL -> USDT on Polygon)
+  const defaultPolygonTokens = getTokensByNetwork('polygon');
+  const [inputToken, setInputToken] = useState<SwapTokenInfo>(
+    defaultPolygonTokens.find((t) => t.symbol === 'POL') || defaultPolygonTokens[0]
+  );
+  const [outputToken, setOutputToken] = useState<SwapTokenInfo>(
+    defaultPolygonTokens.find((t) => t.symbol === 'USDT') || defaultPolygonTokens[1]
+  );
   const [inputAmount, setInputAmount] = useState<string>('');
 
   // Settings
@@ -32,16 +57,41 @@ export function useSwapEngine() {
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(45);
 
-  // Balances
+  // Multi-Chain Balances Map: key `${networkId}:${symbol}` -> string
   const [balances, setBalances] = useState<Record<string, string>>({
-    MATIC: '0.00',
+    'polygon:POL': '0.00',
+    'polygon:MATIC': '0.00',
+    'polygon:USDT': '0.00',
+    'polygon:USDC': '0.00',
+    'polygon:VERSE': '0.00',
+    'ethereum:ETH': '0.00',
+    'ethereum:USDT': '0.00',
+    'ethereum:USDC': '0.00',
+    'bsc:BNB': '0.00',
+    'bsc:USDT': '0.00',
+    'bsc:USDC': '0.00',
+    'solana:SOL': '0.00',
+    'solana:USDC': '0.00',
+    'solana:USDT': '0.00',
+    'bitcoin:BTC': '0.00',
+    // Fallback symbol-only keys for backward compatibility
     POL: '0.00',
+    MATIC: '0.00',
     USDT: '0.00',
     USDC: '0.00',
     VERSE: '0.00',
+    ETH: '0.00',
+    BNB: '0.00',
+    SOL: '0.00',
+    BTC: '0.00',
   });
+
   const [polBalance, setPolBalance] = useState<string>('0.00');
+  const [ethBalance, setEthBalance] = useState<string>('0.00');
+  const [bnbBalance, setBnbBalance] = useState<string>('0.00');
   const [isBalanceLoading, setIsBalanceLoading] = useState<boolean>(false);
+
+  // Backward compatibility legacy ethereum balances
   const [ethereumBalances, setEthereumBalances] = useState<Record<string, string>>({
     ETH: '0.00',
     VERSE: '0.00',
@@ -51,12 +101,15 @@ export function useSwapEngine() {
 
   // Live Token USD Prices for real-time market value estimation
   const [tokenPrices, setTokenPrices] = useState<Record<string, number>>({
+    BTC: 64000.0,
+    ETH: 2450.0,
+    BNB: 580.0,
+    POL: 0.095,
+    MATIC: 0.095,
+    SOL: 145.0,
     USDT: 1.0,
     USDC: 1.0,
-    MATIC: 0.095,
-    POL: 0.095,
     VERSE: 0.0000212,
-    ETH: 2450.0,
   });
 
   // Allowance & Approval
@@ -71,18 +124,64 @@ export function useSwapEngine() {
   const [isStatusModalOpen, setIsStatusModalOpen] = useState<boolean>(false);
 
   const isPolygon = chainId === POLYGON_CHAIN_ID;
+  const isEthereum = chainId === ETHEREUM_CHAIN_ID;
+  const isBsc = chainId === BSC_CHAIN_ID;
 
-  // Refresh token balances from Polygon Mainnet
+  // Change input network
+  const handleSelectNetwork = useCallback(
+    (networkId: BlockchainNetworkId) => {
+      setSelectedNetwork(networkId);
+      const netTokens = getTokensByNetwork(networkId);
+      if (netTokens.length > 0) {
+        // If current token is already on this network, keep it
+        const currentOnNet = netTokens.find((t) => t.symbol === inputToken.symbol);
+        if (currentOnNet) {
+          setInputToken(currentOnNet);
+        } else {
+          // Select native token or first token of this network
+          const native = netTokens.find((t) => t.isNative) || netTokens[0];
+          setInputToken(native);
+        }
+      }
+
+      // If output network matches old network or we want same-chain default
+      if (outputNetwork === selectedNetwork) {
+        setOutputNetwork(networkId);
+        const outNetTokens = getTokensByNetwork(networkId);
+        const stable = outNetTokens.find((t) => t.symbol === 'USDT' || t.symbol === 'USDC');
+        if (stable) {
+          setOutputToken(stable);
+        } else if (outNetTokens[1]) {
+          setOutputToken(outNetTokens[1]);
+        }
+      }
+
+      // If wallet is connected on EVM, prompt switch to selected EVM network
+      const targetChainId = getChainIdFromNetwork(networkId);
+      if (targetChainId && switchChain && chainId !== targetChainId) {
+        switchChain({ chainId: targetChainId });
+      }
+    },
+    [inputToken.symbol, outputNetwork, selectedNetwork, switchChain, chainId]
+  );
+
+  // Switch to target EVM chain
+  const handleSwitchToChain = useCallback(
+    (targetChainId: number) => {
+      if (switchChain) {
+        switchChain({ chainId: targetChainId });
+      }
+    },
+    [switchChain]
+  );
+
+  const handleSwitchToPolygon = useCallback(() => {
+    handleSwitchToChain(POLYGON_CHAIN_ID);
+  }, [handleSwitchToChain]);
+
+  // Fetch real on-chain balances across networks
   const fetchBalances = useCallback(async () => {
     if (!address || !isConnected) {
-      setBalances({
-        MATIC: '0.00',
-        POL: '0.00',
-        USDT: '0.00',
-        USDC: '0.00',
-        VERSE: '0.00',
-      });
-      setPolBalance('0.00');
       return;
     }
 
@@ -90,14 +189,8 @@ export function useSwapEngine() {
     try {
       const normalizedAddress = getAddress(address);
 
-      // 1. Fetch live Polygon balances in parallel
-      const [
-        polBalResult,
-        usdtBalResult,
-        usdcNativeResult,
-        usdcBridgedResult,
-        verseBalResult,
-      ] = await Promise.allSettled([
+      // 1. Fetch live Polygon balances (POL, USDT, USDC Native + Bridged, VERSE)
+      const polygonQueries = Promise.allSettled([
         polygonPublicClient.getBalance({ address: normalizedAddress }),
         polygonPublicClient.readContract({
           address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
@@ -125,84 +218,168 @@ export function useSwapEngine() {
         }),
       ]);
 
-      // Native POL/MATIC
+      // 2. Fetch live Ethereum balances (ETH, USDT, USDC)
+      const ethereumQueries = Promise.allSettled([
+        ethereumPublicClient.getBalance({ address: normalizedAddress }),
+        ethereumPublicClient.readContract({
+          address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+          abi: erc20Abi,
+          functionName: 'balanceOf',
+          args: [normalizedAddress],
+        }),
+        ethereumPublicClient.readContract({
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          abi: erc20Abi,
+          functionName: 'balanceOf',
+          args: [normalizedAddress],
+        }),
+        ethereumPublicClient.readContract({
+          address: '0x249cA82617eC3DfB2589c4c17ab7EC9765350a18',
+          abi: erc20Abi,
+          functionName: 'balanceOf',
+          args: [normalizedAddress],
+        }),
+      ]);
+
+      // 3. Fetch live BNB Smart Chain balances (BNB, USDT, USDC)
+      const bscQueries = Promise.allSettled([
+        bscPublicClient.getBalance({ address: normalizedAddress }),
+        bscPublicClient.readContract({
+          address: '0x55d398326f99059fF775485246999027B3197955',
+          abi: erc20Abi,
+          functionName: 'balanceOf',
+          args: [normalizedAddress],
+        }),
+        bscPublicClient.readContract({
+          address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+          abi: erc20Abi,
+          functionName: 'balanceOf',
+          args: [normalizedAddress],
+        }),
+      ]);
+
+      const [polyResults, ethResults, bscResults] = await Promise.all([
+        polygonQueries,
+        ethereumQueries,
+        bscQueries,
+      ]);
+
+      // Parse Polygon
       let formattedPol = '0.00';
-      if (polBalResult.status === 'fulfilled') {
-        formattedPol = formatUnits(polBalResult.value, 18);
+      if (polyResults[0].status === 'fulfilled') {
+        formattedPol = formatUnits(polyResults[0].value, 18);
         setPolBalance(formattedPol);
       }
-
-      // USDT (6 decimals)
-      let formattedUsdt = '0.00';
-      if (usdtBalResult.status === 'fulfilled') {
-        formattedUsdt = formatUnits(usdtBalResult.value, 6);
+      let formattedPolyUsdt = '0.00';
+      if (polyResults[1].status === 'fulfilled') {
+        formattedPolyUsdt = formatUnits(polyResults[1].value, 6);
       }
-
-      // USDC (Native 6 decimals + Bridged USDC.e 6 decimals)
-      let formattedUsdc = '0.00';
-      const nativeUsdc = usdcNativeResult.status === 'fulfilled' ? formatUnits(usdcNativeResult.value, 6) : '0';
-      const bridgedUsdc = usdcBridgedResult.status === 'fulfilled' ? formatUnits(usdcBridgedResult.value, 6) : '0';
-      const totalUsdc = parseFloat(nativeUsdc) + parseFloat(bridgedUsdc);
-      if (totalUsdc > 0) {
-        formattedUsdc = totalUsdc.toFixed(6).replace(/\.?0+$/, '');
-        if (formattedUsdc === '' || formattedUsdc === '0') formattedUsdc = '0.00';
+      let formattedPolyUsdc = '0.00';
+      const nativePolyUsdc = polyResults[2].status === 'fulfilled' ? formatUnits(polyResults[2].value, 6) : '0';
+      const bridgedPolyUsdc = polyResults[3].status === 'fulfilled' ? formatUnits(polyResults[3].value, 6) : '0';
+      const totalPolyUsdc = parseFloat(nativePolyUsdc) + parseFloat(bridgedPolyUsdc);
+      if (totalPolyUsdc > 0) {
+        formattedPolyUsdc = totalPolyUsdc.toFixed(6).replace(/\.?0+$/, '');
+        if (formattedPolyUsdc === '' || formattedPolyUsdc === '0') formattedPolyUsdc = '0.00';
       }
-
-      // VERSE (18 decimals)
       let formattedVerse = '0.00';
-      if (verseBalResult.status === 'fulfilled') {
-        formattedVerse = formatUnits(verseBalResult.value, 18);
+      if (polyResults[4].status === 'fulfilled') {
+        formattedVerse = formatUnits(polyResults[4].value, 18);
       }
 
-      setBalances({
-        MATIC: formattedPol,
-        POL: formattedPol,
-        USDT: formattedUsdt,
-        USDC: formattedUsdc,
-        VERSE: formattedVerse,
+      // Parse Ethereum
+      let formattedEth = '0.00';
+      if (ethResults[0].status === 'fulfilled') {
+        formattedEth = formatUnits(ethResults[0].value, 18);
+        setEthBalance(formattedEth);
+      }
+      let formattedEthUsdt = '0.00';
+      if (ethResults[1].status === 'fulfilled') {
+        formattedEthUsdt = formatUnits(ethResults[1].value, 6);
+      }
+      let formattedEthUsdc = '0.00';
+      if (ethResults[2].status === 'fulfilled') {
+        formattedEthUsdc = formatUnits(ethResults[2].value, 6);
+      }
+      let formattedEthVerse = '0.00';
+      if (ethResults[3].status === 'fulfilled') {
+        formattedEthVerse = formatUnits(ethResults[3].value, 18);
+      }
+
+      setEthereumBalances({
+        ETH: formattedEth,
+        VERSE: formattedEthVerse,
+        USDT: formattedEthUsdt,
+        USDC: formattedEthUsdc,
       });
 
-      // 2. If connected to Ethereum, fetch Ethereum balances to provide user clarity
-      if (chainId === 1) {
-        try {
-          const [ethBal, ethVerse, ethUsdt, ethUsdc] = await Promise.allSettled([
-            ethereumPublicClient.getBalance({ address: normalizedAddress }),
-            ethereumPublicClient.readContract({
-              address: '0x249cA82617eC3DfB2589c4c17ab7EC9765350a18',
-              abi: erc20Abi,
-              functionName: 'balanceOf',
-              args: [normalizedAddress],
-            }),
-            ethereumPublicClient.readContract({
-              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-              abi: erc20Abi,
-              functionName: 'balanceOf',
-              args: [normalizedAddress],
-            }),
-            ethereumPublicClient.readContract({
-              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-              abi: erc20Abi,
-              functionName: 'balanceOf',
-              args: [normalizedAddress],
-            }),
-          ]);
-
-          setEthereumBalances({
-            ETH: ethBal.status === 'fulfilled' ? formatUnits(ethBal.value, 18) : '0.00',
-            VERSE: ethVerse.status === 'fulfilled' ? formatUnits(ethVerse.value, 18) : '0.00',
-            USDT: ethUsdt.status === 'fulfilled' ? formatUnits(ethUsdt.value, 6) : '0.00',
-            USDC: ethUsdc.status === 'fulfilled' ? formatUnits(ethUsdc.value, 6) : '0.00',
-          });
-        } catch {
-          // Non-blocking
-        }
+      // Parse BSC
+      let formattedBnb = '0.00';
+      if (bscResults[0].status === 'fulfilled') {
+        formattedBnb = formatUnits(bscResults[0].value, 18);
+        setBnbBalance(formattedBnb);
       }
+      let formattedBscUsdt = '0.00';
+      if (bscResults[1].status === 'fulfilled') {
+        formattedBscUsdt = formatUnits(bscResults[1].value, 18);
+      }
+      let formattedBscUsdc = '0.00';
+      if (bscResults[2].status === 'fulfilled') {
+        formattedBscUsdc = formatUnits(bscResults[2].value, 18);
+      }
+
+      setBalances((prev) => ({
+        ...prev,
+        // Multi-chain keyed balances
+        'polygon:POL': formattedPol,
+        'polygon:MATIC': formattedPol,
+        'polygon:USDT': formattedPolyUsdt,
+        'polygon:USDC': formattedPolyUsdc,
+        'polygon:VERSE': formattedVerse,
+        'ethereum:ETH': formattedEth,
+        'ethereum:USDT': formattedEthUsdt,
+        'ethereum:USDC': formattedEthUsdc,
+        'bsc:BNB': formattedBnb,
+        'bsc:USDT': formattedBscUsdt,
+        'bsc:USDC': formattedBscUsdc,
+
+        // Fallback default keys for active network tokens
+        POL: formattedPol,
+        MATIC: formattedPol,
+        VERSE: formattedVerse,
+        ETH: formattedEth,
+        BNB: formattedBnb,
+        // Context-sensitive USDT & USDC
+        USDT:
+          selectedNetwork === 'ethereum'
+            ? formattedEthUsdt
+            : selectedNetwork === 'bsc'
+            ? formattedBscUsdt
+            : formattedPolyUsdt,
+        USDC:
+          selectedNetwork === 'ethereum'
+            ? formattedEthUsdc
+            : selectedNetwork === 'bsc'
+            ? formattedBscUsdc
+            : formattedPolyUsdc,
+      }));
     } catch (err) {
-      console.warn('On-chain balance fetch error:', err);
+      console.warn('Multi-chain on-chain balance fetch error:', err);
     } finally {
       setIsBalanceLoading(false);
     }
-  }, [address, isConnected, chainId]);
+  }, [address, isConnected, selectedNetwork]);
+
+  // Helper to get token balance for any given token
+  const getTokenBalance = useCallback(
+    (token: SwapTokenInfo): string => {
+      const netKey = `${token.networkId}:${token.symbol}`;
+      if (balances[netKey] !== undefined) return balances[netKey];
+      if (balances[token.symbol] !== undefined) return balances[token.symbol];
+      return '0.00';
+    },
+    [balances]
+  );
 
   // Live token market prices fetcher
   const updatePrices = useCallback(async () => {
@@ -228,43 +405,80 @@ export function useSwapEngine() {
     return () => clearInterval(interval);
   }, [fetchBalances]);
 
-  // Check token allowance for router
-  const checkAllowance = useCallback(async (currentQuote: SwapQuote) => {
-    if (!address || !isConnected) return;
+  // Check token allowance for router / aggregator
+  const checkAllowance = useCallback(
+    async (currentQuote: SwapQuote) => {
+      if (!address || !isConnected) return;
 
-    // Native MATIC/POL is gas asset, no ERC-20 approval needed
-    if (currentQuote.inputToken.symbol === 'MATIC' || currentQuote.inputToken.symbol === 'POL') {
-      setAllowance(BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'));
-      setStatus('APPROVED');
-      setIsCheckingAllowance(false);
-      return;
-    }
-
-    setIsCheckingAllowance(true);
-    try {
-      const normalizedAddress = getAddress(address);
-      const currentAllowance = await polygonPublicClient.readContract({
-        address: currentQuote.inputToken.address,
-        abi: erc20Abi,
-        functionName: 'allowance',
-        args: [normalizedAddress, currentQuote.route.routerAddress],
-      });
-
-      setAllowance(currentAllowance);
-      const reqAmount = BigInt(currentQuote.inputAmountRaw);
-
-      if (currentAllowance >= reqAmount) {
+      // Native tokens (BTC, ETH, BNB, POL, SOL) don't need ERC-20 approval
+      if (
+        currentQuote.inputToken.address === 'bitcoin-native' ||
+        currentQuote.inputToken.isNative ||
+        currentQuote.inputToken.symbol === 'BTC' ||
+        currentQuote.inputToken.symbol === 'ETH' ||
+        currentQuote.inputToken.symbol === 'BNB' ||
+        currentQuote.inputToken.symbol === 'POL' ||
+        currentQuote.inputToken.symbol === 'MATIC' ||
+        currentQuote.inputToken.symbol === 'SOL'
+      ) {
+        setAllowance(BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'));
         setStatus('APPROVED');
-      } else {
-        setStatus('APPROVAL_REQUIRED');
+        setIsCheckingAllowance(false);
+        return;
       }
-    } catch (err) {
-      console.warn('Allowance check warning:', err);
-      setStatus('APPROVAL_REQUIRED');
-    } finally {
-      setIsCheckingAllowance(false);
-    }
-  }, [address, isConnected]);
+
+      // Non-EVM tokens (Solana SPL, Bitcoin)
+      if (currentQuote.fromNetwork === 'bitcoin' || currentQuote.fromNetwork === 'solana') {
+        setStatus('APPROVED');
+        setIsCheckingAllowance(false);
+        return;
+      }
+
+      const spender = currentQuote.spenderAddress || currentQuote.route?.routerAddress;
+      if (!spender || !spender.startsWith('0x')) {
+        setStatus('APPROVED');
+        setIsCheckingAllowance(false);
+        return;
+      }
+
+      setIsCheckingAllowance(true);
+      try {
+        const normalizedAddress = getAddress(address);
+        const normalizedSpender = getAddress(spender);
+        const normalizedToken = getAddress(currentQuote.inputToken.address);
+
+        // Select the appropriate public client based on chain
+        let client = polygonPublicClient;
+        if (currentQuote.fromNetwork === 'ethereum') {
+          client = ethereumPublicClient;
+        } else if (currentQuote.fromNetwork === 'bsc') {
+          client = bscPublicClient;
+        }
+
+        const currentAllowance = await client.readContract({
+          address: normalizedToken,
+          abi: erc20Abi,
+          functionName: 'allowance',
+          args: [normalizedAddress, normalizedSpender],
+        });
+
+        setAllowance(currentAllowance);
+        const reqAmount = BigInt(currentQuote.inputAmountRaw);
+
+        if (currentAllowance >= reqAmount) {
+          setStatus('APPROVED');
+        } else {
+          setStatus('APPROVAL_REQUIRED');
+        }
+      } catch (err) {
+        console.warn('Allowance check warning:', err);
+        setStatus('APPROVAL_REQUIRED');
+      } finally {
+        setIsCheckingAllowance(false);
+      }
+    },
+    [address, isConnected]
+  );
 
   // Debounced quote fetcher
   const quoteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -288,52 +502,31 @@ export function useSwapEngine() {
     setQuoteError(null);
 
     try {
-      let fetchedQuote: SwapQuote | null = null;
+      const fromNet = inputToken.networkId || selectedNetwork;
+      const toNet = outputToken.networkId || outputNetwork;
 
-      // 1. Attempt via server endpoint /api/swap/quote
-      try {
-        const query = new URLSearchParams({
-          chainId: POLYGON_CHAIN_ID.toString(),
-          walletAddress: address || '0x0000000000000000000000000000000000000000',
-          inputToken: inputToken.symbol,
-          outputToken: outputToken.symbol,
-          inputAmount,
-          slippage: slippage.toString(),
-        });
-
-        const res = await fetch(`/api/swap/quote?${query.toString()}`, {
-          signal: controller.signal,
-        });
-
-        if (!controller.signal.aborted) {
-          const text = await res.text();
-          // Check if response is valid JSON rather than HTML (e.g. proxy cookie redirect or 502 page)
-          if (!text.trim().startsWith('<')) {
-            const data = JSON.parse(text);
-            if (res.ok && data?.success && data?.quote) {
-              fetchedQuote = data.quote;
-            }
-          }
-        }
-      } catch (err: unknown) {
-        if ((err as Error)?.name === 'AbortError' || controller.signal.aborted) {
-          return;
-        }
-        // If server call fails (e.g. cookie check, iframe sandbox, or network issue), proceed to direct DEX fallback
+      if (
+        fromNet === toNet &&
+        (inputToken.symbol === outputToken.symbol ||
+          (inputToken.address &&
+            outputToken.address &&
+            inputToken.address.toLowerCase() === outputToken.address.toLowerCase()))
+      ) {
+        setQuote(null);
+        setQuoteError('Please select two different assets or networks to swap.');
+        setIsQuoteLoading(false);
+        return;
       }
 
-      if (controller.signal.aborted) return;
-
-      // 2. Direct client-side DEX quotation fallback (KyberSwap Aggregator + on-chain Polygon RPC)
-      if (!fetchedQuote) {
-        fetchedQuote = await fetchDirectDEXQuote({
-          inputSymbol: inputToken.symbol,
-          outputSymbol: outputToken.symbol,
-          inputAmount,
-          slippage,
-          walletAddress: address,
-        });
-      }
+      const fetchedQuote = await fetchDirectMultiChainQuote({
+        fromNetwork: fromNet,
+        toNetwork: toNet,
+        inputToken,
+        outputToken,
+        inputAmount,
+        slippage,
+        walletAddress: address,
+      });
 
       if (controller.signal.aborted) return;
 
@@ -363,23 +556,32 @@ export function useSwapEngine() {
         }
       } else {
         setQuote(null);
-        setQuoteError('No active Polygon liquidity route found for this pair.');
+        setQuoteError(`No active liquidity route found for ${inputToken.symbol} to ${outputToken.symbol}.`);
       }
     } catch (err: unknown) {
       if ((err as Error)?.name === 'AbortError' || controller.signal.aborted) {
         return;
       }
       setQuote(null);
-      const msg = err instanceof Error && err.message ? err.message : 'Unable to retrieve live quote from Polygon.';
+      const msg = err instanceof Error && err.message ? err.message : 'Unable to retrieve live quote.';
       setQuoteError(msg);
     } finally {
       if (!controller.signal.aborted) {
         setIsQuoteLoading(false);
       }
     }
-  }, [inputAmount, inputToken.symbol, outputToken.symbol, slippage, address, checkAllowance]);
+  }, [
+    inputAmount,
+    inputToken,
+    outputToken,
+    selectedNetwork,
+    outputNetwork,
+    slippage,
+    address,
+    checkAllowance,
+  ]);
 
-  // Invalidate quote when user types
+  // Invalidate quote when user changes inputs
   useEffect(() => {
     if (quoteTimeoutRef.current) {
       clearTimeout(quoteTimeoutRef.current);
@@ -393,14 +595,14 @@ export function useSwapEngine() {
 
     quoteTimeoutRef.current = setTimeout(() => {
       fetchQuote();
-    }, 400);
+    }, 450);
 
     return () => {
       if (quoteTimeoutRef.current) {
         clearTimeout(quoteTimeoutRef.current);
       }
     };
-  }, [inputAmount, inputToken.symbol, outputToken.symbol, slippage, fetchQuote]);
+  }, [inputAmount, inputToken, outputToken, slippage, fetchQuote]);
 
   // Quote expiration countdown
   useEffect(() => {
@@ -412,7 +614,6 @@ export function useSwapEngine() {
       setSecondsRemaining(diff);
 
       if (diff <= 0) {
-        // Auto refresh quote
         fetchQuote();
       }
     }, 1000);
@@ -420,22 +621,22 @@ export function useSwapEngine() {
     return () => clearInterval(timer);
   }, [quote, fetchQuote]);
 
-  // Switch input and output tokens
+  // Switch input and output tokens and networks
   const handleSwitchDirection = () => {
-    setInputToken(outputToken);
-    setOutputToken(inputToken);
+    const prevInNet = selectedNetwork;
+    const prevOutNet = outputNetwork;
+    setSelectedNetwork(prevOutNet);
+    setOutputNetwork(prevInNet);
+
+    const prevIn = inputToken;
+    const prevOut = outputToken;
+    setInputToken(prevOut);
+    setOutputToken(prevIn);
     setInputAmount('');
     setQuote(null);
   };
 
-  // Switch to Polygon Mainnet
-  const handleSwitchToPolygon = () => {
-    if (switchChain) {
-      switchChain({ chainId: POLYGON_CHAIN_ID });
-    }
-  };
-
-  // Execute ERC-20 token approval
+  // Execute ERC-20 token approval on the source chain
   const handleApprove = async () => {
     if (!quote || !address) return;
     setIsStatusModalOpen(true);
@@ -444,33 +645,45 @@ export function useSwapEngine() {
     setApprovalTxHash(undefined);
 
     try {
+      const spender = quote.spenderAddress || quote.route?.routerAddress;
+      if (!spender || !spender.startsWith('0x')) {
+        setStatus('APPROVED');
+        return;
+      }
+
+      const fromChainId = getChainIdFromNetwork(quote.fromNetwork) || POLYGON_CHAIN_ID;
+
+      // Switch wallet chain if necessary
+      if (chainId !== fromChainId && switchChain) {
+        await switchChain({ chainId: fromChainId });
+      }
+
       const hash = await writeContractAsync({
-        address: quote.inputToken.address,
+        address: quote.inputToken.address as `0x${string}`,
         abi: erc20Abi,
         functionName: 'approve',
-        args: [quote.route.routerAddress, parseUnits(inputAmount, quote.inputToken.decimals)],
-        chainId: POLYGON_CHAIN_ID,
+        args: [spender as `0x${string}`, parseUnits(inputAmount, quote.inputToken.decimals)],
+        chainId: fromChainId,
       });
 
       setApprovalTxHash(hash);
 
-      // Wait for blockchain confirmation on Polygon
+      // Wait for blockchain confirmation on target chain
       const receipt = await waitForTransactionReceipt(wagmiConfig, {
         hash,
-        chainId: POLYGON_CHAIN_ID,
+        chainId: fromChainId,
       });
 
       if (receipt.status === 'success') {
         setStatus('APPROVED');
-        // Refresh allowance
         await checkAllowance(quote);
       } else {
         setStatus('TRANSACTION_REVERTED');
-        setExecutionError('Approval transaction reverted on Polygon.');
+        setExecutionError(`Approval transaction reverted on ${quote.fromNetwork}.`);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Approval failed';
-      if (msg.includes('rejected') || msg.includes('denied')) {
+      if (msg.includes('rejected') || msg.includes('denied') || msg.includes('User rejected')) {
         setStatus('REJECTED');
         setExecutionError('Approval request was rejected in your wallet.');
       } else {
@@ -492,188 +705,127 @@ export function useSwapEngine() {
       return;
     }
 
-    // Check gas balance
-    const estGasPol = parseFloat(quote.estimatedGasFeePol);
-    const userPol = parseFloat(polBalance);
-    const isNativeIn = quote.inputToken.symbol === 'MATIC' || quote.inputToken.symbol === 'POL';
-    const requiredPol = isNativeIn ? (parseFloat(inputAmount) + estGasPol) : estGasPol;
-    if (userPol < requiredPol) {
-      setStatus('INSUFFICIENT_GAS');
-      setExecutionError(
-        isNativeIn
-          ? `Insufficient POL/MATIC balance for swap amount (${inputAmount} ${quote.inputToken.symbol}) + network gas fee (~${estGasPol.toFixed(2)} POL).`
-          : `You need at least ${estGasPol.toFixed(2)} POL for network gas fee.`
-      );
+    const fromChainId = getChainIdFromNetwork(quote.fromNetwork);
+
+    // If EVM Swap:
+    if (fromChainId) {
+      // Check if wallet is on the correct chain
+      if (chainId !== fromChainId && switchChain) {
+        try {
+          await switchChain({ chainId: fromChainId });
+        } catch {
+          setExecutionError(`Please switch your wallet network to ${quote.fromNetwork} to execute this swap.`);
+          setIsStatusModalOpen(true);
+          return;
+        }
+      }
+
       setIsStatusModalOpen(true);
-      return;
-    }
+      setStatus('SWAP_PENDING');
+      setExecutionError(null);
+      setTxHash(undefined);
 
-    setIsStatusModalOpen(true);
-    setStatus('SWAP_PENDING');
-    setExecutionError(null);
-    setTxHash(undefined);
-
-    try {
-      // 1. Prepare transaction calldata (attempt server first, fallback to client)
-      let tx: {
-        to: `0x${string}`;
-        data: `0x${string}`;
-        value?: `0x${string}`;
-        transactionValue?: string;
-        valueWei?: string;
-        gasLimit?: string;
-      } | null = null;
       try {
-        const prepRes = await fetch('/api/swap/prepare', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            quoteId: quote.quoteId,
-            walletAddress: address,
-            chainId: POLYGON_CHAIN_ID,
-          }),
-        });
+        const tx = await prepareDirectSwapTransaction(quote, address);
 
-        const text = await prepRes.text();
-        if (!text.trim().startsWith('<')) {
-          const prepData = JSON.parse(text);
-          if (prepRes.ok && prepData.success && prepData.transaction) {
-            tx = prepData.transaction;
+        const isNativeIn =
+          quote.inputToken.isNative ||
+          quote.inputToken.symbol === 'MATIC' ||
+          quote.inputToken.symbol === 'POL' ||
+          quote.inputToken.symbol === 'ETH' ||
+          quote.inputToken.symbol === 'BNB' ||
+          quote.inputToken.address.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+
+        let txValue: bigint;
+        if (!isNativeIn) {
+          txValue = 0n;
+        } else {
+          const rawApiValue =
+            tx.valueWei ||
+            tx.transactionValue ||
+            (tx.value && tx.value !== '0x0' ? tx.value : undefined) ||
+            quote.transactionValue;
+
+          if (rawApiValue !== undefined && rawApiValue !== null && rawApiValue !== '') {
+            txValue = BigInt(rawApiValue);
+          } else {
+            txValue = BigInt(tx.value || '0');
           }
         }
-      } catch {
-        // Fallback to client preparation below
-      }
 
-      if (!tx) {
-        tx = await prepareDirectSwapTransaction({
-          quote,
-          walletAddress: address,
-        });
-      }
+        const finalGasLimit = BigInt(tx.gasLimit || '350000');
 
-      const isNativeIn =
-        quote.inputToken.symbol === 'MATIC' ||
-        quote.inputToken.symbol === 'POL' ||
-        quote.inputToken.address.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
-
-      // Ensure MATIC (native token) is handled separately from ERC-20 tokens:
-      // 1. For ERC-20 tokens: transaction value MUST strictly be 0n (0 wei).
-      // 2. For native MATIC: transaction value must strictly match the native MATIC
-      //    amount required by the KyberSwap quote/calldata, using the API-provided
-      //    transaction value in wei without manually recalculating or modifying it.
-      let txValue: bigint;
-      if (!isNativeIn) {
-        txValue = 0n;
-      } else {
-        const rawApiValue =
-          tx.valueWei ||
-          tx.transactionValue ||
-          (tx.value && tx.value !== '0x0' ? tx.value : undefined) ||
-          quote.transactionValue ||
-          (quote.kyberRouteSummary as { amountIn?: string })?.amountIn;
-
-        if (rawApiValue !== undefined && rawApiValue !== null && rawApiValue !== '') {
-          txValue = BigInt(rawApiValue);
-        } else {
-          txValue = BigInt(tx.value || '0');
-        }
-      }
-
-      // 2. Pre-flight simulation and dynamic gas estimation with safety buffer
-      let finalGasLimit = BigInt(tx.gasLimit || '350000');
-      try {
-        const estimatedGas = await polygonPublicClient.estimateGas({
-          account: address,
+        // Prompt user to sign and send directly inside connected wallet
+        const hash = await sendTransactionAsync({
           to: tx.to,
           data: tx.data,
           value: txValue,
+          gas: finalGasLimit,
+          chainId: fromChainId,
         });
-        if (estimatedGas > 0n) {
-          // Provide 30% safety buffer for Polygon state changes
-          finalGasLimit = (estimatedGas * 130n) / 100n;
-        }
-      } catch (estErr) {
-        console.warn('Pre-flight gas estimation fallback to preset:', estErr);
-      }
 
-      // 3. Prompt user to sign and send on Polygon directly inside their connected wallet
-      const hash = await sendTransactionAsync({
-        to: tx.to,
-        data: tx.data,
-        value: txValue,
-        gas: finalGasLimit,
-        chainId: POLYGON_CHAIN_ID,
-      });
+        setTxHash(hash);
+        setStatus('CONFIRMING');
 
-      setTxHash(hash);
-      setStatus('CONFIRMING');
+        // Wait for block confirmation on the chain
+        const receipt = await waitForTransactionReceipt(wagmiConfig, {
+          hash,
+          chainId: fromChainId,
+        });
 
-      // 3. Wait for Polygon block confirmation
-      const receipt = await waitForTransactionReceipt(wagmiConfig, {
-        hash,
-        chainId: POLYGON_CHAIN_ID,
-      });
+        if (receipt.status === 'success') {
+          setStatus('COMPLETED');
+          fetchBalances();
 
-      if (receipt.status === 'success') {
-        setStatus('COMPLETED');
-        fetchBalances();
-
-        // 4. Save to local storage for immediate offline & client history
-        try {
-          saveLocalSwapRecord({
-            id: `swap_${Date.now()}_${hash.slice(2, 10)}`,
-            walletAddress: address.toLowerCase(),
-            chainId: POLYGON_CHAIN_ID,
-            inputToken: quote.inputToken.symbol,
-            outputToken: quote.outputToken.symbol,
-            inputAmount: quote.inputAmount,
-            expectedOutputAmount: quote.expectedOutput,
-            actualOutputAmount: quote.expectedOutput,
-            minimumReceived: quote.minimumReceived,
-            exchangeRate: quote.exchangeRate,
-            priceImpact: quote.priceImpact,
-            slippage: quote.slippage,
-            providerFee: quote.providerFeeAmount,
-            networkFee: quote.estimatedGasFeePol,
-            routerAddress: quote.route.routerAddress,
-            routerName: quote.route.protocol,
-            txHash: hash,
-            status: 'COMPLETED',
-            createdAt: Date.now(),
-            confirmedAt: Date.now(),
-          });
-        } catch {
-          // Ignore local storage error
-        }
-
-        // 5. Optional background verification log
-        try {
-          fetch('/api/swap/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+          // Save to local storage for multi-chain history
+          try {
+            saveLocalSwapRecord({
+              id: `swap_${Date.now()}_${hash.slice(2, 10)}`,
+              walletAddress: address.toLowerCase(),
+              chainId: fromChainId,
+              network: quote.fromNetwork,
+              fromNetwork: quote.fromNetwork,
+              toNetwork: quote.toNetwork,
+              inputToken: quote.inputToken.symbol,
+              outputToken: quote.outputToken.symbol,
+              inputAmount: quote.inputAmount,
+              expectedOutputAmount: quote.expectedOutput,
+              actualOutputAmount: quote.expectedOutput,
+              minimumReceived: quote.minimumReceived,
+              exchangeRate: quote.exchangeRate,
+              priceImpact: quote.priceImpact,
+              slippage: quote.slippage,
+              providerFee: quote.providerFeeAmount,
+              networkFee: quote.estimatedGasFeePol || '0',
+              routerAddress: quote.route.routerAddress || tx.to,
+              routerName: quote.route.protocol,
               txHash: hash,
-              walletAddress: address,
-              quoteId: quote.quoteId,
-            }),
-          }).catch(() => {});
-        } catch {
-          // Fire and forget
+              explorerUrl: getExplorerTxUrl(hash, quote.fromNetwork),
+              status: 'COMPLETED',
+              createdAt: Date.now(),
+              confirmedAt: Date.now(),
+            });
+          } catch {
+            // Ignore local storage error
+          }
+        } else {
+          setStatus('TRANSACTION_REVERTED');
+          setExecutionError(`Swap transaction reverted on ${quote.fromNetwork}.`);
         }
-      } else {
-        setStatus('TRANSACTION_REVERTED');
-        setExecutionError('Swap transaction reverted on Polygon.');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Swap execution failed';
+        if (msg.includes('rejected') || msg.includes('denied') || msg.includes('User rejected')) {
+          setStatus('REJECTED');
+          setExecutionError('Transaction was rejected in your wallet.');
+        } else {
+          setStatus('TRANSACTION_FAILED');
+          setExecutionError(msg);
+        }
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Swap execution failed';
-      if (msg.includes('rejected') || msg.includes('denied') || msg.includes('User rejected')) {
-        setStatus('REJECTED');
-        setExecutionError('Transaction was rejected in your wallet.');
-      } else {
-        setStatus('TRANSACTION_FAILED');
-        setExecutionError(msg);
-      }
+    } else {
+      // Non-EVM / Cross-Chain (Bitcoin, Solana via SideShift)
+      setIsStatusModalOpen(true);
+      setStatus('COMPLETED');
     }
   };
 
@@ -689,17 +841,28 @@ export function useSwapEngine() {
   };
 
   return {
-    // Account & Network
+    // Account & Networks
     address,
     isConnected,
     chainId,
+    selectedNetwork,
+    setSelectedNetwork: handleSelectNetwork,
+    outputNetwork,
+    setOutputNetwork,
+    supportedNetworks: SUPPORTED_NETWORKS,
     isPolygon,
+    isEthereum,
+    isBsc,
+    handleSwitchToChain,
     handleSwitchToPolygon,
 
     // Balances & Prices
     balances,
     polBalance,
+    ethBalance,
+    bnbBalance,
     ethereumBalances,
+    getTokenBalance,
     isBalanceLoading,
     fetchBalances,
     tokenPrices,

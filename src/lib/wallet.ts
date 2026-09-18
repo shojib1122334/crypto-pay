@@ -1,6 +1,6 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { http, fallback } from 'wagmi';
-import { polygon, mainnet } from 'wagmi/chains';
+import { polygon, mainnet, bsc } from 'wagmi/chains';
 
 const projectId =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_WALLETCONNECT_PROJECT_ID) ||
@@ -49,12 +49,12 @@ if (typeof window !== 'undefined' && window.localStorage) {
 export const config = getDefaultConfig({
   appName: 'CryptoPay',
   projectId,
-  chains: [polygon, mainnet],
+  chains: [polygon, mainnet, bsc],
   ssr: false,
   walletConnectParameters: {
     metadata: {
       name: 'CryptoPay',
-      description: 'Institutional non-custodial crypto payments accepting USDT and USDC on Polygon',
+      description: 'Institutional non-custodial crypto payments and multi-chain swap',
       url: originUrl,
       icons: [`${originUrl}/brand/app-logo.png`],
     },
@@ -73,8 +73,14 @@ export const config = getDefaultConfig({
       http('https://eth.drpc.org', { retryCount: 3, timeout: 8000 }),
       http('https://eth.llamarpc.com', { retryCount: 3, timeout: 8000 }),
     ]),
+    [bsc.id]: fallback([
+      http('https://bsc-dataseed.binance.org', { retryCount: 3, timeout: 8000 }),
+      http('https://binance.llamarpc.com', { retryCount: 3, timeout: 8000 }),
+      http('https://bsc-rpc.publicnode.com', { retryCount: 3, timeout: 8000 }),
+      http('https://1rpc.io/bnb', { retryCount: 3, timeout: 8000 }),
+    ]),
   },
 });
 
-export { polygon, mainnet };
+export { polygon, mainnet, bsc };
 

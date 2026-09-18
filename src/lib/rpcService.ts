@@ -1,5 +1,5 @@
 import { createPublicClient, http, fallback, formatUnits, parseUnits, isAddress, type Address } from 'viem';
-import { polygon, mainnet } from 'viem/chains';
+import { polygon, mainnet, bsc } from 'viem/chains';
 import { ERC20_ABI, POLYGON_CHAIN_ID, ETHEREUM_CHAIN_ID } from './tokens';
 
 // Dedicated resilient public clients with multiple verified fallback RPC providers
@@ -21,6 +21,16 @@ export const ethereumPublicClient = createPublicClient({
     http('https://1rpc.io/eth', { retryCount: 3, timeout: 8000 }),
     http('https://eth.drpc.org', { retryCount: 3, timeout: 8000 }),
     http('https://eth.llamarpc.com', { retryCount: 3, timeout: 8000 }),
+  ]),
+});
+
+export const bscPublicClient = createPublicClient({
+  chain: bsc,
+  transport: fallback([
+    http('https://bsc-dataseed.binance.org', { retryCount: 3, timeout: 8000 }),
+    http('https://binance.llamarpc.com', { retryCount: 3, timeout: 8000 }),
+    http('https://bsc-rpc.publicnode.com', { retryCount: 3, timeout: 8000 }),
+    http('https://1rpc.io/bnb', { retryCount: 3, timeout: 8000 }),
   ]),
 });
 
@@ -53,6 +63,9 @@ export async function fetchCryptoPrices(): Promise<Record<string, number>> {
   let versePrice = 0.0000212;
   let polPrice = 0.095;
   let ethPrice = 2450;
+  let btcPrice = 64000;
+  let bnbPrice = 580;
+  let solPrice = 145;
   const usdtPrice = 1.0;
   const usdcPrice = 1.0;
 
@@ -96,21 +109,39 @@ export async function fetchCryptoPrices(): Promise<Record<string, number>> {
     // Keep existing
   }
 
-  // 3. Try Binance for POL and ETH live rates
+  // 3. Try Binance for BTC, ETH, BNB, SOL, POL live rates
   try {
-    const [polRes, ethRes] = await Promise.allSettled([
-      fetch('https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT', { signal: AbortSignal.timeout(3000) }),
+    const [btcRes, ethRes, bnbRes, solRes, polRes] = await Promise.allSettled([
+      fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT', { signal: AbortSignal.timeout(3000) }),
       fetch('https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT', { signal: AbortSignal.timeout(3000) }),
+      fetch('https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT', { signal: AbortSignal.timeout(3000) }),
+      fetch('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT', { signal: AbortSignal.timeout(3000) }),
+      fetch('https://api.binance.com/api/v3/ticker/price?symbol=POLUSDT', { signal: AbortSignal.timeout(3000) }),
     ]);
-    if (polRes.status === 'fulfilled' && polRes.value.ok) {
-      const d = await polRes.value.json();
+    if (btcRes.status === 'fulfilled' && btcRes.value.ok) {
+      const d = await btcRes.value.json();
       const p = parseFloat(d?.price);
-      if (!isNaN(p) && p > 0) polPrice = p;
+      if (!isNaN(p) && p > 0) btcPrice = p;
     }
     if (ethRes.status === 'fulfilled' && ethRes.value.ok) {
       const d = await ethRes.value.json();
       const p = parseFloat(d?.price);
       if (!isNaN(p) && p > 0) ethPrice = p;
+    }
+    if (bnbRes.status === 'fulfilled' && bnbRes.value.ok) {
+      const d = await bnbRes.value.json();
+      const p = parseFloat(d?.price);
+      if (!isNaN(p) && p > 0) bnbPrice = p;
+    }
+    if (solRes.status === 'fulfilled' && solRes.value.ok) {
+      const d = await solRes.value.json();
+      const p = parseFloat(d?.price);
+      if (!isNaN(p) && p > 0) solPrice = p;
+    }
+    if (polRes.status === 'fulfilled' && polRes.value.ok) {
+      const d = await polRes.value.json();
+      const p = parseFloat(d?.price);
+      if (!isNaN(p) && p > 0) polPrice = p;
     }
   } catch {
     // Keep existing
@@ -137,9 +168,12 @@ export async function fetchCryptoPrices(): Promise<Record<string, number>> {
   }
 
   return {
+    BTC: btcPrice,
+    ETH: ethPrice,
+    BNB: bnbPrice,
+    SOL: solPrice,
     POL: polPrice,
     MATIC: polPrice,
-    ETH: ethPrice,
     USDT: usdtPrice,
     USDC: usdcPrice,
     VERSE: versePrice,

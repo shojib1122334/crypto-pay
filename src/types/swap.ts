@@ -1,42 +1,41 @@
 export interface WhitelistedToken {
-  symbol: 'USDT' | 'USDC' | 'VERSE' | 'MATIC' | 'POL' | string;
+  symbol: string;
   name: string;
-  address: `0x${string}`;
+  address: string;
   decimals: number;
   logo: string;
   color: string;
+  networkId?: string;
+  networkName?: string;
+  chainId?: number;
   enabled: boolean;
-  minInputAmount?: number; // E.g. 10000 for VERSE, 3 for MATIC
-  minUsdValue?: number;    // E.g. 1.0 for USDT & USDC
+  minInputAmount?: number;
+  minUsdValue?: number;
 }
 
-export type SwapPairKey =
-  | 'USDT-USDC'
-  | 'USDC-USDT'
-  | 'USDT-VERSE'
-  | 'VERSE-USDT'
-  | 'USDC-VERSE'
-  | 'VERSE-USDC'
-  | 'MATIC-USDT'
-  | 'USDT-MATIC'
-  | 'MATIC-USDC'
-  | 'USDC-MATIC'
-  | 'MATIC-VERSE'
-  | 'VERSE-MATIC';
-
-export type SwapRouteType = 'KYBERSWAP_AGGREGATOR' | 'UNISWAP_V3' | 'QUICKSWAP_V2';
+export type SwapRouteType =
+  | 'KYBERSWAP_AGGREGATOR'
+  | 'UNISWAP_V3'
+  | 'QUICKSWAP_V2'
+  | 'PANCAKESWAP'
+  | 'LIFI_AGGREGATOR'
+  | 'SIDESHIFT_CROSSCHAIN'
+  | 'JUPITER_SOLANA';
 
 export interface SwapRouteHop {
   fromToken: string;
   toToken: string;
-  pool: string;
+  pool?: string;
   fee?: number;
   protocol: string;
 }
 
 export interface SwapQuote {
   quoteId: string;
-  chainId: 137;
+  chainId?: number | string;
+  fromNetwork: string;
+  toNetwork: string;
+  isCrossChain?: boolean;
   walletAddress: string;
   inputToken: WhitelistedToken;
   outputToken: WhitelistedToken;
@@ -46,37 +45,48 @@ export interface SwapQuote {
   expectedOutputRaw: string;    // Raw units
   minimumReceived: string;      // After slippage
   minimumReceivedRaw: string;
-  exchangeRate: string;         // E.g. "1 USDT = 39410.5 VERSE"
-  inverseExchangeRate: string;  // E.g. "1 VERSE = 0.00002537 USDT"
+  exchangeRate: string;         // E.g. "1 ETH = 2450 USDC"
+  inverseExchangeRate: string;  // E.g. "1 USDC = 0.000408 ETH"
   priceImpact: number;          // In percentage, e.g. 0.04 (%)
   priceImpactSeverity: 'low' | 'medium' | 'high' | 'blocked';
   liquidityFeePercent: number;  // In percentage, e.g. 0.01 or 0.30
   providerFeeAmount: string;    // Token amount fee
   estimatedGas: string;         // Gas units, e.g. "180000"
-  estimatedGasFeePol: string;   // Fee in POL/MATIC
+  estimatedGasFeePol?: string;  // Fee in Native token (POL, ETH, BNB, SOL, BTC)
   estimatedGasFeeUsd: string;   // Fee in USD
   slippage: number;             // E.g. 0.5 (%)
+  providerType?: 'LIFI' | 'KYBERSWAP' | 'SIDESHIFT' | 'JUPITER' | 'ONCHAIN';
+  spenderAddress?: string;      // Contract that needs token allowance approval
+  depositAddress?: string;      // For cross-chain deposit shifts (e.g. Bitcoin / non-EVM)
+  shiftId?: string;             // SideShift/cross-chain tracking id
   route: {
     protocol: string;
     description: string;
     hops: SwapRouteHop[];
-    routerAddress: `0x${string}`;
-    path?: `0x${string}`[];
+    routerAddress?: string;
+    path?: string[];
   };
   kyberRouteSummary?: unknown;
-  transactionValue?: string;    // Raw wei transaction value provided by Aggregator API
+  lifiTransactionRequest?: {
+    to: string;
+    data: string;
+    value: string;
+    gasLimit?: string;
+    gasPrice?: string;
+  };
+  transactionValue?: string;    // Raw wei transaction value
   expiresAt: number;            // Timestamp in ms
   createdAt: number;            // Timestamp in ms
 }
 
 export interface SwapPrepareResponse {
   quoteId: string;
-  chainId: 137;
+  chainId?: number | string;
   to: `0x${string}`;
   data: `0x${string}`;
   value: `0x${string}`;
-  transactionValue?: string;    // API-provided value in wei
-  valueWei?: string;            // Exact wei amount for native token
+  transactionValue?: string;
+  valueWei?: string;
   gasLimit: string;
   deadline: number;
   minimumOutputAmountRaw: string;
@@ -101,7 +111,10 @@ export type SwapStatus =
 export interface SwapHistoryRecord {
   id: string;
   walletAddress: string;
-  chainId: 137;
+  chainId?: number | string;
+  network?: string;
+  fromNetwork?: string;
+  toNetwork?: string;
   inputToken: string;
   outputToken: string;
   inputAmount: string;
@@ -117,6 +130,7 @@ export interface SwapHistoryRecord {
   routerAddress: string;
   routerName: string;
   txHash: string;
+  explorerUrl?: string;
   status: 'COMPLETED' | 'PENDING' | 'FAILED';
   errorMessage?: string;
   createdAt: number;
@@ -125,17 +139,9 @@ export interface SwapHistoryRecord {
 
 export interface SwapConfig {
   enabled: boolean;
-  chainId: 137;
-  networkName: string;
-  supportedTokens: WhitelistedToken[];
-  minUsdValue: number;
-  minVerseInput: number;
+  supportedNetworks: string[];
   defaultSlippage: number;
   maxSlippage: number;
   maxPriceImpact: number;
   quoteExpirationSeconds: number;
-  routers: {
-    uniswapV3: `0x${string}`;
-    quickswapV2: `0x${string}`;
-  };
 }

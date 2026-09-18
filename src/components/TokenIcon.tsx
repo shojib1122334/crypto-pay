@@ -193,6 +193,103 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
     );
   }
 
+  // 6. Official Bitcoin (BTC) Logo
+  if (norm === 'BTC' || norm === 'BITCOIN') {
+    return (
+      <div
+        style={{ width: dimension, height: dimension }}
+        className={`inline-flex items-center justify-center flex-shrink-0 select-none ${className}`}
+        title="Bitcoin (BTC)"
+      >
+        <svg
+          viewBox="0 0 32 32"
+          width="100%"
+          height="100%"
+          className="w-full h-full block"
+          aria-label="Official Bitcoin BTC logo"
+        >
+          <circle cx="16" cy="16" r="16" fill="#F7931A" />
+          <path
+            fill="#FFFFFF"
+            d="M23.189 14.02c.314-2.096-1.283-3.223-3.465-3.975l.708-2.84-1.728-.43-.69 2.765c-.454-.114-.921-.22-1.385-.326l.695-2.783L15.596 6l-.708 2.839c-.376-.086-.746-.17-1.104-.26l.002-.009-2.384-.595-.46 1.846s1.283.294 1.256.312c.7.175.826.638.805 1.006l-.806 3.235c.048.012.11.03.18.057l-.183-.045-1.13 4.532c-.086.212-.303.531-.793.41.018.025-1.256-.314-1.256-.314l-.858 1.978 2.25.561c.418.105.828.214 1.231.319l-.715 2.872 1.727.43.708-2.84c.472.127.93.245 1.378.357l-.706 2.828 1.728.43.715-2.866c2.948.558 5.164.333 6.097-2.333.752-2.146-.037-3.385-1.588-4.192 1.13-.26 1.98-1.003 2.207-2.538zm-3.95 5.538c-.535 2.146-4.152.986-5.325.694l.95-3.81c1.173.293 4.929.872 4.375 3.116zm.535-5.569c-.488 1.954-3.504.961-4.48.718l.861-3.454c.977.244 4.125.7 3.619 2.736z"
+          />
+        </svg>
+      </div>
+    );
+  }
+
+  // 7. Official BNB (BNB Smart Chain) Logo
+  if (norm === 'BNB' || norm === 'BINANCE' || norm === 'BSC') {
+    return (
+      <div
+        style={{ width: dimension, height: dimension }}
+        className={`inline-flex items-center justify-center flex-shrink-0 select-none ${className}`}
+        title="BNB (BNB Smart Chain)"
+      >
+        <svg
+          viewBox="0 0 32 32"
+          width="100%"
+          height="100%"
+          className="w-full h-full block"
+          aria-label="Official BNB logo"
+        >
+          <circle cx="16" cy="16" r="16" fill="#F3BA2F" />
+          <path
+            fill="#FFFFFF"
+            d="M12.116 14.404L16 10.52l3.886 3.886 2.26-2.26L16 6 9.856 12.144l2.26 2.26zm-6.116 1.596l2.26-2.26L10.52 16l-2.26 2.26L6 16zm6.116 1.596L16 21.48l3.886-3.884 2.26 2.26L16 26l-6.144-6.144 2.26-2.26zm9.768-1.596l2.26-2.26L26 16l-2.26 2.26-2.26-2.26zm-3.62 0L16 13.74l-2.26 2.26L16 18.26l2.26-2.26z"
+          />
+        </svg>
+      </div>
+    );
+  }
+
+  // 8. Official Solana (SOL) Logo
+  if (norm === 'SOL' || norm === 'SOLANA') {
+    return (
+      <div
+        style={{ width: dimension, height: dimension }}
+        className={`inline-flex items-center justify-center flex-shrink-0 select-none ${className}`}
+        title="Solana (SOL)"
+      >
+        <svg
+          viewBox="0 0 32 32"
+          width="100%"
+          height="100%"
+          className="w-full h-full block"
+          aria-label="Official Solana SOL logo"
+        >
+          <circle cx="16" cy="16" r="16" fill="#000000" />
+          <path
+            fill="url(#sol-grad-1)"
+            d="M8.5 21.8c.2-.2.5-.3.8-.3h14.2c.5 0 .8.6.5.9l-2.5 2.5c-.2.2-.5.3-.8.3H6.5c-.5 0-.8-.6-.5-.9l2.5-2.5z"
+          />
+          <path
+            fill="url(#sol-grad-2)"
+            d="M8.5 6.8c.2-.2.5-.3.8-.3h14.2c.5 0 .8.6.5.9l-2.5 2.5c-.2.2-.5.3-.8.3H6.5c-.5 0-.8-.6-.5-.9l2.5-2.5z"
+          />
+          <path
+            fill="url(#sol-grad-3)"
+            d="M23.5 14.3c-.2-.2-.5-.3-.8-.3H8.5c-.5 0-.8.6-.5.9l2.5 2.5c.2.2.5.3.8.3h14.2c.5 0 .8-.6.5-.9l-2.5-2.5z"
+          />
+          <defs>
+            <linearGradient id="sol-grad-1" x1="6.5" y1="23.3" x2="23.5" y2="23.3" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#00FFA3" />
+              <stop offset="1" stopColor="#DC1FFF" />
+            </linearGradient>
+            <linearGradient id="sol-grad-2" x1="6.5" y1="8.3" x2="23.5" y2="8.3" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#00FFA3" />
+              <stop offset="1" stopColor="#DC1FFF" />
+            </linearGradient>
+            <linearGradient id="sol-grad-3" x1="8.5" y1="15.8" x2="25.5" y2="15.8" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#DC1FFF" />
+              <stop offset="1" stopColor="#00FFA3" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    );
+  }
+
   // Generic fallback
   return (
     <div

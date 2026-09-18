@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, ExternalLink, Zap, Info } from 'lucide-react';
+import { ChevronDown, ChevronUp, ExternalLink, Zap, Info, ArrowRight } from 'lucide-react';
 import { SwapQuote } from '../../types/swap';
-import { getPolygonscanAddressUrl, formatTokenAmount, formatRealQuotedAmount } from './tokenData';
+import {
+  getExplorerAddressUrl,
+  formatTokenAmount,
+  formatRealQuotedAmount,
+  SUPPORTED_NETWORKS,
+} from './tokenData';
 
 interface SwapDetailsProps {
   quote: SwapQuote;
@@ -19,6 +24,14 @@ export const SwapDetails: React.FC<SwapDetailsProps> = ({ quote }) => {
       : quote.priceImpactSeverity === 'medium'
       ? 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-950/50 border-yellow-200 dark:border-yellow-800'
       : 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800';
+
+  const fromMeta =
+    SUPPORTED_NETWORKS.find((n) => n.id === quote.fromNetwork) || SUPPORTED_NETWORKS[0];
+  const toMeta =
+    SUPPORTED_NETWORKS.find((n) => n.id === quote.toNetwork) || SUPPORTED_NETWORKS[0];
+
+  const nativeFeeSymbol = fromMeta.nativeSymbol;
+  const isCrossChain = quote.fromNetwork !== quote.toNetwork;
 
   return (
     <div className="mt-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 overflow-hidden transition-all">
@@ -41,12 +54,17 @@ export const SwapDetails: React.FC<SwapDetailsProps> = ({ quote }) => {
           </span>
           <span className="text-slate-400">•</span>
           <span className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
-            <Zap className="w-3 h-3 text-indigo-500" />
+            <Zap className="w-3 h-3 text-purple-600 dark:text-purple-400" />
             {quote.route.protocol}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
+          {isCrossChain && (
+            <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+              Cross-Chain
+            </span>
+          )}
           <span className={`px-2 py-0.5 text-[11px] font-medium rounded-full border ${priceImpactColor}`}>
             Impact {quote.priceImpact}%
           </span>
@@ -61,23 +79,37 @@ export const SwapDetails: React.FC<SwapDetailsProps> = ({ quote }) => {
       {/* Expanded breakdown */}
       {isOpen && (
         <div className="px-4 pb-3 pt-1 border-t border-slate-200/60 dark:border-slate-800/80 space-y-2.5 text-xs animate-in fade-in duration-150">
-          {/* Smart Route */}
+          {/* Smart Route Header */}
           <div className="pt-2">
             <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[11px] mb-1.5">
-              <span className="flex items-center gap-1">
-                <Zap className="w-3 h-3 text-indigo-500" /> Smart Route on Polygon
+              <span className="flex items-center gap-1 font-medium">
+                <Zap className="w-3 h-3 text-purple-600 dark:text-purple-400" /> Multi-Chain Route
               </span>
-              <a
-                href={getPolygonscanAddressUrl(quote.route.routerAddress)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 text-[10px]"
-              >
-                Router Contract <ExternalLink className="w-2.5 h-2.5" />
-              </a>
+              {quote.route.routerAddress && quote.route.routerAddress.startsWith('0x') && (
+                <a
+                  href={getExplorerAddressUrl(quote.route.routerAddress, quote.fromNetwork)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1 text-[10px]"
+                >
+                  Router Contract <ExternalLink className="w-2.5 h-2.5" />
+                </a>
+              )}
             </div>
-            <div className="p-2.5 bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-200 font-medium text-xs flex items-center gap-2">
-              <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{quote.route.description}</span>
+
+            <div className="p-2.5 bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-200 font-medium text-xs flex items-center justify-between gap-2">
+              <span className="text-purple-600 dark:text-purple-400 font-semibold truncate">
+                {quote.route.description}
+              </span>
+              <div className="flex items-center gap-1 shrink-0 text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/80 px-2 py-0.5 rounded-md">
+                <span>{fromMeta.shortName}</span>
+                {isCrossChain && (
+                  <>
+                    <ArrowRight className="w-3 h-3 text-slate-400" />
+                    <span>{toMeta.shortName}</span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
@@ -103,16 +135,22 @@ export const SwapDetails: React.FC<SwapDetailsProps> = ({ quote }) => {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-slate-500 dark:text-slate-400">Liquidity Provider Fee ({quote.liquidityFeePercent}%)</span>
+              <span className="text-slate-500 dark:text-slate-400">
+                Liquidity Provider Fee ({quote.liquidityFeePercent}%)
+              </span>
               <span className="font-medium text-slate-900 dark:text-white">
                 {formatRealQuotedAmount(quote.providerFeeAmount.split(' ')[0])} {quote.inputToken.symbol}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-slate-500 dark:text-slate-400">Estimated Network Fee (POL)</span>
+              <span className="text-slate-500 dark:text-slate-400">
+                Estimated Network Fee ({nativeFeeSymbol})
+              </span>
               <span className="font-medium text-slate-900 dark:text-white flex items-center gap-1">
-                <span>{formatTokenAmount(quote.estimatedGasFeePol)} POL</span>
+                <span>
+                  {formatTokenAmount(quote.estimatedGasFeePol)} {nativeFeeSymbol}
+                </span>
                 <span className="text-[11px] text-slate-400">({quote.estimatedGasFeeUsd})</span>
               </span>
             </div>

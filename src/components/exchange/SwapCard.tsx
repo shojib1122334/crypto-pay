@@ -6,9 +6,9 @@ import {
   AlertTriangle,
   ChevronDown,
   ShieldCheck,
-  Fuel,
   Wallet,
   Check,
+  History,
 } from 'lucide-react';
 import { useConnectWallet } from '../../hooks/useConnectWallet';
 import { useSwapEngine } from '../../hooks/useSwapEngine';
@@ -16,7 +16,12 @@ import { TokenSelectModal } from './TokenSelectModal';
 import { SlippageModal } from './SlippageModal';
 import { SwapDetails } from './SwapDetails';
 import { SwapStatusModal } from './SwapStatusModal';
-import { formatTokenAmount, formatRealQuotedAmount } from './tokenData';
+import {
+  formatTokenAmount,
+  formatRealQuotedAmount,
+  NETWORK_SYMBOL_MAP,
+  getChainIdFromNetwork,
+} from './tokenData';
 import { TokenIcon } from '../TokenIcon';
 
 interface SwapCardProps {
@@ -27,11 +32,16 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
   const { openWalletConnect } = useConnectWallet();
   const {
     isConnected,
-    isPolygon,
-    handleSwitchToPolygon,
+    chainId,
+    selectedNetwork,
+    setSelectedNetwork,
+    outputNetwork,
+    setOutputNetwork,
+    supportedNetworks,
+    handleSwitchToChain,
     balances,
     polBalance,
-    ethereumBalances,
+    getTokenBalance,
     isBalanceLoading,
     fetchBalances,
     tokenPrices,
@@ -67,17 +77,38 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
   const [isInputTokenModalOpen, setIsInputTokenModalOpen] = useState(false);
   const [isOutputTokenModalOpen, setIsOutputTokenModalOpen] = useState(false);
   const [isSlippageModalOpen, setIsSlippageModalOpen] = useState(false);
+  const [isNetworkDropdownOpen, setIsNetworkDropdownOpen] = useState(false);
 
-  const rawInputBalance = balances[inputToken.symbol] || '0';
-  const inputBalance = parseFloat(rawInputBalance);
+  // Active network meta
+  const currentNetworkMeta =
+    supportedNetworks.find((n) => n.id === selectedNetwork) || supportedNetworks[0];
+
+  // Raw and numeric balance for currently selected input token
+  const rawInputBalance = getTokenBalance(inputToken);
+  const inputBalance = parseFloat(rawInputBalance || '0');
   const enteredAmount = parseFloat(inputAmount || '0');
   const isInsufficientBalance = isConnected && enteredAmount > inputBalance;
 
+  // Gas balance check for native Polygon/EVM transactions
   const userPol = parseFloat(polBalance || '0');
   const estGasPol = quote ? parseFloat(quote.estimatedGasFeePol || '0.01') : 0.01;
-  const isNativeIn = inputToken.symbol === 'MATIC' || inputToken.symbol === 'POL';
-  const requiredPol = isNativeIn ? (enteredAmount + estGasPol) : estGasPol;
-  const isInsufficientGas = isConnected && isPolygon && enteredAmount > 0 && !isInsufficientBalance && userPol < requiredPol;
+  const isNativeIn = inputToken.isNative;
+  const requiredPol = isNativeIn ? enteredAmount + estGasPol : estGasPol;
+  const isInsufficientGas =
+    isConnected &&
+    selectedNetwork === 'polygon' &&
+    enteredAmount > 0 &&
+    !isInsufficientBalance &&
+    userPol < requiredPol;
+
+  // EVM network mismatch check
+  const isChainMismatch = useMemo(() => {
+    if (!isConnected) return false;
+    if (selectedNetwork === 'polygon' && chainId !== 137) return true;
+    if (selectedNetwork === 'ethereum' && chainId !== 1) return true;
+    if (selectedNetwork === 'bsc' && chainId !== 56) return true;
+    return false;
+  }, [isConnected, selectedNetwork, chainId]);
 
   // Real live USD value calculation for the currently selected input token
   const inputUsdValue = useMemo(() => {
@@ -85,52 +116,46 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
       return '$0.00';
     }
 
-    // 1. Stablecoins pegged 1:1 with USD
+    // Stablecoins pegged 1:1 with USD
     if (inputToken.symbol === 'USDT' || inputToken.symbol === 'USDC') {
       return `~$${enteredAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
-    // 2. If an active quote directly swapping into USDT or USDC is available for this exact input amount,
-    // use the exact executable quoted output amount
+    // If an active quote directly swapping into USDT or USDC is available
     if (
       quote &&
       quote.inputToken.symbol === inputToken.symbol &&
       (quote.outputToken.symbol === 'USDT' || quote.outputToken.symbol === 'USDC') &&
       parseFloat(quote.expectedOutput) > 0
     ) {
-      const quotedUsd = parseFloat(quote.expectedOutput);
-      if (quotedUsd >= 100) {
-        return `~$${quotedUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      }
-      if (quotedUsd >= 0.01) {
-        return `~$${quotedUsd.toFixed(2)}`;
-      }
-      return `~$${quotedUsd.toFixed(4)}`;
+      const outNum = parseFloat(quote.expectedOutput);
+      return `~$${outNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
-    // 3. Use real-time live market price from tokenPrices
-    const livePrice = tokenPrices[inputToken.symbol] ?? (inputToken.symbol === 'VERSE' ? 0.0000212 : 0.095);
-    const calculatedUsd = enteredAmount * livePrice;
+    // Market price lookup
+    const unitPrice = tokenPrices[inputToken.symbol];
+    if (unitPrice && unitPrice > 0) {
+      const usdTotal = enteredAmount * unitPrice;
+      if (usdTotal < 0.01 && usdTotal > 0) {
+        return `~$${usdTotal.toFixed(6)}`;
+      }
+      return `~$${usdTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
 
-    if (calculatedUsd >= 100) {
-      return `~$${calculatedUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }
-    if (calculatedUsd >= 0.01) {
-      return `~$${calculatedUsd.toFixed(2)}`;
-    }
-    if (calculatedUsd >= 0.0001) {
-      return `~$${calculatedUsd.toFixed(4)}`;
-    }
-    return '<$0.0001';
+    return '$0.00';
   }, [enteredAmount, inputToken.symbol, quote, tokenPrices]);
 
-  // Handle Quick Percent (50%, MAX)
+  // Handle percentage buttons (50%, MAX)
   const handlePercent = (pct: number) => {
     if (inputBalance <= 0) return;
     if (pct === 1.0) {
-      if (inputToken.symbol === 'MATIC' || inputToken.symbol === 'POL') {
+      if (inputToken.isNative && selectedNetwork === 'polygon') {
         const afterGas = Math.max(0, inputBalance - 0.02);
         setInputAmount(afterGas > 0 ? (afterGas >= 100 ? afterGas.toFixed(2) : afterGas.toFixed(4)) : '0');
+      } else if (inputToken.isNative && (selectedNetwork === 'ethereum' || selectedNetwork === 'bsc')) {
+        const gasBuffer = selectedNetwork === 'ethereum' ? 0.005 : 0.002;
+        const afterGas = Math.max(0, inputBalance - gasBuffer);
+        setInputAmount(afterGas > 0 ? afterGas.toFixed(4) : '0');
       } else {
         const val = inputBalance >= 100 ? inputBalance.toFixed(2) : inputBalance.toFixed(6).replace(/\.?0+$/, '');
         setInputAmount(val);
@@ -148,15 +173,58 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
         {/* Top gradient highlight */}
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500" />
 
-        {/* Card Header */}
+        {/* Card Header with Network Selector */}
         <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-slate-100 dark:border-slate-800/80">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border border-purple-200/80 shadow-xs">
-              <ShieldCheck className="w-3.5 h-3.5 text-purple-600" /> Polygon Mainnet
-            </span>
-            <span className="text-[11px] text-slate-500 font-mono hidden sm:inline">
-              Chain ID: 137
-            </span>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsNetworkDropdownOpen(!isNetworkDropdownOpen)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-purple-50 to-pink-50 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/80 shadow-xs hover:border-purple-400 transition-all cursor-pointer"
+              title="Click to switch active blockchain network"
+            >
+              <TokenIcon token={currentNetworkMeta.nativeSymbol} size={16} className="rounded-full shrink-0" />
+              <span>{currentNetworkMeta.name}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            </button>
+
+            {/* Network Switcher Dropdown */}
+            {isNetworkDropdownOpen && (
+              <div
+                className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-30 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  Supported Networks
+                </div>
+                {supportedNetworks.map((net) => {
+                  const isSelected = selectedNetwork === net.id;
+                  return (
+                    <button
+                      key={net.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedNetwork(net.id);
+                        setIsNetworkDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                        isSelected
+                          ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold'
+                          : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <TokenIcon token={net.nativeSymbol} size={20} className="rounded-full" />
+                        <div className="text-left">
+                          <div className="text-xs font-bold leading-tight">{net.name}</div>
+                          <div className="text-[10px] text-slate-400">Native: {net.nativeSymbol}</div>
+                        </div>
+                      </div>
+                      {isSelected && <Check className="w-4 h-4 text-purple-600" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -179,36 +247,45 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               type="button"
               onClick={() => setIsSlippageModalOpen(true)}
               className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border border-slate-200/60 dark:border-slate-700/60"
+              title="Slippage settings"
             >
               <Settings className="w-3.5 h-3.5" />
               <span>{slippage}%</span>
             </button>
+
+            {/* History button */}
+            <button
+              type="button"
+              onClick={onViewHistory}
+              className="flex items-center gap-1 p-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border border-slate-200/60 dark:border-slate-700/60"
+              title="View swap history"
+              aria-label="View swap history"
+            >
+              <History className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 
-        {/* Network Warning banner if not on Polygon */}
-        {isConnected && !isPolygon && (
+        {/* Network Mismatch Warning Banner */}
+        {isChainMismatch && (
           <div className="mb-3.5 p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <div>
                 <span>
-                  Wallet is not on Polygon. CryptoPay Swap executes on Polygon Mainnet (137).
+                  Connected wallet is on Chain {chainId}. Please switch to {currentNetworkMeta.name}.
                 </span>
-                {parseFloat(ethereumBalances?.VERSE || '0') > 0 && (
-                  <div className="text-[11px] text-amber-700 dark:text-amber-300 font-medium mt-0.5">
-                    Detected on Ethereum: {formatTokenAmount(ethereumBalances.VERSE)} VERSE
-                  </div>
-                )}
               </div>
             </div>
-            <button
-              type="button"
-              onClick={handleSwitchToPolygon}
-              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl text-xs shadow-xs transition-colors shrink-0"
-            >
-              Switch to Polygon
-            </button>
+            {currentNetworkMeta.chainId && (
+              <button
+                type="button"
+                onClick={() => handleSwitchToChain(currentNetworkMeta.chainId!)}
+                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl text-xs shadow-xs transition-colors shrink-0"
+              >
+                Switch to {currentNetworkMeta.shortName}
+              </button>
+            )}
           </div>
         )}
 
@@ -220,7 +297,12 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
             <span>You Pay</span>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
-                <span>Balance: <strong className="text-slate-700 dark:text-slate-200 font-semibold">{formatTokenAmount(balances[inputToken.symbol])}</strong></span>
+                <span>
+                  Balance:{' '}
+                  <strong className="text-slate-700 dark:text-slate-200 font-semibold">
+                    {formatTokenAmount(rawInputBalance)}
+                  </strong>
+                </span>
                 {isConnected && (
                   <button
                     type="button"
@@ -269,13 +351,23 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
             <button
               type="button"
               onClick={() => setIsInputTokenModalOpen(true)}
-              className="flex items-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-500 rounded-xl shadow-xs hover:bg-purple-50/20 dark:hover:bg-slate-700/80 transition-all shrink-0 cursor-pointer"
+              className="flex items-center gap-2.5 px-3.5 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-orange-400 dark:hover:border-orange-500 rounded-xl shadow-xs hover:bg-orange-50/20 dark:hover:bg-slate-700/80 transition-all shrink-0 cursor-pointer"
             >
-              <TokenIcon token={inputToken.symbol} size={24} className="rounded-full shadow-xs" />
-              <span className="font-extrabold text-sm text-slate-950 dark:text-white">
-                {inputToken.symbol}
-              </span>
-              <ChevronDown className="w-4 h-4 text-purple-600 dark:text-purple-400 stroke-[2.5]" />
+              <div className="relative shrink-0">
+                <TokenIcon token={inputToken.symbol} size={26} className="rounded-full shadow-xs" />
+                <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-white dark:bg-slate-900 ring-1 ring-white dark:ring-slate-900 flex items-center justify-center overflow-hidden">
+                  <TokenIcon token={NETWORK_SYMBOL_MAP[inputToken.networkId] || inputToken.symbol} size={11} />
+                </div>
+              </div>
+              <div className="text-left">
+                <span className="font-extrabold text-sm text-slate-950 dark:text-white block leading-tight">
+                  {inputToken.symbol}
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-normal leading-none mt-0.5">
+                  {inputToken.networkName}
+                </span>
+              </div>
+              <ChevronDown className="w-4 h-4 text-orange-500 dark:text-orange-400 stroke-[2.5]" />
             </button>
           </div>
 
@@ -283,7 +375,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
             <span className="font-semibold">{inputUsdValue}</span>
             {isConnected && (
               <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                Available: {formatTokenAmount(balances[inputToken.symbol])} {inputToken.symbol}
+                Available: {formatTokenAmount(rawInputBalance)} {inputToken.symbol}
               </span>
             )}
           </div>
@@ -309,13 +401,18 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
         <div className="p-4 bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-2xl transition-all">
           <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
             <span>You Receive</span>
-            <span>Balance: <strong className="text-slate-950 dark:text-white font-extrabold">{formatTokenAmount(balances[outputToken.symbol])}</strong></span>
+            <span>
+              Balance:{' '}
+              <strong className="text-slate-950 dark:text-white font-extrabold">
+                {formatTokenAmount(getTokenBalance(outputToken))}
+              </strong>
+            </span>
           </div>
 
           <div className="flex items-center justify-between gap-3">
             <div className="w-full text-2xl sm:text-3xl font-black text-slate-950 dark:text-white select-all">
               {isQuoteLoading ? (
-                <span className="text-slate-400 animate-pulse">Calculating...</span>
+                <span className="text-slate-400 animate-pulse text-xl">Calculating route...</span>
               ) : quote ? (
                 <span>{formatRealQuotedAmount(quote.expectedOutput)}</span>
               ) : (
@@ -323,27 +420,39 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               )}
             </div>
 
-            {/* Token Selector Button */}
+            {/* Output Token Selector Button */}
             <button
               type="button"
               onClick={() => setIsOutputTokenModalOpen(true)}
-              className="flex items-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-500 rounded-xl shadow-xs hover:bg-purple-50/20 dark:hover:bg-slate-700/80 transition-all shrink-0 cursor-pointer"
+              className="flex items-center gap-2.5 px-3.5 py-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-orange-400 dark:hover:border-orange-500 rounded-xl shadow-xs hover:bg-orange-50/20 dark:hover:bg-slate-700/80 transition-all shrink-0 cursor-pointer"
             >
-              <TokenIcon token={outputToken.symbol} size={24} className="rounded-full shadow-xs" />
-              <span className="font-extrabold text-sm text-slate-950 dark:text-white">
-                {outputToken.symbol}
-              </span>
-              <ChevronDown className="w-4 h-4 text-purple-600 dark:text-purple-400 stroke-[2.5]" />
+              <div className="relative shrink-0">
+                <TokenIcon token={outputToken.symbol} size={26} className="rounded-full shadow-xs" />
+                <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-white dark:bg-slate-900 ring-1 ring-white dark:ring-slate-900 flex items-center justify-center overflow-hidden">
+                  <TokenIcon token={NETWORK_SYMBOL_MAP[outputToken.networkId] || outputToken.symbol} size={11} />
+                </div>
+              </div>
+              <div className="text-left">
+                <span className="font-extrabold text-sm text-slate-950 dark:text-white block leading-tight">
+                  {outputToken.symbol}
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-normal leading-none mt-0.5">
+                  {outputToken.networkName}
+                </span>
+              </div>
+              <ChevronDown className="w-4 h-4 text-orange-500 dark:text-orange-400 stroke-[2.5]" />
             </button>
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2">
             <span>
-              {quote ? `Guaranteed min: ${formatRealQuotedAmount(quote.minimumReceived)} ${outputToken.symbol}` : 'Executable on-chain quote'}
+              {quote
+                ? `Guaranteed min: ${formatRealQuotedAmount(quote.minimumReceived)} ${outputToken.symbol}`
+                : 'Executable multi-chain quote'}
             </span>
             {quote && (
-              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                Live Liquidity
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3" /> Live Liquidity
               </span>
             )}
           </div>
@@ -387,15 +496,16 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               onClick={() => openWalletConnect()}
               className="w-full py-4 px-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white font-bold text-sm sm:text-base rounded-2xl transition-all shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 flex items-center justify-center gap-2 cursor-pointer border border-white/20 active:scale-[0.99]"
             >
-              <Wallet className="w-5 h-5 text-white stroke-[2.2]" /> <span className="text-white">Connect Wallet to Swap</span>
+              <Wallet className="w-5 h-5 text-white stroke-[2.2]" />
+              <span className="text-white">Connect Wallet to Swap</span>
             </button>
-          ) : !isPolygon ? (
+          ) : isChainMismatch && currentNetworkMeta.chainId ? (
             <button
               type="button"
-              onClick={handleSwitchToPolygon}
+              onClick={() => handleSwitchToChain(currentNetworkMeta.chainId!)}
               className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold text-sm rounded-2xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
-              <AlertTriangle className="w-4 h-4" /> Switch to Polygon Mainnet (137)
+              <AlertTriangle className="w-4 h-4" /> Switch to {currentNetworkMeta.name}
             </button>
           ) : !inputAmount || enteredAmount <= 0 ? (
             <button
@@ -411,7 +521,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               disabled
               className="w-full py-3.5 px-4 bg-rose-50 text-rose-600 font-semibold text-sm rounded-2xl border border-rose-200 cursor-not-allowed"
             >
-              Insufficient Balance
+              Insufficient {inputToken.symbol} Balance
             </button>
           ) : isInsufficientGas ? (
             <button
@@ -419,7 +529,7 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               disabled
               className="w-full py-3.5 px-4 bg-amber-50 text-amber-800 font-semibold text-sm rounded-2xl border border-amber-200 cursor-not-allowed"
             >
-              Insufficient Gas Balance
+              Insufficient Gas Balance (POL)
             </button>
           ) : quoteError ? (
             <button
@@ -436,7 +546,8 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               disabled={isCheckingAllowance}
               className="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm rounded-2xl transition-all shadow-md shadow-purple-500/20 flex items-center justify-center gap-2 cursor-pointer border border-white/20 active:scale-[0.99]"
             >
-              <Check className="w-4 h-4 text-white stroke-[2.5]" /> <span className="text-white">Approve {inputToken.symbol} on Polygon</span>
+              <Check className="w-4 h-4 text-white stroke-[2.5]" />
+              <span className="text-white">Approve {inputToken.symbol} on {inputToken.networkName}</span>
             </button>
           ) : (
             <button
@@ -445,58 +556,81 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
               disabled={isQuoteLoading || !quote}
               className="w-full py-4 px-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 hover:from-blue-500 hover:via-purple-500 hover:to-pink-400 text-white font-bold text-sm sm:text-base rounded-2xl transition-all shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/35 flex items-center justify-center gap-2 cursor-pointer border border-white/20 active:scale-[0.99]"
             >
-              <span className="text-white">Swap {inputToken.symbol} to {outputToken.symbol}</span>
+              <span className="text-white">
+                Swap {inputToken.symbol} to {outputToken.symbol}
+              </span>
             </button>
           )}
         </div>
-
-        {/* POL Gas notice */}
-        {isConnected && isPolygon && (
-          <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400 px-1">
-            <span className="flex items-center gap-1">
-              <Fuel className="w-3.5 h-3.5 text-slate-400" /> Gas: {formatTokenAmount(polBalance)} POL
-            </span>
-            <button
-              type="button"
-              onClick={onViewHistory}
-              className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
-            >
-              View Swap History
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* ======================================================== */}
-      {/* Modals */}
-      {/* ======================================================== */}
+      {/* Input Token Select Modal */}
       <TokenSelectModal
         isOpen={isInputTokenModalOpen}
         onClose={() => setIsInputTokenModalOpen(false)}
-        onSelect={(token) => setInputToken(token)}
+        selectedToken={inputToken}
         selectedSymbol={inputToken.symbol}
+        otherSelectedToken={outputToken}
         otherSelectedSymbol={outputToken.symbol}
+        onSelect={(token) => {
+          // If the selected input token matches the existing output token on the same network, swap positions
+          if (
+            token.symbol === outputToken.symbol &&
+            token.networkId === (outputToken.networkId || outputNetwork)
+          ) {
+            setOutputToken(inputToken);
+            setOutputNetwork(inputToken.networkId || selectedNetwork);
+          }
+          setInputToken(token);
+          if (token.networkId !== selectedNetwork) {
+            setSelectedNetwork(token.networkId);
+          }
+          const targetChainId = token.chainId || getChainIdFromNetwork(token.networkId);
+          if (targetChainId && isConnected && chainId !== targetChainId) {
+            handleSwitchToChain(targetChainId);
+          }
+        }}
         balances={balances}
+        activeNetwork={selectedNetwork}
       />
 
+      {/* Output Token Select Modal */}
       <TokenSelectModal
         isOpen={isOutputTokenModalOpen}
         onClose={() => setIsOutputTokenModalOpen(false)}
-        onSelect={(token) => setOutputToken(token)}
+        selectedToken={outputToken}
         selectedSymbol={outputToken.symbol}
+        otherSelectedToken={inputToken}
         otherSelectedSymbol={inputToken.symbol}
+        onSelect={(token) => {
+          // If the selected output token matches the existing input token on the same network, swap positions
+          if (
+            token.symbol === inputToken.symbol &&
+            token.networkId === (inputToken.networkId || selectedNetwork)
+          ) {
+            setInputToken(outputToken);
+            setSelectedNetwork(outputToken.networkId || selectedNetwork);
+          }
+          setOutputToken(token);
+          if (token.networkId !== outputNetwork) {
+            setOutputNetwork(token.networkId);
+          }
+        }}
         balances={balances}
+        activeNetwork={outputNetwork}
       />
 
+      {/* Slippage Settings Modal */}
       <SlippageModal
         isOpen={isSlippageModalOpen}
         onClose={() => setIsSlippageModalOpen(false)}
         slippage={slippage}
-        onSelectSlippage={(val) => setSlippage(val)}
+        onSaveSlippage={(val) => setSlippage(val)}
         deadlineMinutes={deadlineMinutes}
-        onSelectDeadline={(mins) => setDeadlineMinutes(mins)}
+        onSaveDeadline={(val) => setDeadlineMinutes(val)}
       />
 
+      {/* Swap Status & Execution Modal */}
       <SwapStatusModal
         isOpen={isStatusModalOpen}
         onClose={() => setIsStatusModalOpen(false)}
@@ -507,7 +641,10 @@ export const SwapCard: React.FC<SwapCardProps> = ({ onViewHistory }) => {
         inputTokenSymbol={inputToken.symbol}
         outputTokenSymbol={outputToken.symbol}
         inputAmount={inputAmount}
-        expectedOutput={quote?.expectedOutput || '0'}
+        expectedOutput={quote ? quote.expectedOutput : '0'}
+        fromNetwork={quote ? quote.fromNetwork : selectedNetwork}
+        toNetwork={quote ? quote.toNetwork : outputNetwork}
+        depositAddress={quote?.depositAddress}
         onReset={handleReset}
       />
     </div>
